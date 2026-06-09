@@ -153,6 +153,9 @@ As a developer using an async runtime, I want to create and propagate trace cont
 - **NFR-006**: The observability abstractions MUST be usable in async runtimes and concurrent execution environments. Context propagation must support non-blocking, concurrent, and task-based execution models. No synchronous-only assumptions may be encoded.
 - **NFR-007**: The core MUST remain runtime agnostic — no dependency on any specific async runtime is permitted.
 - **NFR-008**: The core design MUST remain compatible with future macro-based instrumentation (e.g., `kit_trace!`, `kit_debug!`, `kit_info!`, `kit_warn!`, `kit_error!`) without requiring core API changes. Macros are defined as a first-class user experience expectation.
+- **NFR-009**: NoOp implementations of all core abstractions (NoOpLogger, NoOpTracer, NoOpMeter) MUST be available by default. NoOp implementations MUST be safe for production use and introduce minimal overhead. Applications MUST compile and run without errors when no backend, exporter, or telemetry pipeline is configured.
+- **NFR-010**: The core observability model MUST remain extensible to support future telemetry record types (e.g., workflow telemetry, projection telemetry, scheduler telemetry, event-sourcing telemetry) without requiring breaking API changes on existing entities.
+- **NFR-011**: The observability core MUST support future exporter implementations (e.g., OpenTelemetry, OTLP, Prometheus, Loki, Tempo, Datadog) without requiring changes to Logger, Tracer, Meter, Context, Resource, Span, Metric, or LogRecord abstractions. No exporter implementation belongs in KIT-001.
 
 ### Functional Requirements
 
@@ -161,7 +164,7 @@ As a developer using an async runtime, I want to create and propagate trace cont
 - **FR-001**: Context MUST contain `trace_id`, `span_id`, optional `correlation_id`, and an `attributes` collection supporting arbitrary key-value pairs.
 - **FR-002**: Context MUST support creating child contexts that inherit the parent's `trace_id`, `correlation_id`, and attributes.
 - **FR-003**: Context MUST support creating a root context (no parent) that generates a new `trace_id` and `span_id`.
-- **FR-004**: `correlation_id` MUST be a first-class, optional field on Context. It is a string identifier for correlating telemetry across service, system, and workflow boundaries.
+- **FR-004**: `correlation_id` MUST be a first-class, optional field on Context. It is a string identifier for correlating telemetry across service, system, workflow, and request boundaries, independently of tracing.
 - **FR-005**: The `attributes` collection MUST support arbitrary key-value pairs. The framework MUST NOT define, reserve, or validate specific attribute keys. Examples of valid attributes (illustrative only, not a prescriptive schema): `tenant.id`, `user.id`, `organization.id`, `workflow.id`, `country`, `region`.
 
 #### Resource Model
@@ -169,7 +172,7 @@ As a developer using an async runtime, I want to create and propagate trace cont
 - **FR-006**: A `Resource` entity MUST represent metadata describing the running service instance.
 - **FR-007**: Resource MUST support arbitrary key-value attributes. Examples of valid resource attributes (illustrative only): `service.name`, `service.version`, `deployment.environment`, `host.name`, `host.id`, `container.id`, `cloud.provider`, `cloud.region`.
 - **FR-008**: The framework MUST NOT hardcode or require any specific infrastructure provider attributes. All infrastructure attributes are user-defined. The framework remains infrastructure agnostic.
-- **FR-009**: Spans, LogRecords, and Metrics MUST support association with a `Resource`.
+- **FR-009**: Spans, LogRecords, and Metrics MAY reference a `Resource`. The association MUST NOT require modifying the core record data structures to support future versions.
 
 #### Correlation Support
 
@@ -192,10 +195,18 @@ As a developer using an async runtime, I want to create and propagate trace cont
 
 #### InstrumentationScope
 
-- **FR-020**: An `InstrumentationScope` entity MUST represent the component or library producing telemetry.
+- **FR-020**: An `InstrumentationScope` entity MUST represent the logical component or library producing telemetry, independent of deployment topology.
 - **FR-021**: InstrumentationScope MUST carry a `name` (string) and an optional `version` (string).
-- **FR-022**: InstrumentationScope MUST remain generic — it must not be tied to any specific framework, library, or internal component.
+- **FR-022**: InstrumentationScope MUST remain generic — it must not be tied to any specific framework, library, internal component, or deployment topology.
 - **FR-023**: All telemetry signals (Spans, LogRecords, Metrics) MUST carry an associated InstrumentationScope.
+- **FR-024**: Telemetry producers MAY explicitly associate records with an InstrumentationScope. When no explicit scope is provided, a default scope (e.g., name: "unknown") is assigned.
+
+#### NoOp Default Implementations
+
+- **FR-025**: NoOpLogger MUST accept all log record emission requests without error and silently discard them.
+- **FR-026**: NoOpTracer MUST accept all span creation requests without error and return no-op spans that silently discard all operations (child creation, event recording, attribute setting, ending).
+- **FR-027**: NoOpMeter MUST accept all metric instrument creation and recording requests without error and silently discard all values across all four instrument types (Counter, Gauge, Histogram, UpDownCounter).
+- **FR-028**: The default global instances MUST be NoOpLogger, NoOpTracer, and NoOpMeter. These MUST be active when no user-provided or configured implementation has been supplied.
 
 ### Key Entities
 
@@ -205,6 +216,7 @@ As a developer using an async runtime, I want to create and propagate trace cont
 - **Span**: Represents a single unit of work in a distributed trace. Carries trace context, timing, status, attributes, Resource, and InstrumentationScope.
 - **LogRecord**: Represents a single structured log entry. Carries severity, message, optional trace context, optional correlation_id, attributes, Resource, and InstrumentationScope.
 - **Metric**: Represents a measured value or distribution. Carries instrument type (Counter, Gauge, Histogram, UpDownCounter), values, attributes, Resource, and InstrumentationScope.
+- **NoOpLogger, NoOpTracer, NoOpMeter**: Default no-operation implementations of the logging, tracing, and metrics abstractions. These are active by default so the application compiles and runs without any backend configured. They accept all API calls silently and discard all data without error. Safe for production use with minimal overhead.
 
 ## Success Criteria _(mandatory)_
 
@@ -218,6 +230,7 @@ As a developer using an async runtime, I want to create and propagate trace cont
 - **SC-006**: The core API surface can be used in the pattern that macro expansion would produce (e.g., create context, create span/log/metric via the API with the same parameters a macro would supply). Verified by a test that exercises each macro-equivalent API pattern and validates the resulting telemetry structure.
 - **SC-007**: The core abstractions compile and operate correctly in a multi-threaded or async execution context. Verified by a test that creates and propagates contexts across concurrent tasks without data races or context leaks.
 - **SC-008**: The core API surface (Context, Resource, InstrumentationScope, Span, LogRecord, Metric, Counter, Gauge, Histogram, UpDownCounter) maps cleanly to the OpenTelemetry specification's data model without requiring any OpenTelemetry SDK dependency. Verified by a mapping review against the OpenTelemetry specification.
+- **SC-009**: An application linking only against the core (no backend, exporter, or telemetry pipeline configured) compiles and runs without errors. All telemetry API calls (create context, create span, emit log, record metric) are accepted and safely discarded via the default NoOp implementations. Verified by a test that exercises every core API entry point without a configured backend.
 
 ## Assumptions
 
@@ -227,3 +240,4 @@ As a developer using an async runtime, I want to create and propagate trace cont
 - The default Resource (when none is explicitly provided) will use minimal reasonable defaults such as `service.name` derived from the application or environment context.
 - The core defines the data model and creation API. Thread safety and context propagation mechanisms are implementation concerns that must satisfy the async compatibility requirement (NFR-006).
 - Correlation identifiers are free-form strings. No format, length, or uniqueness constraints are imposed by the core — validation (if any) belongs in specific adapter or exporter implementations.
+- NoOp implementations (NoOpLogger, NoOpTracer, NoOpMeter) are provided as part of the core library. They are the default instances active when no user-provided or configured implementation is supplied, ensuring applications compile and run without any backend configured.
