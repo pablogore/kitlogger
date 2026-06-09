@@ -97,6 +97,7 @@ As an application developer, I want to enable or disable Prometheus independentl
 - **NFR-001**: The Prometheus exporter MUST be implemented using the KIT-003 MetricExporter abstraction exclusively.
 - **NFR-002**: The implementation MUST NOT require changes to KIT-001, KIT-002, or KIT-003 public APIs.
 - **NFR-003**: Any gaps discovered in the KIT-003 Exporter SDK during implementation MUST be documented and reported.
+- **NFR-004**: The Prometheus exporter architecture MUST support future label cardinality control strategies without requiring API redesign. Examples include label filtering, label suppression, attribute whitelisting, attribute blacklisting, and cardinality limits. This feature does not define any specific strategy.
 
 ### Functional Requirements
 
@@ -118,7 +119,9 @@ As an application developer, I want to enable or disable Prometheus independentl
 
 - **FR-009**: Exporter failures MUST remain isolated according to KIT-003 — a Prometheus exporter failure MUST NOT affect other exporters.
 - **FR-010**: Prometheus integration MUST NOT require changes to application instrumentation code.
-- **FR-011**: The implementation MUST validate that KIT-003 exporter abstractions are sufficient for future exporter implementations. Any gaps discovered must be documented.
+- **FR-011**: The implementation MUST validate that KIT-003 supports metric translation, metadata propagation, exporter lifecycle participation, exporter isolation, and pull-based collection without architectural redesign. Any deficiencies discovered must be documented as exporter-sdk feedback.
+- **FR-012**: The Prometheus exporter MUST validate that the KIT-003 exporter architecture supports pull-based exporter models. The implementation should demonstrate that scrape-driven collection is possible, MetricExporter remains sufficient, and no KIT-003 API changes are required.
+- **FR-013**: The Prometheus exporter MUST validate that metric attributes, Resource metadata, and InstrumentationScope metadata can be mapped to Prometheus labels without requiring modifications to KIT-001, KIT-002, or KIT-003. Any discovered gaps must be documented.
 
 ### Key Entities
 
@@ -135,10 +138,13 @@ As an application developer, I want to enable or disable Prometheus independentl
 - **SC-003**: No changes are required to KIT-002. Verified by API review.
 - **SC-004**: No changes are required to KIT-003. Verified by API review.
 - **SC-005**: Prometheus exporter serves as proof that the KIT-003 Exporter SDK supports real-world exporter implementations. Verified by successful implementation and documented gap analysis.
+- **SC-006**: The Prometheus exporter demonstrates compatibility with the exporter runtime model defined by KIT-003. The validation should confirm that future runtime concerns such as lifecycle, flush, startup, shutdown, and isolation can be supported without redesigning exporter abstractions. No runtime implementation is required by this specification.
 
 ## Assumptions
 
 - KIT-001 (Foundational Observability Abstractions) is implemented and available.
 - KIT-002 (OpenTelemetry Integration) is implemented or planned — the mapping layer may be used for metric translation if applicable.
 - KIT-003 (Pluggable Exporter Architecture) is implemented — the MetricExporter abstraction, Exporter Registry, and lifecycle management are available.
+- Metric naming conventions are exporter-specific. Examples include `http_requests_total`, `memory_usage_bytes`, and `queue_depth`. The specification does not define naming rules, naming transformations, or naming normalization. These concerns belong to exporter implementation planning.
+- KIT-003 remains transport neutral. KIT-004 validates a pull-based exporter implementation. Future exporter specifications may validate push-based exporters, streaming exporters, or queue-driven exporters. No transport model is mandated by KIT-003.
 - Prometheus-specific transport (HTTP), exposition format (text-based Prometheus protocol), and HTTP server details belong to implementation planning and are not defined by this specification.
