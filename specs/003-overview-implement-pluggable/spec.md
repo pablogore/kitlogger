@@ -109,6 +109,7 @@ As an application developer, I want exporters to be independently enabled or dis
 - **Slow exporter**: A slow exporter must not block other exporters or degrade application performance.
 - **Exporter receiving malformed telemetry**: Exporters must handle malformed or unexpected telemetry data gracefully.
 - **Exporter unavailable during runtime**: When an exporter becomes unavailable mid-operation, the SDK must handle the failure without crashing.
+- **Ordering guarantees**: Ordering guarantees are outside the scope of KIT-003. The Exporter SDK must not require global ordering, cross-exporter ordering, or distributed ordering. Specific exporter implementations may provide stronger guarantees.
 
 ## Requirements _(mandatory)_
 
@@ -119,6 +120,8 @@ As an application developer, I want exporters to be independently enabled or dis
 - **NFR-003**: The SDK MUST support future synchronous and asynchronous exporter implementations without requiring API redesign.
 - **NFR-004**: The SDK MUST support future batching, retry, buffering, and sampling implementations without requiring API redesign.
 - **NFR-005**: The SDK MUST remain compatible with future exporter implementations including Prometheus, Loki, Tempo, OpenTelemetry, Datadog, New Relic, CloudWatch, and OpenObserve without requiring breaking API changes.
+- **NFR-006**: The Exporter SDK MUST support future backpressure strategies without requiring API redesign. Examples include dropping, buffering, batching, rate limiting, and queue-based delivery. This feature does not define any specific strategy.
+- **NFR-007**: The Exporter SDK MUST remain compatible with future exporter runtime models including synchronous exporters, asynchronous exporters, background workers, queue-based exporters, and streaming exporters without introducing implementation details.
 
 ### Functional Requirements
 
@@ -138,7 +141,7 @@ As an application developer, I want exporters to be independently enabled or dis
 
 - **FR-007**: Telemetry MUST be delivered to all registered exporters of the corresponding type.
 - **FR-008**: Exporter execution failures MUST be isolated — a failure in one exporter MUST NOT prevent delivery to other exporters.
-- **FR-009**: Exporter failures MUST be observable through diagnostics or telemetry (e.g., internal logging, error counters).
+- **FR-009**: Exporter diagnostics MUST allow operators to identify exporter failures, exporter startup failures, exporter shutdown failures, exporter timeouts, and exporter degradation. The specification does not define implementation details for diagnostics.
 
 #### Lifecycle
 
@@ -146,27 +149,29 @@ As an application developer, I want exporters to be independently enabled or dis
 - **FR-011**: Exporters MUST support startup (connection establishment, background task spawning).
 - **FR-012**: Exporters MUST support graceful shutdown (connection drain, resource release).
 - **FR-013**: Exporters MUST support flush operations when applicable (force-publish buffered data).
+- **FR-014**: Exporter operational state MUST be observable. Examples of states include initialized, starting, running, degraded, stopped, and failed. The specification does not define how this information is exposed.
 
 #### Metadata Preservation
 
-- **FR-014**: Exporters MUST receive Context metadata (`trace_id`, `span_id`, `correlation_id`, attributes).
-- **FR-015**: Exporters MUST receive Resource metadata (service name, version, environment, etc.).
-- **FR-016**: Exporters MUST receive InstrumentationScope metadata (scope name, version).
-- **FR-017**: Exporters MUST preserve telemetry attributes (arbitrary key-value pairs).
+- **FR-015**: Exporters MUST receive Context metadata (`trace_id`, `span_id`, `correlation_id`, attributes).
+- **FR-016**: Exporters MUST receive Resource metadata (service name, version, environment, etc.).
+- **FR-017**: Exporters MUST receive InstrumentationScope metadata (scope name, version).
+- **FR-018**: Exporters MUST preserve telemetry attributes (arbitrary key-value pairs).
 
 #### Configuration
 
-- **FR-018**: Exporters MUST be independently configurable (each exporter has its own configuration scope).
-- **FR-019**: Exporters MUST be independently enabled or disabled.
-- **FR-020**: Exporter configuration changes MUST NOT require instrumentation code changes.
+- **FR-019**: Exporters MUST be independently configurable (each exporter has its own configuration scope).
+- **FR-020**: Exporters MUST be independently enabled or disabled.
+- **FR-021**: Exporter configuration changes MUST NOT require instrumentation code changes.
 
 ### Key Entities
 
 - **LogExporter**: Receives log telemetry (LogRecords) and exports them to external systems. Implements a public interface for custom backend integration.
 - **MetricExporter**: Receives metric telemetry (Counter, Gauge, Histogram, UpDownCounter datapoints) and exports them to external systems.
 - **TraceExporter**: Receives trace telemetry (Spans) and exports them to external systems.
-- **Exporter Registry**: Maintains exporter registrations and dispatches telemetry to all registered exporters of the corresponding type. Handles lifecycle coordination and failure isolation.
+- **Exporter Registry**: Responsible for exporter registration, exporter deregistration, exporter discovery, exporter lifecycle coordination, and dispatch coordination. The registry is not responsible for transport, storage, batching, retry, buffering, or vendor-specific behavior.
 - **Export Delivery Context**: Contains Context (`trace_id`, `span_id`, `correlation_id`), Resource, InstrumentationScope, and telemetry attributes delivered to exporters with each export invocation.
+- **Composite Exporter**: A conceptual component responsible for dispatching telemetry to multiple registered exporters of the same type. Responsibilities include fan-out telemetry delivery, coordinating exporter invocation, preserving exporter isolation, and remaining transparent to instrumentation code. This is a conceptual entity — implementation details and design patterns are not defined by this specification.
 
 ## Success Criteria _(mandatory)_
 
