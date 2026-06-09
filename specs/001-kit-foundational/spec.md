@@ -176,7 +176,7 @@ As a developer using an async runtime, I want to create and propagate trace cont
 
 #### Correlation Support
 
-- **FR-010**: `correlation_id` MUST be supportable independently of a trace context. A LogRecord or Metric datapoint may carry a `correlation_id` without a `trace_id` or `span_id`, and a Context may carry a `correlation_id` without a trace context.
+- **FR-010**: `correlation_id` MUST be supportable independently of a trace context. A LogRecord or Metric datapoint may carry a `correlation_id` without a `trace_id` or `span_id`.
 - **FR-011**: When a Context carries both a trace context and a `correlation_id`, telemetry created from that Context MUST inherit both.
 
 #### Telemetry Signals
