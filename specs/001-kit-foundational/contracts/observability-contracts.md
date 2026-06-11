@@ -19,6 +19,9 @@ struct Context {
 - `create_child_context(parent: &Context) -> Context`: Create a child context inheriting trace_id, correlation_id, and attributes
 - `with_correlation_id(self, correlation_id: String) -> Context`: Create a new context with correlation_id
 
+**Implementation Notes:**
+The specification does not mandate any specific context propagation mechanism. Implementations MAY use thread-local storage, task-local storage, explicit propagation, or other strategies. The core contract MUST be compatible with async runtimes and concurrent execution.
+
 ## Resource Contract
 
 ### Interface
@@ -32,6 +35,9 @@ struct Resource {
 - `new(attributes: HashMap<String, String>) -> Resource`: Create a new Resource with given attributes
 - `merge_with(self, other: &Resource) -> Resource`: Merge this resource with another resource
 
+**Attribute Resolution:**
+The specification does not require resource attributes and telemetry attributes to be merged into a single attribute collection. Both MUST remain independently accessible. The core MUST NOT mandate merge behavior. Exporters, adapters, SDKs, or future runtime implementations MAY define projection or merge strategies appropriate for their backend.
+
 ## InstrumentationScope Contract
 
 ### Interface
@@ -44,6 +50,9 @@ struct InstrumentationScope {
 
 ### Operations
 - `new(name: String, version: Option<String>) -> InstrumentationScope`: Create a new InstrumentationScope
+
+**Default Behavior:**
+When no explicit scope is provided, the default scope name MUST be "unknown" with no version specified.
 
 ## Span Contract
 
@@ -137,6 +146,15 @@ struct HistogramData {
 - `record_histogram(histogram: &mut Histogram, value: f64)`: Record a value in a histogram
 - `record_up_down_counter(up_down_counter: &mut UpDownCounter, value: f64)`: Record a value in an up-down counter
 
+**Semantic Requirements:**
+- Counter: Monotonic, accepts only positive increments, represents cumulative increasing value
+- UpDownCounter: Non-monotonic, accepts positive and negative increments
+- Histogram: Records observations into a statistical distribution, supports count, sum, min, max, and bucketed aggregation semantics
+- Gauge: Represents a point-in-time value, most recently recorded value is current observation
+
+**Implementation Strategy:**
+The specific implementation strategy for these instruments (including locking, concurrent access, atomic operations, memory layout, aggregation algorithms, etc.) is implementation-defined and outside the scope of KIT-001.
+
 ## NoOp Implementations
 
 ### NoOpLogger Contract
@@ -167,6 +185,9 @@ impl Meter for NoOpMeter {
     // Similar implementations for gauge, histogram, up_down_counter
 }
 ```
+
+**Implementation Details:**
+NoOp implementations MUST be available by default and MUST accept all valid API calls without error. The specific instantiation and access patterns are implementation-specific and outside the scope of KIT-001.
 
 ## Compatibility with OpenTelemetry
 

@@ -28,6 +28,9 @@ An InstrumentationScope identifies the logical component or library producing te
 - `name`: String identifier for the component/library
 - `version`: Optional string identifier for the component/library version
 
+**Default Behavior:**
+When no explicit scope is provided, the default scope name MUST be "unknown" with no version specified.
+
 ### Span
 A Span represents a single unit of work in a distributed trace.
 
@@ -83,12 +86,24 @@ A Histogram supports recording observations into a distribution, capturing count
 ### UpDownCounter
 An UpDownCounter supports both positive and negative increments, exposing a non-monotonic sum.
 
+**Semantic Requirements:**
+- Counter: Monotonic, accepts only positive increments, represents cumulative increasing value
+- UpDownCounter: Non-monotonic, accepts positive and negative increments
+- Histogram: Records observations into a statistical distribution, supports count, sum, min, max, and bucketed aggregation semantics
+- Gauge: Represents a point-in-time value, most recently recorded value is current observation
+
+**Implementation Strategy:**
+The specific implementation strategy for these instruments (including locking, concurrent access, atomic operations, memory layout, aggregation algorithms, etc.) is implementation-defined and outside the scope of KIT-001.
+
 ## NoOp Implementations
 
 The framework provides NoOp implementations for all core abstractions:
 - NoOpLogger: Accepts all log record emission requests without error and silently discards them
 - NoOpTracer: Accepts all span creation requests without error and returns no-op spans that silently discard all operations
 - NoOpMeter: Accepts all metric instrument creation and recording requests without error and silently discards all values
+
+**Implementation Details:**
+NoOp implementations MUST be available by default and MUST accept all valid API calls without error. The specific instantiation and access patterns are implementation-specific and outside the scope of KIT-001.
 
 ## Validation Rules
 
@@ -98,3 +113,21 @@ The framework provides NoOp implementations for all core abstractions:
 - All attributes collections must support arbitrary key-value pairs
 - Resource attributes must be user-defined, not hardcoded infrastructure provider attributes
 - Correlation_id must be usable independently of trace context
+
+## Attribute Data Model
+
+Attribute values MUST support a typed value model compatible with OpenTelemetry-style attributes.
+
+Minimum supported types:
+- String
+- Bool
+- I64
+- F64
+
+Additionally, the model SHOULD support homogeneous arrays of primitive values:
+- Vec<String>
+- Vec<bool>
+- Vec<i64>
+- Vec<f64>
+
+The core MUST NOT support arbitrary nested maps or arbitrary JSON structures as first-class attribute values.
