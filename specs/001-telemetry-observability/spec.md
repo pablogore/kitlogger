@@ -125,3 +125,63 @@ This specification must NOT implement:
 - Backend implementations
 
 Those belong to future adapter specifications.
+
+## Architectural Clarifications
+
+### Capability Contracts
+The telemetry capability defines stable contracts for core telemetry components that remain unchanged regardless of the underlying implementation. These contracts include:
+- TelemetryProvider interface for telemetry lifecycle management
+- TelemetryContext for cross-component correlation
+- Resource and ResourceAttribute for system identification
+- Span, Trace, and Metric interfaces for telemetry data modeling
+- Exporter and Sampler contracts for data processing and filtering
+
+### Bounded Context
+The telemetry capability operates within a bounded context that:
+- Is independent of specific telemetry backends (OpenTelemetry, Prometheus, etc.)
+- Provides a unified observability model across all supported telemetry types
+- Maintains clear separation between domain and adapter implementations
+- Is transport-agnostic and works across different middleware components
+
+### Domain Separation
+The domain model is separated from implementation details:
+- Core telemetry entities (Span, Trace, Metric) are defined in the domain
+- Implementation-specific concerns (exporters, samplers) are handled by adapters
+- The domain model remains stable regardless of backend selection
+- All adapter implementations depend on the canonical domain
+
+### Transport Independence
+The architecture supports transport-agnostic observability:
+- Telemetry data can flow across arbitrary transports and middleware components
+- Transport-specific concerns are abstracted away through ContextPropagator
+- The system works with HTTP, gRPC, message queues, and other transport mechanisms
+- Transport context is maintained through TransportContext abstraction
+
+### Deterministic Correlation
+The system ensures deterministic correlation between telemetry types:
+- All telemetry data shares a common correlation identifier
+- Log ↔ Trace, Audit ↔ Trace, Error ↔ Trace, Request ↔ Trace, Message ↔ Trace correlations are supported
+- Correlation is maintained across distributed operations
+- Context propagation works consistently across all supported transports
+
+### Adapter Strategy
+The adapter strategy follows the dependency inversion principle:
+- Adapters implement the canonical domain contracts
+- Core domain does not depend on specific adapter implementations
+- Multiple adapters can coexist and be selected at runtime
+- Adapter implementations are isolated from the core domain
+
+### Atomic Features
+The capability is decomposed into atomic features that can be implemented independently:
+- Core telemetry domain model
+- Context propagation and correlation
+- Transport-agnostic telemetry flow
+- Adapter interface definitions
+- Optional telemetry configuration
+
+### Future Specifications
+This capability will be extended by:
+- OpenTelemetry adapter specification
+- Prometheus adapter specification
+- Vendor-specific adapter specifications
+- Collector integration specifications
