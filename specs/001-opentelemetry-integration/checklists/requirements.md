@@ -1,8 +1,8 @@
-# Specification Quality Checklist: KIT-008 gRPC Middleware Observability
+# Specification Quality Checklist: OpenTelemetry Integration
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-06-10
-**Feature**: [spec.md](spec.md)
+**Created**: 2026-06-12
+**Feature**: [specs/001-opentelemetry-integration/spec.md](specs/001-opentelemetry-integration/spec.md)
 
 ## Content Quality
 
@@ -31,6 +31,4 @@
 
 ## Notes
 
-- All sections are present. The Non-Functional Requirements section is included after the Functional Requirements, which follows the established pattern from previous specs (KIT-001, KIT-006).
-- The spec references "gRPC" as the target protocol, which is the domain of the feature rather than an implementation detail. This is consistent with how prior specs reference their domain (e.g., KIT-001 references "OpenTelemetry").
-- The Dependencies section references implementing framework options (grpc-go, tonic-rs) for project context only, not as specification requirements.
+- All checklist items pass validation
