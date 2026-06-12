@@ -1,3 +1,8 @@
 /target
-/.specify
+/.specify/*
+!/.specify/workflows/
+/.specify/workflows/*
+!/.specify/workflows/speckit/
+/.specify/workflows/speckit/*
+!/.specify/workflows/speckit/workflow.yml
 /.opencode
