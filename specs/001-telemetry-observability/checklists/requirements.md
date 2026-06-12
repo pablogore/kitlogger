@@ -1,8 +1,8 @@
-# Specification Quality Checklist: OpenTelemetry Integration
+# Specification Quality Checklist: Telemetry & Observability
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-06-12
-**Feature**: [specs/001-opentelemetry-integration/spec.md](specs/001-opentelemetry-integration/spec.md)
+**Feature**: [Link to spec.md]
 
 ## Content Quality
 
