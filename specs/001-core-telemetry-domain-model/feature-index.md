@@ -1,4 +1,4 @@
-# Core Telemetry Domain Model - Decomposition
+# Core Telemetry Domain Model - Feature Index
 
 ## Atomic Specification Candidates
 
