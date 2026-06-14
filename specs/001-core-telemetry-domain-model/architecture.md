@@ -1,131 +1,63 @@
 # Architecture Specification: Core Telemetry Domain Model
 
-**SPEC_ID**: 001-core-telemetry-domain-model
+## Capability Boundary
 
-## Capability and Domain Boundaries
+The Core Telemetry Domain Model capability owns the canonical telemetry data model for KitLogger. It defines the fundamental entities (Resource, Instrumentation Scope, Trace, Span, Span Event, Span Link, Metric, Log Record), their relationships, the unified attribute model, context model, and cross-signal correlation concepts. This capability owns telemetry semantics while remaining implementation-independent and transport-agnostic.
 
-This specification defines the architectural boundaries for the Core Telemetry Domain Model, which encompasses all observability capabilities for KitLogger. The domain includes traces, metrics, logs, correlation identifiers, context propagation, and transport-agnostic telemetry flow.
+Outside this capability: configuration infrastructure (Kit Config), transport bindings, adapter implementations, instrumentation middleware, storage, and visualization.
 
-## Concepts, Constraints, and Ownership Boundaries
+## Domain Boundaries
 
-### Core Concepts
-- **Telemetry**: A collection of data points representing system behavior across traces, metrics, and logs
-- **Trace**: A collection of spans representing a logical operation
-- **Span**: A named, timed operation that represents a unit of work in a trace
-- **Metric**: A measurement of a system's behavior at a point in time
-- **Log**: A record of an event that occurred at a specific time
-- **Correlation Identifier**: A unique identifier used to correlate related telemetry data
-- **Context**: A set of key-value pairs that propagate across system boundaries
+- **Context Propagation and Correlation** - Context management (Trace Context, Correlation Identifier, Baggage, Propagation Metadata) and cross-signal correlation across Traces, Metrics, and Logs
+- **Transport-Agnostic Telemetry Flow** - Extensible transport abstraction over HTTP, gRPC, CLI, Background Jobs (initial) and Kafka, NATS, RabbitMQ, Cron Jobs, Event Systems (future)
+- **Telemetry Adapter Contracts** - OpenTelemetry adapter contract, adapter registry, and adapter lifecycle; Console Export is a separate concern
+- **Telemetry Configuration Semantics** - Telemetry configuration concepts, defaults, constraints, and validation rules; Kit Config owns configuration infrastructure
 
-### Constraints
-- Must support transport-agnostic telemetry flow across HTTP, gRPC, CLI, and background jobs
-- Must maintain zero business-domain coupling
-- Must support OpenTelemetry interoperability
-- Must allow observability to be enabled or disabled without affecting business logic
-- Must support pluggable exporters and adapters
-- Must support future middleware ecosystems and transports
+## Constraints
 
-### Ownership Boundaries
-- The Core Telemetry Domain Model owns the definition of telemetry concepts, trace lifecycle, metric lifecycle, log lifecycle, correlation identifiers, and context propagation rules
-- The domain is responsible for the transport-independent telemetry flow
-- The domain is responsible for adapter and exporter architecture definitions
-- Implementation details are owned by downstream atomic specifications
+- OpenTelemetry-compatible, implementation-independent domain model
+- Resource is a first-class telemetry entity
+- Unified attribute model across all telemetry entities (Trace, Span, Metric, Log Record)
+- Full context model: Trace Context, Correlation Identifier, Baggage, Propagation Metadata
+- Cross-signal correlation across Traces, Metrics, and Logs
+- Extensible transport model: domain model unchanged by transport additions
+- OpenTelemetry-first adapter strategy with pluggable extensibility
+- Kit Config owns all configuration infrastructure; telemetry owns only semantics
+- Atomic specifications form a DAG with no circular dependencies
+- Domain model remains stable as instrumentation capabilities are added
+- Tenant-neutral core with future multi-tenancy extension support
+- Resource and Instrumentation Scope remain part of the canonical model, not separate atomic specifications
 
 ## Decomposition Strategy
 
-This capability is decomposed into 5 atomic specifications that can be independently developed and implemented:
+The Core Telemetry Domain Model capability is decomposed into four independently evolvable Atomic Specifications based on separation of concerns:
 
-1. **Core Telemetry Domain Model** (001-001)
-2. **Context Propagation and Correlation** (001-002)
-3. **Transport-Agnostic Telemetry Flow** (001-003)
-4. **Adapter Interface Definitions** (001-004)
-5. **Optional Telemetry Configuration** (001-005)
+1. **Context Propagation and Correlation** - Manages context propagation across execution boundaries and correlation between signals
+2. **Transport-Agnostic Telemetry Flow** - Defines abstract transport contracts that allow telemetry data to flow across different execution environments
+3. **Telemetry Adapter Contracts** - Defines adapter interfaces that decouple the domain model from telemetry providers and exporters
+4. **Telemetry Configuration Semantics** - Defines configuration schema, defaults, and validation rules for telemetry behavior
 
-## Atomic Specification Dependency Graph
+Each candidate addresses one distinct concern, can be implemented independently, and depends only on the parent capability's canonical model plus explicit inter-candidate dependencies.
 
-```
-001-core-telemetry-domain-model
-├── 001-001-core-telemetry-domain-model
-├── 001-002-context-propagation-and-correlation
-├── 001-003-transport-agnostic-telemetry-flow
-├── 001-004-adapter-interface-definitions
-└── 001-005-optional-telemetry-configuration
+## Dependency Graph
+
+```text
+[AS-01] Context Propagation and Correlation
+[AS-02] Transport-Agnostic Telemetry Flow -> [AS-01]
+[AS-03] Telemetry Adapter Contracts
+[AS-04] Telemetry Configuration Semantics -> [AS-03]
+                                          -> Kit Config (external)
 ```
 
 ## Atomic Specification Candidates
 
-### AS-01: Core Telemetry Domain Model
-- **Name**: Core Telemetry Domain Model
-- **Responsibility**: Define telemetry concepts, trace lifecycle, metric lifecycle, log lifecycle, correlation identifiers, and context propagation rules
-- **Dependencies**: None
-- **Ownership Boundary**: Core telemetry concepts and definitions
-- **Extension Hooks**: 
-  - `telemetry.concept.definition` - Extension point for defining new telemetry concepts
-  - `telemetry.lifecycle` - Extension point for customizing telemetry lifecycle management
-  - `telemetry.context` - Extension point for custom context propagation mechanisms
+| Key | Name | Responsibility | Dependencies | Ownership Boundary |
+|-----|------|----------------|--------------|--------------------|
+| AS-01 | Context Propagation and Correlation | Define context propagation (Trace Context, Correlation ID, Baggage) and cross-signal correlation across Traces, Metrics, and Logs | None (parent capability) | Context, Correlation, Propagation Metadata |
+| AS-02 | Transport-Agnostic Telemetry Flow | Define abstract transport contracts for telemetry data flow across HTTP, gRPC, CLI, Background Jobs, and future transports | AS-01 | Transport abstraction, Protocol contracts, Execution boundary mapping |
+| AS-03 | Telemetry Adapter Contracts | Define OpenTelemetry adapter contract, adapter registry, and adapter lifecycle | None (parent capability) | OpenTelemetry adapter contract, Adapter registry, Adapter lifecycle |
+| AS-04 | Telemetry Configuration Semantics | Define telemetry configuration schema, defaults, constraints, and validation rules | AS-03, Kit Config (external) | Configuration semantics, Validation rules, Defaults |
 
-### AS-02: Context Propagation and Correlation
-- **Name**: Context Propagation and Correlation
-- **Responsibility**: Define context propagation rules and correlation mechanisms across system boundaries
-- **Dependencies**: AS-01 (Core Telemetry Domain Model)
-- **Ownership Boundary**: Context propagation and correlation logic
-- **Extension Hooks**: 
-  - `context.propagation` - Extension point for custom context propagation strategies
-  - `correlation.identifier` - Extension point for custom correlation identifier generation
+## Expansion Contract
 
-### AS-03: Transport-Agnostic Telemetry Flow
-- **Name**: Transport-Agnostic Telemetry Flow
-- **Responsibility**: Define transport-independent telemetry flow mechanisms
-- **Dependencies**: AS-01 (Core Telemetry Domain Model), AS-02 (Context Propagation and Correlation)
-- **Ownership Boundary**: Telemetry flow across different transport mechanisms
-- **Extension Hooks**: 
-  - `telemetry.transport` - Extension point for adding new transport mechanisms
-  - `telemetry.flow` - Extension point for custom telemetry flow logic
-
-### AS-04: Adapter Interface Definitions
-- **Name**: Adapter Interface Definitions
-- **Responsibility**: Define adapter interfaces for connecting to different telemetry systems
-- **Dependencies**: AS-01 (Core Telemetry Domain Model)
-- **Ownership Boundary**: Adapter interface definitions
-- **Extension Hooks**: 
-  - `adapter.interface` - Extension point for defining new adapter interfaces
-  - `adapter.configuration` - Extension point for custom adapter configuration
-
-### AS-05: Optional Telemetry Configuration
-- **Name**: Optional Telemetry Configuration
-- **Responsibility**: Define configuration model for optional telemetry features
-- **Dependencies**: AS-01 (Core Telemetry Domain Model)
-- **Ownership Boundary**: Configuration model for telemetry features
-- **Extension Hooks**: 
-  - `telemetry.configuration` - Extension point for custom telemetry configuration options
-  - `telemetry.feature.toggles` - Extension point for telemetry feature enablement toggles
-
-### AS-01: Core Telemetry Domain Model
-- **Name**: Core Telemetry Domain Model
-- **Responsibility**: Define telemetry concepts, trace lifecycle, metric lifecycle, log lifecycle, correlation identifiers, and context propagation rules
-- **Dependencies**: None
-- **Ownership Boundary**: Core telemetry concepts and definitions
-
-### AS-02: Context Propagation and Correlation
-- **Name**: Context Propagation and Correlation
-- **Responsibility**: Define context propagation rules and correlation mechanisms across system boundaries
-- **Dependencies**: AS-01 (Core Telemetry Domain Model)
-- **Ownership Boundary**: Context propagation and correlation logic
-
-### AS-03: Transport-Agnostic Telemetry Flow
-- **Name**: Transport-Agnostic Telemetry Flow
-- **Responsibility**: Define transport-independent telemetry flow mechanisms
-- **Dependencies**: AS-01 (Core Telemetry Domain Model), AS-02 (Context Propagation and Correlation)
-- **Ownership Boundary**: Telemetry flow across different transport mechanisms
-
-### AS-04: Adapter Interface Definitions
-- **Name**: Adapter Interface Definitions
-- **Responsibility**: Define adapter interfaces for connecting to different telemetry systems
-- **Dependencies**: AS-01 (Core Telemetry Domain Model)
-- **Ownership Boundary**: Adapter interface definitions
-
-### AS-05: Optional Telemetry Configuration
-- **Name**: Optional Telemetry Configuration
-- **Responsibility**: Define configuration model for optional telemetry features
-- **Dependencies**: AS-01 (Core Telemetry Domain Model)
-- **Ownership Boundary**: Configuration model for telemetry features
+Each candidate becomes one independent top-level SpecKit specification through `expand`. Architecture assigns local candidate keys only; repository specification numbers are allocated during expansion.

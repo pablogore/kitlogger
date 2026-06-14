@@ -4,8 +4,7 @@
 
 | Key | Name | Responsibility | Dependencies | Ownership Boundary | Specification ID |
 |-----|------|----------------|--------------|--------------------|------------------|
-| AS-01 | Telemetry Data Model | Define core entities, relationships, and constraints for telemetry data | None | Telemetry Data, Telemetry Source, Telemetry Context, Telemetry Schema | 002-telemetry-data-model |
-| AS-02 | Telemetry Schema Definition | Establish structural definitions and validation rules for telemetry data | AS-01 | Telemetry Schema | 003-telemetry-schema-definition |
-| AS-03 | Telemetry Source Management | Handle identification, tracking, and management of telemetry sources | AS-01 | Telemetry Source | 004-telemetry-source-management |
-| AS-04 | Telemetry Context Handling | Manage contextual information and its propagation through the system | AS-01 | Telemetry Context | 005-telemetry-context-handling |
-| AS-05 | Telemetry Processing Rules | Define operations and transformations for telemetry data | AS-01 | Telemetry Processing | 006-telemetry-processing-rules |
+| AS-01 | Context Propagation and Correlation | Define context propagation (Trace Context, Correlation ID, Baggage) and cross-signal correlation across Traces, Metrics, and Logs | None (parent capability) | Context, Correlation, Propagation Metadata | 002-telemetry-as-01-context-propagation-and-correlation |
+| AS-02 | Transport-Agnostic Telemetry Flow | Define abstract transport contracts for telemetry data flow across HTTP, gRPC, CLI, Background Jobs, and future transports | 002-telemetry-as-01-context-propagation-and-correlation | Transport abstraction, Protocol contracts, Execution boundary mapping | 003-telemetry-as-02-transport-agnostic-telemetry-flow |
+| AS-03 | Telemetry Adapter Contracts | Define OpenTelemetry adapter contract, adapter registry, and adapter lifecycle | None (parent capability) | OpenTelemetry adapter contract, Adapter registry, Adapter lifecycle | 004-telemetry-as-03-telemetry-adapter-contracts |
+| AS-04 | Telemetry Configuration Semantics | Define telemetry configuration schema, defaults, constraints, and validation rules | 004-telemetry-as-03-telemetry-adapter-contracts, Kit Config (external) | Configuration semantics, Validation rules, Defaults | 005-telemetry-as-04-telemetry-configuration-semantics |
