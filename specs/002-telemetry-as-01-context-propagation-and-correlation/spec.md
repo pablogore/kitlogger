@@ -4,6 +4,8 @@
 
 **Parent**: Core Telemetry Domain Model (`001-core-telemetry-domain-model`)
 
+**PARENT_SPEC_ID**: `001-core-telemetry-domain-model`
+
 **Candidate Key**: AS-01
 
 **Created**: 2026-06-13
@@ -17,9 +19,10 @@ Define context propagation across execution boundaries and cross-signal correlat
 ## Non-Scope
 
 - Telemetry data model entities (Resource, Instrumentation Scope, Trace, Span, Metric, Log Record)
-- Transport bindings or execution boundary infrastructure
+- Transport bindings and execution boundary infrastructure (owned by AS-02 Transport-Agnostic Telemetry Flow)
 - Adapter contracts or exporter interfaces
 - Configuration infrastructure or management
+- Cargo workspace structure, repository layout, crate topology, and release engineering concerns (owned by CORE-000 Release Engineering)
 
 ## Responsibility
 
@@ -100,8 +103,29 @@ Baggage must propagate across service boundaries to carry application-specific c
 - **SC-003**: Baggage entries survive 3+ service hops without data loss
 - **SC-004**: Malformed context is handled gracefully without crashing the consumer
 
+## Ownership Boundary
+
+AS-01 **owns**:
+- Trace Context, Correlation Identifier, Baggage, Propagation Metadata
+- Propagator traits and implementations
+- Carrier abstraction and contracts
+
+AS-01 **does not own**:
+- Transport bindings and transport-specific carrier implementations (owned by AS-02 Transport-Agnostic Telemetry Flow)
+- Cargo workspace structure, repository layout, crate topology decisions
+- Release engineering concerns (owned by CORE-000 Release Engineering)
+- AS-01 consumes existing workspace structure without restructuring
+
 ## Assumptions
 
 - Parent capability defines the canonical telemetry data model entities
 - Transport mechanisms handle wire-level context carriage; this spec defines the context model
 - Correlation identifiers are globally unique and immutable once assigned
+
+## Clarifications
+
+### Session 2026-06-13
+
+- Q: Does AS-01 own repository workspace structure? → A: No. Workspace structure, repository layout, crate topology, and release engineering are owned by CORE-000 Release Engineering. AS-01 consumes existing workspace structure without restructuring.
+- Q: Does AS-01 own crate and package topology decisions? → A: No. AS-01 must remain packaging-neutral and only define domain responsibilities (entities, contracts, behaviors, validation rules). Crate boundaries, workspace structure, repository layout, and packaging decisions belong to CORE-000 Release Engineering.
+- Q: Does AS-01 own transport-specific technologies? → A: No. AS-01 must remain completely transport-agnostic. Transport-specific technologies and execution boundary infrastructure belong to AS-02 Transport-Agnostic Telemetry Flow. AS-01 defines only the Carrier contracts that transports implement.
