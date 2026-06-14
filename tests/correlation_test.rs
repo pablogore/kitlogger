@@ -2,7 +2,9 @@
 
 use context_propagation::carrier::{MapCarrier, Propagator};
 use context_propagation::correlation::CorrelationIdentifier;
-use context_propagation::models::{Context, InstrumentationScope, LogRecord, LogSeverity, Resource, Span};
+use context_propagation::models::{
+    Context, InstrumentationScope, LogRecord, LogSeverity, Resource, Span,
+};
 
 #[test]
 fn test_correlation_generation() {
