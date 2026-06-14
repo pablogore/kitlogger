@@ -1,8 +1,10 @@
-use context_propagation::trace_context::{TraceContext, TraceId, SpanId, TraceFlags, TraceState};
+use context_propagation::baggage::{Baggage, BaggageEntry, BaggageProperty};
 use context_propagation::carrier::{Injector, MapCarrier, Propagator};
 use context_propagation::correlation::CorrelationIdentifier;
-use context_propagation::baggage::{Baggage, BaggageEntry, BaggageProperty};
-use context_propagation::propagation::{TraceContextPropagator, CorrelationPropagator, BaggagePropagator};
+use context_propagation::propagation::{
+    BaggagePropagator, CorrelationPropagator, TraceContextPropagator,
+};
+use context_propagation::trace_context::{SpanId, TraceContext, TraceFlags, TraceId, TraceState};
 use std::str::FromStr;
 
 #[test]
@@ -13,13 +15,7 @@ fn test_trace_context_roundtrip() {
     let mut trace_state = TraceState::new();
     trace_state.add("congo", "t61rcWkgMzE").unwrap();
 
-    let original = TraceContext::new(
-        trace_id,
-        span_id,
-        None,
-        trace_flags,
-        trace_state,
-    );
+    let original = TraceContext::new(trace_id, span_id, None, trace_flags, trace_state);
 
     let mut carrier = MapCarrier::new();
     let propagator = TraceContextPropagator::new();
@@ -73,13 +69,7 @@ fn test_tracestate_roundtrip() {
     trace_state.add("congo", "t61rcWkgMzE").unwrap();
     trace_state.add("rojo", "00f067aa0ba902b7").unwrap();
 
-    let original = TraceContext::new(
-        trace_id,
-        span_id,
-        None,
-        TraceFlags::new(0x01),
-        trace_state,
-    );
+    let original = TraceContext::new(trace_id, span_id, None, TraceFlags::new(0x01), trace_state);
 
     let mut carrier = MapCarrier::new();
     let propagator = TraceContextPropagator::new();
@@ -117,7 +107,10 @@ fn test_extraction_returns_none_for_malformed_traceparent() {
 #[test]
 fn test_extraction_returns_none_for_zero_trace_id() {
     let mut carrier = MapCarrier::new();
-    carrier.set("traceparent", "00-00000000000000000000000000000000-b7ad6b7169203331-01");
+    carrier.set(
+        "traceparent",
+        "00-00000000000000000000000000000000-b7ad6b7169203331-01",
+    );
     let propagator = TraceContextPropagator::new();
     let result = propagator.extract(&carrier);
     assert!(result.is_none());
@@ -304,6 +297,45 @@ fn test_propagator_works_with_http_carrier() {
         assert_eq!(extracted.trace_id, original.trace_id);
         assert_eq!(extracted.span_id, original.span_id);
     }
+}
+
+#[test]
+fn test_trace_context_propagator() {
+    let trace_id = TraceId::from_str("0af7651916cd43dd8448eb211c80319c").unwrap();
+    let span_id = SpanId::from_str("b7ad6b7169203331").unwrap();
+    let original = TraceContext::new(
+        trace_id,
+        span_id,
+        None,
+        TraceFlags::new(0x01),
+        TraceState::new(),
+    );
+
+    let mut carrier = MapCarrier::new();
+    let propagator = TraceContextPropagator::new();
+    propagator.inject(&mut carrier, &original);
+
+    let extracted = propagator.extract(&carrier);
+    assert!(extracted.is_some());
+    let extracted = extracted.unwrap();
+    assert_eq!(extracted.trace_id, original.trace_id);
+    assert_eq!(extracted.span_id, original.span_id);
+    assert_eq!(extracted.trace_flags, original.trace_flags);
+}
+
+#[test]
+fn test_correlation_propagator() {
+    let original = CorrelationIdentifier::new();
+
+    let mut carrier = MapCarrier::new();
+    let propagator = CorrelationPropagator::new();
+    propagator.inject(&mut carrier, &original);
+
+    let extracted = propagator.extract(&carrier);
+    assert!(extracted.is_some());
+    let extracted = extracted.unwrap();
+    assert_eq!(extracted.id(), original.id());
+    assert_eq!(extracted.created_at(), original.created_at());
 }
 
 #[test]

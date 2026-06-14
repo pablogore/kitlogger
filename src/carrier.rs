@@ -41,7 +41,9 @@ impl MapCarrier {
     }
 
     pub fn get_values(&self, key: &str) -> Vec<&String> {
-        self.data.get(key).map_or(Vec::new(), |v| v.iter().collect())
+        self.data
+            .get(key)
+            .map_or(Vec::new(), |v| v.iter().collect())
     }
 }
 
@@ -53,17 +55,24 @@ impl Default for MapCarrier {
 
 impl Injector for MapCarrier {
     fn set(&mut self, key: &str, value: &str) {
-        self.data.entry(key.to_string()).or_insert_with(Vec::new).push(value.to_string());
+        self.data
+            .entry(key.to_string())
+            .or_insert_with(Vec::new)
+            .push(value.to_string());
     }
 }
 
 impl Extractor for MapCarrier {
     fn get(&self, key: &str) -> Option<&str> {
-        self.data.get(key).and_then(|v| v.first().map(|s| s.as_str()))
+        self.data
+            .get(key)
+            .and_then(|v| v.first().map(|s| s.as_str()))
     }
 
     fn get_all(&self, key: &str) -> Vec<&str> {
-        self.data.get(key).map_or(Vec::new(), |v| v.iter().map(|s| s.as_str()).collect())
+        self.data
+            .get(key)
+            .map_or(Vec::new(), |v| v.iter().map(|s| s.as_str()).collect())
     }
 }
 

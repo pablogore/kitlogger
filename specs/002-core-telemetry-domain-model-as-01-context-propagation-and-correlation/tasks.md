@@ -29,7 +29,7 @@ deployment target blocks task generation.
 
 **Purpose**: Verify project initialization and validate dependencies
 
-- [ ] T001 Verify crate configuration in Cargo.toml: confirm uuid v7, serde derive features are present and `cargo build` succeeds
+- [x] T001 Verify crate configuration in Cargo.toml: confirm uuid v7, serde derive features are present and `cargo build` succeeds
 
 ---
 
@@ -37,9 +37,9 @@ deployment target blocks task generation.
 
 **Purpose**: Fix underlying issues all user stories depend on
 
-- [ ] T002 [P] Implement Propagation Metadata model for transport-specific context carriage in src/propagation_metadata.rs per data-model.md
-- [ ] T003 [P] Fix CorrelationIdentifier UUID generation to use `Uuid::now_v7()` instead of hardcoded constant in src/correlation.rs
-- [ ] T004 Register Propagation Metadata module and expose from src/lib.rs
+- [x] T002 [P] Implement Propagation Metadata model for transport-specific context carriage in src/propagation_metadata.rs per data-model.md
+- [x] T003 [P] Fix CorrelationIdentifier UUID generation to use `Uuid::now_v7()` instead of hardcoded constant in src/correlation.rs
+- [x] T004 Register Propagation Metadata module and expose from src/lib.rs
 
 **Checkpoint**: Foundation ready - user story implementation can begin
 
@@ -53,10 +53,10 @@ deployment target blocks task generation.
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Add tracestate serialization to TraceContextPropagator::inject in src/propagation.rs
-- [ ] T006 [P] [US1] Preserve parent_span_id during extract and propagate in TraceContextPropagator in src/propagation.rs
-- [ ] T007 [US1] Implement multi-hop (5+) trace context propagation test in tests/trace_context_test.rs per SC-001
-- [ ] T008 [US1] Add malformed context handling test (SC-004) to verify graceful parsing failure in tests/trace_context_test.rs
+- [x] T005 [P] [US1] Add tracestate serialization to TraceContextPropagator::inject in src/propagation.rs
+- [x] T006 [P] [US1] Preserve parent_span_id during extract and propagate in TraceContextPropagator in src/propagation.rs
+- [x] T007 [US1] Implement multi-hop (5+) trace context propagation test in tests/trace_context_test.rs per SC-001
+- [x] T008 [US1] Add malformed context handling test (SC-004) to verify graceful parsing failure in tests/trace_context_test.rs
 
 **Checkpoint**: User Story 1 complete - Trace Context propagates and can be independently verified
 
@@ -70,9 +70,9 @@ deployment target blocks task generation.
 
 ### Implementation for User Story 2
 
-- [ ] T009 [P] [US2] Fix CorrelationIdentifier::from_uuid to preserve original created_at instead of regenerating in src/correlation.rs
-- [ ] T010 [P] [US2] Add serde Serialize/Deserialize derives to CorrelationIdentifier in src/correlation.rs
-- [ ] T011 [US2] Implement cross-signal correlation test verifying same correlation-id links Trace, Metric, LogRecord in tests/correlation_test.rs per SC-002
+- [x] T009 [P] [US2] Fix CorrelationIdentifier::from_uuid to preserve original created_at instead of regenerating in src/correlation.rs
+- [x] T010 [P] [US2] Add serde Serialize/Deserialize derives to CorrelationIdentifier in src/correlation.rs
+- [x] T011 [US2] Implement cross-signal correlation test verifying same correlation-id links Trace, Metric, LogRecord in tests/correlation_test.rs per SC-002
 
 **Checkpoint**: User Story 2 complete - Correlation Identifier links telemetry across signals
 
@@ -86,10 +86,10 @@ deployment target blocks task generation.
 
 ### Implementation for User Story 3
 
-- [ ] T012 [P] [US3] Implement Baggage serialization to W3C Baggage header format in src/baggage.rs
-- [ ] T013 [P] [US3] Implement Baggage deserialization from W3C Baggage header format in src/baggage.rs
-- [ ] T014 [US3] Implement BaggagePropagator::inject and BaggagePropagator::extract using serialization in src/propagation.rs
-- [ ] T015 [US3] Add 3-hop baggage propagation test in tests/baggage_test.rs per SC-003
+- [x] T012 [P] [US3] Implement Baggage serialization to W3C Baggage header format in src/baggage.rs
+- [x] T013 [P] [US3] Implement Baggage deserialization from W3C Baggage header format in src/baggage.rs
+- [x] T014 [US3] Implement BaggagePropagator::inject and BaggagePropagator::extract using serialization in src/propagation.rs
+- [x] T015 [US3] Add 3-hop baggage propagation test in tests/baggage_test.rs per SC-003
 
 **Checkpoint**: User Story 3 complete - Baggage propagates across multiple hops
 
@@ -99,8 +99,8 @@ deployment target blocks task generation.
 
 **Purpose**: Final validation and cleanup
 
-- [ ] T016 [P] Run full test suite: `cargo test` - all tests pass
-- [ ] T017 Validate all scenarios documented in quickstart.md
+- [x] T016 [P] Run full test suite: `cargo test` - all tests pass
+- [x] T017 Validate all scenarios documented in quickstart.md
 
 ---
 

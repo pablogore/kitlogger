@@ -1,7 +1,7 @@
-use crate::carrier::{Extractor, Injector, Propagator};
-use crate::trace_context::{TraceContext, SpanId, TraceState};
-use crate::correlation::CorrelationIdentifier;
 use crate::baggage::{Baggage, BaggageEntry, BaggageProperty};
+use crate::carrier::{Extractor, Injector, Propagator};
+use crate::correlation::CorrelationIdentifier;
+use crate::trace_context::{SpanId, TraceContext, TraceState};
 use std::str::FromStr;
 
 /// TraceContextPropagator for W3C Trace Context propagation
@@ -25,15 +25,14 @@ impl Propagator for TraceContextPropagator {
     fn inject(&self, carrier: &mut dyn Injector, context: &Self::Context) {
         let traceparent = format!(
             "{:02x}-{}-{}-{:02x}",
-            context.version,
-            context.trace_id,
-            context.span_id,
-            context.trace_flags
+            context.version, context.trace_id, context.span_id, context.trace_flags
         );
         carrier.set("traceparent", &traceparent);
 
         if !context.trace_state.entries().is_empty() {
-            let tracestate_str = context.trace_state.entries()
+            let tracestate_str = context
+                .trace_state
+                .entries()
                 .iter()
                 .map(|(key, value)| format!("{}={}", key, value))
                 .collect::<Vec<_>>()
@@ -147,7 +146,8 @@ impl Propagator for BaggagePropagator {
     type Context = Baggage;
 
     fn inject(&self, carrier: &mut dyn Injector, context: &Self::Context) {
-        let baggage_str = context.entries()
+        let baggage_str = context
+            .entries()
             .iter()
             .map(|entry| {
                 let mut s = if let Some(value) = &entry.value {
