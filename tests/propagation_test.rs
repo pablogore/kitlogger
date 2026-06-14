@@ -4,8 +4,49 @@ use context_propagation::correlation::CorrelationIdentifier;
 use context_propagation::propagation::{
     BaggagePropagator, CorrelationPropagator, TraceContextPropagator,
 };
+use context_propagation::propagation_metadata::PropagationMetadata;
 use context_propagation::trace_context::{SpanId, TraceContext, TraceFlags, TraceId, TraceState};
 use std::str::FromStr;
+
+// --- PropagationMetadata tests ---
+
+#[test]
+fn test_propagation_metadata_creation() {
+    let meta = PropagationMetadata::new("http");
+    assert_eq!(meta.transport, "http");
+    assert!(meta.is_empty());
+}
+
+#[test]
+fn test_propagation_metadata_add_and_get() {
+    let mut meta = PropagationMetadata::new("grpc");
+    meta.add("content-type", "application/grpc");
+    meta.add("timeout", "30s");
+
+    assert!(!meta.is_empty());
+    assert_eq!(meta.get("content-type"), Some("application/grpc"));
+    assert_eq!(meta.get("timeout"), Some("30s"));
+    assert_eq!(meta.get("nonexistent"), None);
+}
+
+#[test]
+fn test_propagation_metadata_keys() {
+    let mut meta = PropagationMetadata::new("kafka");
+    meta.add("topic", "events");
+    meta.add("partition", "0");
+
+    let keys: Vec<&String> = meta.keys().collect();
+    assert_eq!(keys.len(), 2);
+    assert!(keys.contains(&&"topic".to_string()));
+    assert!(keys.contains(&&"partition".to_string()));
+}
+
+#[test]
+fn test_propagation_metadata_default() {
+    let meta = PropagationMetadata::default();
+    assert_eq!(meta.transport, "unknown");
+    assert!(meta.is_empty());
+}
 
 #[test]
 fn test_trace_context_roundtrip() {
@@ -270,36 +311,6 @@ fn test_baggage_multi_hop() {
 }
 
 #[test]
-fn test_propagator_works_with_http_carrier() {
-    use context_propagation::carrier::HttpHeaderCarrier;
-
-    let trace_id = TraceId::from_str("0af7651916cd43dd8448eb211c80319c").unwrap();
-    let span_id = SpanId::from_str("b7ad6b7169203331").unwrap();
-    let original = TraceContext::new(
-        trace_id,
-        span_id,
-        None,
-        TraceFlags::new(0x01),
-        TraceState::new(),
-    );
-
-    let mut map = MapCarrier::new();
-    let propagator = TraceContextPropagator::new();
-    {
-        let mut http_carrier = HttpHeaderCarrier::new(&mut map);
-        propagator.inject(&mut http_carrier, &original);
-    }
-    {
-        let http_carrier = HttpHeaderCarrier::new(&mut map);
-        let extracted = propagator.extract(&http_carrier);
-        assert!(extracted.is_some());
-        let extracted = extracted.unwrap();
-        assert_eq!(extracted.trace_id, original.trace_id);
-        assert_eq!(extracted.span_id, original.span_id);
-    }
-}
-
-#[test]
 fn test_trace_context_propagator() {
     let trace_id = TraceId::from_str("0af7651916cd43dd8448eb211c80319c").unwrap();
     let span_id = SpanId::from_str("b7ad6b7169203331").unwrap();
@@ -336,34 +347,4 @@ fn test_correlation_propagator() {
     let extracted = extracted.unwrap();
     assert_eq!(extracted.id(), original.id());
     assert_eq!(extracted.created_at(), original.created_at());
-}
-
-#[test]
-fn test_propagator_works_with_grpc_carrier() {
-    use context_propagation::carrier::GrpcMetadataCarrier;
-
-    let trace_id = TraceId::from_str("0af7651916cd43dd8448eb211c80319c").unwrap();
-    let span_id = SpanId::from_str("b7ad6b7169203331").unwrap();
-    let original = TraceContext::new(
-        trace_id,
-        span_id,
-        None,
-        TraceFlags::new(0x01),
-        TraceState::new(),
-    );
-
-    let mut map = MapCarrier::new();
-    let propagator = TraceContextPropagator::new();
-    {
-        let mut grpc_carrier = GrpcMetadataCarrier::new(&mut map);
-        propagator.inject(&mut grpc_carrier, &original);
-    }
-    {
-        let grpc_carrier = GrpcMetadataCarrier::new(&mut map);
-        let extracted = propagator.extract(&grpc_carrier);
-        assert!(extracted.is_some());
-        let extracted = extracted.unwrap();
-        assert_eq!(extracted.trace_id, original.trace_id);
-        assert_eq!(extracted.span_id, original.span_id);
-    }
 }

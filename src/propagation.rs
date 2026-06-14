@@ -40,6 +40,11 @@ impl Propagator for TraceContextPropagator {
             carrier.set("tracestate", &tracestate_str);
         }
 
+        // parent_span_id is not part of the W3C Trace Context specification
+        // (the traceparent format has no field for it). We serialize it as a
+        // separate "parent-span-id" header as a best-effort preservation
+        // strategy. Downstream consumers that understand this convention can
+        // restore it; consumers that don't will silently ignore it.
         if let Some(parent_span_id) = &context.parent_span_id {
             carrier.set("parent-span-id", &parent_span_id.to_string());
         }
@@ -119,7 +124,7 @@ impl Propagator for CorrelationPropagator {
     fn extract(&self, carrier: &dyn Extractor) -> Option<Self::Context> {
         let id_str = carrier.get("correlation-id")?;
         let uuid = id_str.parse::<uuid::Uuid>().ok()?;
-        Some(CorrelationIdentifier::from_uuid(uuid))
+        CorrelationIdentifier::from_uuid(uuid)
     }
 
     fn fields(&self) -> &'static [&'static str] {

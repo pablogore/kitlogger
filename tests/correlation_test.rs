@@ -81,3 +81,70 @@ fn test_cross_signal_correlation() {
     // Verify the same correlation ID links all three signals
     assert_eq!(span.context.correlation_id, log.context.correlation_id);
 }
+
+#[test]
+fn test_correlation_validity() {
+    let id = CorrelationIdentifier::new();
+    assert!(id.is_valid());
+
+    // A manually constructed nil UUID should be invalid
+    let invalid = CorrelationIdentifier {
+        id: uuid::Uuid::nil(),
+        created_at: 0,
+    };
+    assert!(!invalid.is_valid());
+}
+
+#[test]
+fn test_correlation_from_uuid_rejects_nil() {
+    let result = CorrelationIdentifier::from_uuid(uuid::Uuid::nil());
+    assert!(result.is_none());
+
+    let result = CorrelationIdentifier::from_uuid(uuid::Uuid::now_v7());
+    assert!(result.is_some());
+}
+
+#[test]
+fn test_correlation_from_str_rejects_nil() {
+    use std::str::FromStr;
+    let nil_str = "00000000-0000-0000-0000-000000000000";
+    let result = CorrelationIdentifier::from_str(nil_str);
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_correlation_from_str_invalid() {
+    use std::str::FromStr;
+    let result = CorrelationIdentifier::from_str("not-a-uuid");
+    assert!(result.is_err());
+
+    let result = CorrelationIdentifier::from_str("");
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_correlation_timestamp_extraction() {
+    let id = CorrelationIdentifier::new();
+
+    // created_at should be a recent Unix timestamp in milliseconds
+    let now_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as i64;
+
+    // Allow 5 seconds skew for test execution
+    let diff = (now_ms - id.created_at()).abs();
+    assert!(diff < 5000, "timestamp diff too large: {}ms", diff);
+    assert!(id.created_at() > 0);
+}
+
+#[test]
+fn test_correlation_from_uuid_preserves_timestamp() {
+    let original = CorrelationIdentifier::new();
+    let id = original.id();
+
+    // from_uuid should preserve the same timestamp
+    let restored = CorrelationIdentifier::from_uuid(*id).unwrap();
+    assert_eq!(original.created_at(), restored.created_at());
+    assert_eq!(original.id(), restored.id());
+}

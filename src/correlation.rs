@@ -21,7 +21,11 @@ impl FromStr for CorrelationIdentifier {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let uuid = Uuid::parse_str(s).map_err(|e| format!("Invalid UUID format: {}", e))?;
-        Ok(Self::from_uuid(uuid))
+        if uuid.is_nil() {
+            return Err("Correlation identifier UUID must not be nil".to_string());
+        }
+        Self::from_uuid(uuid)
+            .ok_or_else(|| "Correlation identifier UUID must not be nil".to_string())
     }
 }
 
@@ -34,13 +38,22 @@ impl CorrelationIdentifier {
         Self { id, created_at }
     }
 
-    /// Create a correlation identifier from an existing UUID
-    pub fn from_uuid(uuid: Uuid) -> Self {
+    /// Create a correlation identifier from an existing UUID.
+    /// Returns None if the UUID is nil.
+    pub fn from_uuid(uuid: Uuid) -> Option<Self> {
+        if uuid.is_nil() {
+            return None;
+        }
         let created_at = extract_timestamp_from_uuid(&uuid);
-        Self {
+        Some(Self {
             id: uuid,
             created_at,
-        }
+        })
+    }
+
+    /// Check if this correlation identifier is valid
+    pub fn is_valid(&self) -> bool {
+        !self.id.is_nil()
     }
 
     /// Get the UUID of this correlation identifier
@@ -66,17 +79,25 @@ impl std::fmt::Display for CorrelationIdentifier {
     }
 }
 
-/// Extract timestamp from UUID v7
+/// Extract timestamp from UUID v7 using the uuid crate's official API.
+/// Returns Unix timestamp in milliseconds.
 fn extract_timestamp_from_uuid(uuid: &Uuid) -> i64 {
-    // For UUID v7, the timestamp is in bytes 0-7 (first 8 bytes)
-    // The timestamp is stored in big-endian format as 48-bit integer
-    let bytes = uuid.as_bytes();
-    let timestamp_ms = ((bytes[0] as u64) << 40
-        | (bytes[1] as u64) << 32
-        | (bytes[2] as u64) << 24
-        | (bytes[3] as u64) << 16
-        | (bytes[4] as u64) << 8
-        | (bytes[5] as u64)) as i64;
-
-    timestamp_ms
+    match uuid.get_timestamp() {
+        Some(ts) => {
+            let (secs, nsecs) = ts.to_unix();
+            (secs as i64) * 1000 + (nsecs as i64) / 1_000_000
+        }
+        None => {
+            // Fallback for non-timestamp UUIDs: extract the embedded timestamp
+            // bytes manually. This should not happen with v7 UUIDs, but we
+            // handle it defensively.
+            let bytes = uuid.as_bytes();
+            ((bytes[0] as u64) << 40
+                | (bytes[1] as u64) << 32
+                | (bytes[2] as u64) << 24
+                | (bytes[3] as u64) << 16
+                | (bytes[4] as u64) << 8
+                | (bytes[5] as u64)) as i64
+        }
+    }
 }

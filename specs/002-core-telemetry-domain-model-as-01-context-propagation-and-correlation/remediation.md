@@ -103,7 +103,7 @@ Carrier implementations (Injector + Extractor):
 ### Multi-Hop Propagation
 
 - 3-hop baggage propagation (`test_baggage_multi_hop`): all entries survive the full chain
-- Carrier polymorphism (`test_propagator_works_with_http_carrier`, `test_propagator_works_with_grpc_carrier`): same propagator works with all carrier types
+- Transport-specific carriers (HttpHeaderCarrier, GrpcMetadataCarrier) moved to AS-02 ownership
 
 ---
 
@@ -113,7 +113,7 @@ Carrier implementations (Injector + Extractor):
 
 | Module | Exported Types |
 |--------|---------------|
-| `carrier` | `Injector`, `Extractor`, `Propagator`, `MapCarrier`, `HttpHeaderCarrier`, `GrpcMetadataCarrier` |
+| `carrier` | `Injector`, `Extractor`, `Propagator`, `MapCarrier` |
 | `trace_context` | `TraceId`, `SpanId`, `TraceFlags`, `TraceState`, `TraceContext` |
 | `correlation` | `CorrelationIdentifier` |
 | `baggage` | `Baggage`, `BaggageEntry`, `BaggageProperty` |
@@ -136,8 +136,8 @@ $ cargo build
     Finished `dev` profile — 0 warnings
 
 $ cargo test
-    Running 44 tests
-    test result: ok. 44 passed
+    Running 52 tests
+    test result: ok. 52 passed
 
 $ cargo doc --no-deps
     Generated docs — no errors
@@ -177,14 +177,56 @@ $ cargo doc --no-deps
 | Test File | Count | Status |
 |-----------|-------|--------|
 | `tests/baggage_test.rs` | 11 | ✅ All pass |
-| `tests/correlation_test.rs` | 3 | ✅ All pass |
+| `tests/correlation_test.rs` | 9 | ✅ All pass |
 | `tests/trace_context_test.rs` | 12 | ✅ All pass |
-| `tests/propagation_test.rs` | 18 | ✅ All pass |
-| **Total** | **44** | **✅ 44/44 pass** |
+| `tests/propagation_test.rs` | 20 | ✅ All pass |
+| **Total** | **52** | **✅ 52/52 pass** |
 
 ### Future Considerations
 
 - **SC-002 Metric coverage**: Metric model does not carry `context`; cross-signal correlation for Metrics is outside AS-01 ownership boundary (parent spec owns telemetry data model entities)
-- **Minor clippy warnings** (6, all pre-existing, none in AS-01 core files): `new_without_default` (x3), `unwrap_or_default`, `let_and_return`, `module_inception`
-- **Test file structure**: `propagation_test.rs` overlaps with component test files (e.g., baggage roundtrip, multi-hop duplicates) — intentional per design: component test files test model logic, propagation_test.rs tests carrier polymorphism and full inject/extract pipeline
+- **Minor clippy warnings** (5, all pre-existing, none in AS-01 core files): `new_without_default` (x3), `unwrap_or_default`, `module_inception` (previously `let_and_return` was fixed by switching to uuid crate's `get_timestamp()`)
+- **Test file structure**: `propagation_test.rs` overlaps with component test files (e.g., baggage roundtrip, multi-hop duplicates) — intentional per design: component test files test model logic, propagation_test.rs tests full inject/extract pipeline
+
+---
+
+## Final Compliance Matrix
+
+| Requirement | Status |
+|-------------|--------|
+| Transport Agnostic | ✅ PASS |
+| UUID v7 | ✅ PASS |
+| CorrelationIdentifier Validation | ✅ PASS |
+| Timestamp Extraction (uuid crate API) | ✅ PASS |
+| TraceState Roundtrip | ✅ PASS |
+| Parent Span Preservation | ✅ PASS |
+| W3C Baggage | ✅ PASS |
+| PropagationMetadata | ✅ PASS |
+| Public API Stability | ✅ PASS |
+| Tests (52/52) | ✅ PASS |
+
+### Architecture Boundary Enforcement
+
+| Artifact | Ownership | Status |
+|----------|-----------|--------|
+| `Injector`, `Extractor`, `Propagator` | AS-01 | ✅ |
+| `MapCarrier` | AS-01 | ✅ |
+| `TraceContextPropagator` | AS-01 | ✅ |
+| `CorrelationPropagator` | AS-01 | ✅ |
+| `BaggagePropagator` | AS-01 | ✅ |
+| `PropagationMetadata` | AS-01 | ✅ |
+| `HttpHeaderCarrier` | AS-02 (transport bindings) | ✅ Removed from AS-01 |
+| `GrpcMetadataCarrier` | AS-02 (transport bindings) | ✅ Removed from AS-01 |
+| `http_propagation.rs` | AS-02 | ✅ Deleted from disk |
+| `grpc_propagation.rs` | AS-02 | ✅ Deleted from disk |
+
+### Test Distribution
+
+| Test File | Tests | Area |
+|-----------|-------|------|
+| `tests/baggage_test.rs` | 11 | Baggage model CRUD, roundtrip, multi-hop |
+| `tests/correlation_test.rs` | 9 | Correlation creation, roundtrip, validation, timestamp, cross-signal |
+| `tests/propagation_test.rs` | 20 | All propagator roundtrips, tracestate, extraction failure, PropagationMetadata, multi-hop baggage, quickstart aliases |
+| `tests/trace_context_test.rs` | 12 | TraceContext creation, parsing, validation, 5-hop, malformed handling |
+| **Total** | **52** | |
 ```
