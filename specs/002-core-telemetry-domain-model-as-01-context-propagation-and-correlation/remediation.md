@@ -63,9 +63,9 @@ Extractor trait
 └── get_all(&self, key: &str) -> Vec<&str>
 
 Carrier implementations (Injector + Extractor):
-├── MapCarrier          — HashMap-based, for testing/in-process
-├── HttpHeaderCarrier   — Wraps MapCarrier, HTTP semantics
-└── GrpcMetadataCarrier — Wraps MapCarrier, gRPC semantics
+├── MapCarrier          — HashMap-based, for testing/in-process (AS-01 owned)
+├── HttpHeaderCarrier   — HTTP header carrier (AS-02 owned)
+└── GrpcMetadataCarrier — gRPC metadata carrier (AS-02 owned)
 ```
 
 ### Propagator Implementations
@@ -136,8 +136,8 @@ $ cargo build
     Finished `dev` profile — 0 warnings
 
 $ cargo test
-    Running 52 tests
-    test result: ok. 52 passed
+    Running 55 tests
+    test result: ok. 55 passed
 
 $ cargo doc --no-deps
     Generated docs — no errors
@@ -165,22 +165,25 @@ $ cargo doc --no-deps
 | SC-003: 3+ hop baggage survival | ✅ | `test_baggage_multi_hop` (both test files) — 3 hops, all entries survive |
 | SC-004: Graceful malformed handling | ✅ | 6 scenarios: empty, malformed, wrong parts, 0xFF, zero trace_id, zero span_id |
 
-### Contract Deviations (documented, intentional)
+### Contract Compliance
 
-| Contract | Expected | Actual | Rationale |
-|----------|----------|--------|-----------|
-| `Propagator::extract` return | `Self::Context` | `Option<Self::Context>` | Data model requires validation; `None` signals absence/invalid — no synthetic fallback |
-| `TraceContextPropagator::fields` | `["traceparent", "tracestate"]` | `["traceparent", "tracestate", "parent-span-id"]` | `parent_span_id` preservation requires an extra header |
+Contracts resolved by architecture resolution (2026-06-14):
+
+- `Propagator::extract` return — updated in `data-model.md` and `contracts/propagator-api.md` to `Option<Self::Context>` with failure semantics
+- `TraceContextPropagator::fields` — updated in `contracts/propagator-api.md` to `["traceparent", "tracestate", "parent-span-id"]`
+- `parent-span-id` serialization format — documented in `contracts/propagator-api.md` serialization formats section
+
+Zero contract deviations remain.
 
 ### Test Count Reconciliation
 
 | Test File | Count | Status |
 |-----------|-------|--------|
-| `tests/baggage_test.rs` | 11 | ✅ All pass |
+| `tests/baggage_test.rs` | 13 | ✅ All pass |
 | `tests/correlation_test.rs` | 9 | ✅ All pass |
-| `tests/trace_context_test.rs` | 12 | ✅ All pass |
+| `tests/trace_context_test.rs` | 13 | ✅ All pass |
 | `tests/propagation_test.rs` | 20 | ✅ All pass |
-| **Total** | **52** | **✅ 52/52 pass** |
+| **Total** | **55** | **✅ 55/55 pass** |
 
 ### Future Considerations
 
@@ -203,7 +206,7 @@ $ cargo doc --no-deps
 | W3C Baggage | ✅ PASS |
 | PropagationMetadata | ✅ PASS |
 | Public API Stability | ✅ PASS |
-| Tests (52/52) | ✅ PASS |
+| Tests (55/55) | ✅ PASS |
 
 ### Architecture Boundary Enforcement
 
@@ -224,9 +227,9 @@ $ cargo doc --no-deps
 
 | Test File | Tests | Area |
 |-----------|-------|------|
-| `tests/baggage_test.rs` | 11 | Baggage model CRUD, roundtrip, multi-hop |
+| `tests/baggage_test.rs` | 13 | Baggage model CRUD, roundtrip, multi-hop, max entries, max size |
 | `tests/correlation_test.rs` | 9 | Correlation creation, roundtrip, validation, timestamp, cross-signal |
 | `tests/propagation_test.rs` | 20 | All propagator roundtrips, tracestate, extraction failure, PropagationMetadata, multi-hop baggage, quickstart aliases |
-| `tests/trace_context_test.rs` | 12 | TraceContext creation, parsing, validation, 5-hop, malformed handling |
-| **Total** | **52** | |
+| `tests/trace_context_test.rs` | 13 | TraceContext creation, parsing, validation, 5-hop, malformed handling, tracestate max entries |
+| **Total** | **55** | |
 ```

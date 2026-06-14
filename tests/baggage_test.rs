@@ -192,3 +192,33 @@ fn test_baggage_extraction_returns_none_when_missing() {
     let result = propagator.extract(&carrier);
     assert!(result.is_none());
 }
+
+#[test]
+fn test_baggage_max_entries() {
+    let mut baggage = Baggage::new();
+    for i in 0..180 {
+        let entry = BaggageEntry::new(format!("key{}", i), format!("val{}", i));
+        assert!(
+            baggage.add_entry(entry).is_ok(),
+            "entry {} should be accepted",
+            i
+        );
+    }
+    let overflow = BaggageEntry::new("overflow".to_string(), "value".to_string());
+    let result = baggage.add_entry(overflow);
+    assert!(result.is_err());
+    assert_eq!(
+        result.unwrap_err(),
+        "Maximum number of baggage entries exceeded"
+    );
+}
+
+#[test]
+fn test_baggage_max_size() {
+    let mut baggage = Baggage::new();
+    let large = "x".repeat(65537);
+    let entry = BaggageEntry::new("k".to_string(), large);
+    let result = baggage.add_entry(entry);
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err(), "Maximum baggage size exceeded");
+}

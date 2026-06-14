@@ -63,7 +63,7 @@ Globally unique identifier for cross-signal correlation.
 | id | `Uuid` | UUID v7 identifier |
 | created_at | `i64` | Creation timestamp (ms since epoch) |
 
-**Validation**: UUID must not be nil.
+**Validation**: `is_valid()` returns false if UUID is nil.
 
 ### BaggageProperty
 A property attached to a baggage entry (key-value or flag).
@@ -91,6 +91,16 @@ Container for W3C Baggage entries.
 | total_size | `usize` | Cumulative entry size (bytes) |
 
 **Validation**: Max 180 entries. Max total size 64KB.
+
+### PropagationMetadata
+Transport-specific metadata required for context carriage.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| transport | `String` | Transport protocol name (e.g., "http", "grpc", "kafka") |
+| entries | `Vec<(String, String)>` | Key-value metadata entries for the transport binding |
+
+**Methods**: `new(transport)` creates empty metadata, `add(key, value)` appends an entry, `get(key)` retrieves first value, `keys()` iterates entry keys, `is_empty()` checks for entries. `Default` uses transport `"unknown"`.
 
 ## Relationships
 
@@ -132,7 +142,7 @@ Generic trait for context injection and extraction.
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | inject | `(&self, carrier: &mut dyn Injector, context: &Self::Context)` | Inject context into carrier |
-| extract | `(&self, carrier: &dyn Extractor) -> Self::Context` | Extract context from carrier |
+| extract | `(&self, carrier: &dyn Extractor) -> Option<Self::Context>` | Extract context from carrier, returns `None` if extraction fails (e.g., missing or malformed carrier data) |
 | fields | `(&self) -> &'static [&'static str]` | Fields used by this propagator |
 
 ### MapCarrier

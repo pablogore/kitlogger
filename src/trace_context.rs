@@ -289,8 +289,6 @@ impl fmt::Display for TraceContext {
     }
 }
 
-// Remove the duplicate FromStr implementation
-
 impl FromStr for TraceContext {
     type Err = String;
 

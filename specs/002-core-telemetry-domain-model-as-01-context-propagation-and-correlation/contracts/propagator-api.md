@@ -29,12 +29,14 @@ Reads values from a transport carrier. Called by propagators during extraction.
 pub trait Propagator {
     type Context;
     fn inject(&self, carrier: &mut dyn Injector, context: &Self::Context);
-    fn extract(&self, carrier: &dyn Extractor) -> Self::Context;
+    fn extract(&self, carrier: &dyn Extractor) -> Option<Self::Context>;
     fn fields(&self) -> &'static [&'static str];
 }
 ```
 
 Generic context propagation contract.
+
+`extract` returns `None` when extraction fails — the carrier contains no valid context data or the data is malformed. Implementations must not panic on malformed input. A `None` return signals that no context was available; callers should fall back to a fresh/default context as appropriate for their domain.
 
 ### MapCarrier
 
@@ -55,7 +57,9 @@ Reference carrier implementation for testing and in-process propagation.
 | Context type | `TraceContext` |
 | Inject header | `traceparent: {version}-{trace_id}-{span_id}-{trace_flags}` |
 | Extract from | `traceparent` header (W3C format) |
-| Fields | `["traceparent", "tracestate"]` |
+| Fields | `["traceparent", "tracestate", "parent-span-id"]` |
+
+The `parent-span-id` header is a non-W3C extension that preserves `parent_span_id` (defined in the data model as `Option<SpanId>`). The W3C `traceparent` format has no field for parent span ID, so it is serialized as a separate header. When present, it takes precedence over any parent span relationship implied by the receiving span. Consumers that do not understand this convention silently ignore it.
 
 ### CorrelationPropagator
 
@@ -97,6 +101,15 @@ Example: congo=t61rcWkgMzE
 Format: {uuid_v7_string}
 Example: 018f3a6b-7c5b-7b00-9c8a-2b7a9e8f1c3d
 ```
+
+### Parent Span ID
+
+```
+Format: {16-char-hex-span-id}
+Example: 00f067aa0ba902b7
+```
+
+Non-W3C extension header. Serialized alongside `traceparent` when the TraceContext carries a `parent_span_id`. Preserves the parent-child span relationship across propagation hops.
 
 ### W3C Baggage
 
