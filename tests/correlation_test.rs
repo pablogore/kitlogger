@@ -25,8 +25,11 @@ fn test_correlation_roundtrip() {
     propagator.inject(&mut carrier, &original_id);
     
     // Extract the context back
-    let extracted_id = propagator.extract(&carrier);
+    let extracted = propagator.extract(&carrier);
+    assert!(extracted.is_some());
+    let extracted_id = extracted.unwrap();
     
     // Verify they match
     assert_eq!(original_id.id(), extracted_id.id());
+    assert_eq!(original_id.created_at(), extracted_id.created_at());
 }

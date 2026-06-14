@@ -81,5 +81,10 @@ fn test_baggage_roundtrip() {
     propagator.inject(&mut carrier, &baggage);
     
     // Extract the context back
-    let _extracted_baggage = propagator.extract(&carrier);
+    let extracted_baggage = propagator.extract(&carrier);
+    assert!(extracted_baggage.is_some());
+    let extracted_baggage = extracted_baggage.unwrap();
+    assert_eq!(extracted_baggage.entries().len(), 1);
+    assert_eq!(extracted_baggage.entries()[0].key, "key");
+    assert_eq!(extracted_baggage.entries()[0].value, Some("value".to_string()));
 }

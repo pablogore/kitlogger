@@ -74,12 +74,15 @@ fn test_trace_context_roundtrip() {
     propagator.inject(&mut carrier, &trace_context);
     
     // Extract the context back
-    let extracted_context = propagator.extract(&carrier);
+    let extracted = propagator.extract(&carrier);
+    assert!(extracted.is_some());
+    let extracted_context = extracted.unwrap();
     
     // Verify they match
     assert_eq!(trace_context.trace_id, extracted_context.trace_id);
     assert_eq!(trace_context.span_id, extracted_context.span_id);
     assert_eq!(trace_context.trace_flags, extracted_context.trace_flags);
+    assert_eq!(trace_context.parent_span_id, extracted_context.parent_span_id);
 }
 
 #[test]
