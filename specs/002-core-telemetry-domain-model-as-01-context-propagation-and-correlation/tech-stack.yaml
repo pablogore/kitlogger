@@ -1,0 +1,17 @@
+language: Rust
+runtime:
+  - Tokio
+testing:
+  - cargo test
+observability:
+  - OpenTelemetry
+messaging:
+  - Kafka
+  - RabbitMQ
+protocol:
+  - HTTP
+  - gRPC
+serialization:
+  - serde
+identifier:
+  - uuid

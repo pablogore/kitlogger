@@ -24,15 +24,12 @@ pub mod trace_context;
 pub mod correlation;
 pub mod baggage;
 pub mod propagation;
+pub mod http_propagation;
+pub mod grpc_propagation;
 
-pub use kit_config::{
-    BufferingConfig, CategoriesConfig, CategoryConfig, ConfigError, ConfigModule,
-    ConfigurationProfile, ConfigurationSource, CorrelationConfig, Extension, LogFormat,
-    LogLevel, LoggingConfig, OutputConfig, OutputTarget, RedactionConfig, RetentionConfig,
-    RotationConfig, SamplingConfig, SamplingStrategy, StructuredConfig, TimestampConfig,
-    TimestampFormat, Validation, ValidationError, ValidationReport,
-};
-
-pub use kit_config::modules;
-
-pub use api::{Logger, LoggerBuilder, LoggerProvider, LogEvent};
+pub use trace_context::*;
+pub use correlation::*;
+pub use baggage::*;
+pub use propagation::*;
+pub use http_propagation::*;
+pub use grpc_propagation::*;

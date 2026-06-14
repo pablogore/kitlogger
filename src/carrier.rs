@@ -75,3 +75,6 @@ impl Extractor for MapCarrier {
         self.data.get(key).map_or(Vec::new(), |v| v.iter().map(|s| s.as_str()).collect())
     }
 }
+
+/// Result type alias for propagator operations
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;

@@ -65,9 +65,5 @@ fn test_baggage_propagator() {
     propagator.inject(&mut carrier, &baggage);
     
     // Extract the context back
-    let extracted_baggage = propagator.extract(&carrier);
-    
-    // For this simplified implementation, we just verify that extraction doesn't panic
-    // and that we get a valid baggage object back
-    assert!(extracted_baggage.entries().len() >= 0);
+    let _extracted_baggage = propagator.extract(&carrier);
 }
