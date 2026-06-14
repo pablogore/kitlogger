@@ -1,12 +1,24 @@
-pub mod event;
-pub mod formatter;
-pub mod logger;
-pub mod output;
-pub mod provider;
-pub mod sampling;
-pub mod buffering;
-pub mod rotation;
-pub mod redaction;
+//! Observability telemetry library
+//!
+//! This crate provides foundational observability abstractions that are
+//! backend-agnostic, vendor-neutral, and domain-agnostic.
+//!
+//! The core components are:
+//! - Context: For correlation and propagation
+//! - Resource: For service metadata
+//! - InstrumentationScope: For library identification
+//! - Span: For trace telemetry
+//! - LogRecord: For log telemetry
+//! - Metric: For metric telemetry
+//!
+//! All components are designed to be thread-safe and to avoid memory leaks
+//! or resource exhaustion.
+
+pub mod models;
+pub mod traits;
+pub mod noop;
+pub mod api;
+pub mod validation;
 
 pub use kit_config::{
     BufferingConfig, CategoriesConfig, CategoryConfig, ConfigError, ConfigModule,
@@ -18,6 +30,4 @@ pub use kit_config::{
 
 pub use kit_config::modules;
 
-pub use logger::{Logger, LoggerBuilder};
-pub use provider::LoggerProvider;
-pub use event::LogEvent;
+pub use api::{Logger, LoggerBuilder, LoggerProvider, LogEvent};

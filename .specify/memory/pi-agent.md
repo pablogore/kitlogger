@@ -1,28 +1,34 @@
 # [PROJECT NAME] Development Guidelines
 
-Auto-generated from all feature plans. Last updated: [DATE]
+Auto-generated from all feature plans. Last updated: 2026-06-10
 
 ## Active Technologies
 
-[EXTRACTED FROM ALL PLAN.MD FILES]
+- Rust 1.75+
+- Cargo
+- Tokio (for async support)
 
 ## Project Structure
 
 ```text
-[ACTUAL STRUCTURE FROM PLANS]
+src/
+├── lib/
+│   ├── context.rs
+│   ├── resource.rs
+│   ├── instrumentation_scope.rs
+│   ├── span.rs
+│   ├── log_record.rs
+│   ├── metric.rs
+│   └── noop.rs
+├── models/
+├── services/
+├── cli/
+└── lib/
+
+tests/
+├── contract/
+├── integration/
+└── unit/
 ```
 
-## Commands
-
-[ONLY COMMANDS FOR ACTIVE TECHNOLOGIES]
-
-## Code Style
-
-[LANGUAGE-SPECIFIC, ONLY FOR LANGUAGES IN USE]
-
-## Recent Changes
-
-[LAST 3 FEATURES AND WHAT THEY ADDED]
-
-<!-- MANUAL ADDITIONS START -->
-<!-- MANUAL ADDITIONS END -->
+##
