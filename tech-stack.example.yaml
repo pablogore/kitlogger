@@ -1,0 +1,16 @@
+# Copy this file to specs/<SPEC_ID>/tech-stack.yaml and replace every value
+# with an explicit project decision. Do not retain illustrative values.
+
+language: REQUIRED
+runtime: REQUIRED
+testing: REQUIRED
+
+# Optional categories become mandatory when the specification references them.
+frameworks: []
+databases: []
+transports: []
+package_managers: []
+sdks: []
+cloud_providers: []
+deployment_targets: []
+serialization: []

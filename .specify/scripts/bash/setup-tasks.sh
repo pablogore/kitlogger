@@ -27,6 +27,11 @@ _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature p
 eval "$_paths_output"
 unset _paths_output
 
+# Validate the specification and all existing planning artifacts before tasks.
+"$REPO_ROOT/scripts/validate-tech-stack.sh" \
+    --feature-dir "$FEATURE_DIR" \
+    --phase tasks
+
 # Validate branch
 # If feature.json pins an existing feature directory, branch naming is not required.
 if ! feature_json_matches_feature_dir "$REPO_ROOT" "$FEATURE_DIR"; then

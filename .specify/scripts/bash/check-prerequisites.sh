@@ -111,6 +111,14 @@ if $PATHS_ONLY; then
     exit 0
 fi
 
+# This helper is the implement entrypoint when tasks are required. Keep ordinary
+# prerequisite inspection unchanged for callers that do not invoke implementation.
+if $REQUIRE_TASKS; then
+    "$REPO_ROOT/scripts/validate-tech-stack.sh" \
+        --feature-dir "$FEATURE_DIR" \
+        --phase implement
+fi
+
 # Validate branch name
 check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 

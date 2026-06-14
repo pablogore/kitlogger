@@ -32,6 +32,11 @@ _paths_output=$(get_feature_paths) || { echo "ERROR: Failed to resolve feature p
 eval "$_paths_output"
 unset _paths_output
 
+# Block before mkdir/template writes when technology declarations are incomplete.
+"$REPO_ROOT/scripts/validate-tech-stack.sh" \
+    --feature-dir "$FEATURE_DIR" \
+    --phase plan
+
 # If feature.json pins an existing feature directory, branch naming is not required.
 if ! feature_json_matches_feature_dir "$REPO_ROOT" "$FEATURE_DIR"; then
     check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
@@ -88,4 +93,5 @@ else
     echo "BRANCH: $CURRENT_BRANCH"
     echo "HAS_GIT: $HAS_GIT"
 fi
+
 
