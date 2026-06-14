@@ -18,7 +18,7 @@
 
 ## Scope
 
-Define telemetry configuration schema, defaults, constraints, and validation rules. This specification owns telemetry configuration semantics only. Configuration infrastructure (loading, sources, parsing, environment integration, secrets, precedence, runtime reload, lifecycle) belongs to Kit Config.
+Define the canonical telemetry configuration model with explicit semantic entities: TelemetryConfig, SamplingPolicy, ExporterConfig, ResourceConfig, VerbosityPolicy, ValidationRule, and SchemaVersion. This specification owns telemetry configuration semantics only. Configuration infrastructure (loading, sources, parsing, environment integration, secrets, precedence, runtime reload, lifecycle) belongs to Kit Config. ConfigurationSchema is an implementation artifact derived from these semantic entities.
 
 ## Non-Scope
 
@@ -71,44 +71,51 @@ A KitLogger administrator must be able to configure resource attributes that ide
 
 ### Functional Requirements
 
-- **FR-001**: Schema MUST define telemetry enabled/disabled configuration
-- **FR-002**: Schema MUST define sampling policy configuration (rate, policy type)
-- **FR-003**: Schema MUST define exporter selection and configuration per exporter type
-- **FR-004**: Schema MUST define resource attribute defaults and overrides
-- **FR-005**: Schema MUST define per-signal verbosity levels
-- **FR-006**: Schema MUST include validation rules for all configurable values
-- **FR-007**: Schema MUST define configuration defaults for all required settings
-- **FR-008**: Schema MUST NOT define configuration loading, sources, parsing, or infrastructure
+- **FR-001**: System MUST define a TelemetryConfig entity with enabled/disabled and top-level telemetry settings
+- **FR-002**: System MUST define a SamplingPolicy entity with sampling rate and policy type
+- **FR-003**: System MUST define an ExporterConfig entity per exporter type with selection and endpoint settings
+- **FR-004**: System MUST define a ResourceConfig entity with resource attribute defaults and overrides
+- **FR-005**: System MUST define a VerbosityPolicy entity with per-signal verbosity levels
+- **FR-006**: System MUST define a ValidationRule entity for all configurable value constraints
+- **FR-007**: System MUST define a SchemaVersion entity for configuration schema versioning
+- **FR-008**: System MUST define configuration defaults for all required settings
+- **FR-009**: System MUST NOT define configuration loading, sources, parsing, or infrastructure
 
 ### Key Entities
 
-- **Telemetry Configuration**: The complete set of configuration values controlling telemetry behavior
-- **Configuration Schema**: Defines structure, types, defaults, constraints, and validation rules
-- **Configuration Validation Rule**: A constraint that enforces valid configuration values
-- **Configuration Default**: A fallback value used when no explicit configuration is provided
+- **TelemetryConfig**: Top-level configuration entity controlling telemetry enabled/disabled and global settings
+- **SamplingPolicy**: Configuration entity defining sampling rate and policy type for telemetry volume control
+- **ExporterConfig**: Per-exporter configuration entity with selection, endpoint, and behavior settings
+- **ResourceConfig**: Configuration entity for resource attribute defaults and overrides (service.name, service.version, deployment.environment)
+- **VerbosityPolicy**: Configuration entity defining per-signal verbosity levels (trace, metric, log)
+- **ValidationRule**: A constraint entity enforcing valid configuration values across all semantic entities
+- **SchemaVersion**: Version identifier for the configuration schema, enabling future schema evolution
 
 ## Success Criteria
 
 ### Measurable Outcomes
 
-- **SC-001**: Configuration schema covers enable/disable, sampling, export selection, resource attributes, and verbosity
-- **SC-002**: All configuration values have documented defaults
-- **SC-003**: All configuration values have validation rules
-- **SC-004**: Invalid configuration is rejected with clear error messages
-- **SC-005**: No configuration infrastructure (loading, parsing, sources) is defined in this specification
+- **SC-001**: All seven semantic entities (TelemetryConfig, SamplingPolicy, ExporterConfig, ResourceConfig, VerbosityPolicy, ValidationRule, SchemaVersion) are defined and documented
+- **SC-002**: TelemetryConfig includes enabled/disabled toggle with documented defaults
+- **SC-003**: SamplingPolicy defines rate and policy type with validation constraints
+- **SC-004**: ExporterConfig supports per-exporter-type selection, endpoint, and behavior settings
+- **SC-005**: ResourceConfig defines service.name, service.version, deployment.environment with defaults
+- **SC-006**: VerbosityPolicy defines per-signal levels (trace, metric, log) with validation
+- **SC-007**: ValidationRule enforces constraints across all semantic entities
+- **SC-008**: SchemaVersion is present and enables future schema evolution
+- **SC-009**: No configuration infrastructure (loading, parsing, sources) is defined in this specification
 
 ## Ownership Boundary
 
 This specification owns:
 
-- Telemetry configuration schema structure and types
-- Configuration defaults for all telemetry settings
-- Configuration constraints and validation rules
-- Telemetry enable/disable semantics
-- Sampling policy configuration semantics
-- Exporter selection and configuration semantics
-- Resource attribute configuration semantics
-- Per-signal verbosity configuration semantics
+- TelemetryConfig entity with enable/disable and global settings
+- SamplingPolicy entity with rate and policy type
+- ExporterConfig entity per exporter type with selection and endpoint
+- ResourceConfig entity with resource attribute defaults
+- VerbosityPolicy entity with per-signal levels
+- ValidationRule entity for value constraints
+- SchemaVersion entity for schema evolution
 
 This specification does not own:
 
@@ -118,8 +125,15 @@ This specification does not own:
 - Runtime reload infrastructure or secrets management
 - Configuration storage or discovery
 
+## Clarifications
+
+### Session 2026-06-14
+
+- Q: Canonical Configuration Model → A: Explicit semantic entities: TelemetryConfig, SamplingPolicy, ExporterConfig, ResourceConfig, VerbosityPolicy, ValidationRule, SchemaVersion (B)
+
 ## Assumptions
 
 - Kit Config provides configuration loading, environment integration, parsing, and lifecycle management
 - Adapter contracts (AS-03) define which exporters are available for configuration
 - Parent capability defines the canonical telemetry model entities that configuration controls
+- ConfigurationSchema is an implementation artifact derived from the semantic entities; AS-04 owns the entities, not the schema format
