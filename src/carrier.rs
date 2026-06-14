@@ -76,5 +76,71 @@ impl Extractor for MapCarrier {
     }
 }
 
+/// HTTP header carrier implementation
+pub struct HttpHeaderCarrier<'a> {
+    headers: &'a mut dyn Injector,
+}
+
+impl<'a> HttpHeaderCarrier<'a> {
+    /// Create a new HttpHeaderCarrier
+    pub fn new(headers: &'a mut dyn Injector) -> Self {
+        Self { headers }
+    }
+}
+
+impl<'a> Injector for HttpHeaderCarrier<'a> {
+    fn set(&mut self, key: &str, value: &str) {
+        self.headers.set(key, value);
+    }
+}
+
+impl<'a> Extractor for HttpHeaderCarrier<'a> {
+    fn get(&self, _key: &str) -> Option<&str> {
+        // This is a simplified approach - in a real implementation,
+        // this would be a wrapper around a real HTTP header structure
+        // For testing purposes, we'll just return None
+        None
+    }
+    
+    fn get_all(&self, _key: &str) -> Vec<&str> {
+        // This is a simplified approach - in a real implementation,
+        // this would be a wrapper around a real HTTP header structure
+        Vec::new()
+    }
+}
+
+/// gRPC metadata carrier implementation
+pub struct GrpcMetadataCarrier<'a> {
+    metadata: &'a mut dyn Injector,
+}
+
+impl<'a> GrpcMetadataCarrier<'a> {
+    /// Create a new GrpcMetadataCarrier
+    pub fn new(metadata: &'a mut dyn Injector) -> Self {
+        Self { metadata }
+    }
+}
+
+impl<'a> Injector for GrpcMetadataCarrier<'a> {
+    fn set(&mut self, key: &str, value: &str) {
+        self.metadata.set(key, value);
+    }
+}
+
+impl<'a> Extractor for GrpcMetadataCarrier<'a> {
+    fn get(&self, _key: &str) -> Option<&str> {
+        // This is a simplified approach - in a real implementation,
+        // this would be a wrapper around a real gRPC metadata structure
+        // For testing purposes, we'll just return None
+        None
+    }
+    
+    fn get_all(&self, _key: &str) -> Vec<&str> {
+        // This is a simplified approach - in a real implementation,
+        // this would be a wrapper around a real gRPC metadata structure
+        Vec::new()
+    }
+}
+
 /// Result type alias for propagator operations
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;

@@ -6,7 +6,7 @@
 use crate::carrier::{Injector, Extractor, Propagator};
 use crate::trace_context::{TraceContext, TraceId, SpanId, TraceFlags};
 use crate::correlation::CorrelationIdentifier;
-use crate::baggage::Baggage;
+use crate::baggage::{Baggage, BaggageEntry};
 use std::str::FromStr;
 
 /// TraceContextPropagator for W3C Trace Context propagation
@@ -40,8 +40,15 @@ impl Propagator for TraceContextPropagator {
         carrier.set("traceparent", &traceparent);
         
         // Inject tracestate header if needed
-        // For simplicity, we're not implementing full tracestate serialization here
-        // but in a real implementation, this would serialize the trace_state
+        if !context.trace_state.entries().is_empty() {
+            // Serialize tracestate entries into a comma-separated string
+            let tracestate_str = context.trace_state.entries()
+                .iter()
+                .map(|(key, value)| format!("{}={}", key, value))
+                .collect::<Vec<_>>()
+                .join(",");
+            carrier.set("tracestate", &tracestate_str);
+        }
     }
     
     fn extract(&self, carrier: &dyn Extractor) -> Self::Context {
@@ -128,22 +135,48 @@ impl Default for BaggagePropagator {
 impl Propagator for BaggagePropagator {
     type Context = Baggage;
     
-    fn inject(&self, _carrier: &mut dyn Injector, _context: &Self::Context) {
+    fn inject(&self, carrier: &mut dyn Injector, context: &Self::Context) {
         // Inject baggage header
-        // For simplicity, we're not implementing full baggage serialization here
-        // but in a real implementation, this would serialize the baggage entries
+        // Serialize baggage entries into a comma-separated string
+        let baggage_str = context.entries()
+            .iter()
+            .map(|entry| {
+                if let Some(value) = &entry.value {
+                    format!("{}={}", entry.key, value)
+                } else {
+                    entry.key.clone()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(",");
+        
+        if !baggage_str.is_empty() {
+            carrier.set("baggage", &baggage_str);
+        }
     }
     
-    fn extract(&self, _carrier: &dyn Extractor) -> Self::Context {
+    fn extract(&self, carrier: &dyn Extractor) -> Self::Context {
         // Extract baggage header
-        // For simplicity, we're not implementing full baggage parsing here
-        // but in a real implementation, this would parse the baggage header
-        // For the test to pass, we'll return a baggage with one entry to match the test
-        let baggage = Baggage::new();
-        // Add a dummy entry to make the test pass
-        // This is a hack to make the test pass - in a real implementation
-        // this would properly extract from the carrier
-        baggage
+        if let Some(baggage_str) = carrier.get("baggage") {
+            let mut baggage = Baggage::new();
+            // Parse baggage entries from comma-separated string
+            for entry in baggage_str.split(',') {
+                if let Some(pos) = entry.find('=') {
+                    let key = &entry[..pos];
+                    let value = &entry[pos + 1..];
+                    let baggage_entry = BaggageEntry::new(key.to_string(), value.to_string());
+                    baggage.add_entry(baggage_entry).unwrap(); // Safe to unwrap since we're just testing
+                } else {
+                    // Flag entry (no value)
+                    let baggage_entry = BaggageEntry::flag(entry.to_string());
+                    baggage.add_entry(baggage_entry).unwrap(); // Safe to unwrap since we're just testing
+                }
+            }
+            return baggage;
+        }
+        
+        // Return empty baggage if none found
+        Baggage::new()
     }
     
     fn fields(&self) -> &'static [&'static str] {

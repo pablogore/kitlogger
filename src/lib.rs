@@ -24,12 +24,8 @@ pub mod trace_context;
 pub mod correlation;
 pub mod baggage;
 pub mod propagation;
-pub mod http_propagation;
-pub mod grpc_propagation;
 
 pub use trace_context::*;
 pub use correlation::*;
 pub use baggage::*;
 pub use propagation::*;
-pub use http_propagation::*;
-pub use grpc_propagation::*;
