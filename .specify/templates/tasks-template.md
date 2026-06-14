@@ -1,11 +1,18 @@
 ---
+
 description: "Task list template for feature implementation"
 ---
 
 # Tasks: [FEATURE NAME]
 
 **Input**: Design documents from `/specs/[###-feature-name]/`
+
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
+
+**Technology gate**: Use only technologies and commands declared in
+`tech-stack.yaml`. A missing or undeclared language, runtime, framework,
+database, transport, test tool, package manager, SDK, cloud provider, or
+deployment target blocks task generation.
 
 **Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
@@ -21,7 +28,7 @@ description: "Task list template for feature implementation"
 
 - **Single project**: `src/`, `tests/` at repository root
 - **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
+- **Client + service**: use only the paths selected and justified in plan.md
 - Paths shown below assume single project - adjust based on plan.md structure
 
 <!--
@@ -48,7 +55,7 @@ description: "Task list template for feature implementation"
 **Purpose**: Project initialization and basic structure
 
 - [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
+- [ ] T002 Initialize the project using only declared language and dependency tooling
 - [ ] T003 [P] Configure linting and formatting tools
 
 ---
@@ -82,8 +89,8 @@ Examples of foundational tasks (adjust based on your project):
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test\_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test\_[name].py
+- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 1
 
@@ -106,8 +113,8 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test\_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test\_[name].py
+- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 2
 
@@ -128,8 +135,8 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test\_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test\_[name].py
+- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
+- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
 
 ### Implementation for User Story 3
 
