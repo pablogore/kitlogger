@@ -1,8 +1,8 @@
 # Feature Specification: Telemetry Adapter Contracts
 
-**SPEC_ID**: `004-telemetry-as-03-telemetry-adapter-contracts`
+**SPEC_ID**: `002-telemetry-as-03-telemetry-adapter-contracts`
 
-**Parent**: Core Telemetry Domain Model (`001-core-telemetry-domain-model`)
+**Parent**: Core Telemetry Domain Model (`002-core-telemetry-domain-model`)
 
 **Candidate Key**: AS-03
 

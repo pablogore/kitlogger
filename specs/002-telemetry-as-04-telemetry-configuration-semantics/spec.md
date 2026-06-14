@@ -1,8 +1,8 @@
 # Feature Specification: Telemetry Configuration Semantics
 
-**SPEC_ID**: `005-telemetry-as-04-telemetry-configuration-semantics`
+**SPEC_ID**: `002-telemetry-as-04-telemetry-configuration-semantics`
 
-**Parent**: Core Telemetry Domain Model (`001-core-telemetry-domain-model`)
+**Parent**: Core Telemetry Domain Model (`002-core-telemetry-domain-model`)
 
 **Candidate Key**: AS-04
 

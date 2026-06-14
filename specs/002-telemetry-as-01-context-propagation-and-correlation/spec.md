@@ -2,9 +2,9 @@
 
 **SPEC_ID**: `002-telemetry-as-01-context-propagation-and-correlation`
 
-**Parent**: Core Telemetry Domain Model (`001-core-telemetry-domain-model`)
+**Parent**: Core Telemetry Domain Model (`002-core-telemetry-domain-model`)
 
-**PARENT_SPEC_ID**: `001-core-telemetry-domain-model`
+**PARENT_SPEC_ID**: `002-core-telemetry-domain-model`
 
 **Candidate Key**: AS-01
 

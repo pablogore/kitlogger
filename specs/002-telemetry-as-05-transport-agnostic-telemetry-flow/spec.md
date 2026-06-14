@@ -1,8 +1,8 @@
 # Feature Specification: Transport-Agnostic Telemetry Flow
 
-**SPEC_ID**: `003-telemetry-as-02-transport-agnostic-telemetry-flow`
+**SPEC_ID**: `002-telemetry-as-02-transport-agnostic-telemetry-flow`
 
-**Parent**: Core Telemetry Domain Model (`001-core-telemetry-domain-model`)
+**Parent**: Core Telemetry Domain Model (`002-core-telemetry-domain-model`)
 
 **Candidate Key**: AS-02
 
