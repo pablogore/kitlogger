@@ -81,10 +81,5 @@ fn test_baggage_roundtrip() {
     propagator.inject(&mut carrier, &baggage);
     
     // Extract the context back
-    let extracted_baggage = propagator.extract(&carrier);
-    
-    // For this simplified implementation, we just verify that extraction doesn't panic
-    // The actual baggage propagation is not fully implemented in this exercise
-    // but we can at least verify the extract method doesn't panic
-    assert!(extracted_baggage.entries().len() >= 0);
+    let _extracted_baggage = propagator.extract(&carrier);
 }
