@@ -19,6 +19,11 @@ pub mod traits;
 pub mod noop;
 pub mod api;
 pub mod validation;
+pub mod carrier;
+pub mod trace_context;
+pub mod correlation;
+pub mod baggage;
+pub mod propagation;
 
 pub use kit_config::{
     BufferingConfig, CategoriesConfig, CategoryConfig, ConfigError, ConfigModule,

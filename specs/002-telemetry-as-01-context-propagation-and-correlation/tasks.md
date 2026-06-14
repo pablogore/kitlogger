@@ -25,7 +25,7 @@ Paths use `<package-root>/` as a placeholder. Actual package root, crate placeme
 
 **Purpose**: Prepare the implementation environment per CORE-000 Release Engineering package structure
 
-- [ ] T001 Create `Cargo.toml` (dependencies: `uuid` with `v7,serde` features, `serde` with `derive`) and `src/lib.rs` at the package root determined by CORE-000
+- [x] T001 Create `Cargo.toml` (dependencies: `uuid` with `v7,serde` features, `serde` with `derive`) and `src/lib.rs` at the package root determined by CORE-000
 
 ---
 
@@ -33,11 +33,11 @@ Paths use `<package-root>/` as a placeholder. Actual package root, crate placeme
 
 **Purpose**: Core Carrier traits that all propagators depend on
 
-- [ ] T002 [P] Define `Injector` trait with `fn set(&mut self, key: &str, value: &str)` in `<package-root>/src/carrier.rs`
-- [ ] T003 [P] Define `Extractor` trait with `fn get(&self, key: &str) -> Option<&str>` and `fn get_all(&self, key: &str) -> Vec<&str>` in `<package-root>/src/carrier.rs`
-- [ ] T004 Define `Propagator` trait with associated type `Context`, methods `inject`, `extract`, `fields` in `<package-root>/src/carrier.rs`
-- [ ] T005 Implement `MapCarrier` (HashMap-based) as both `Injector` and `Extractor` in `<package-root>/src/carrier.rs`
-- [ ] T006 Wire up `lib.rs` with `pub mod carrier; pub mod trace_context; pub mod correlation; pub mod baggage; pub mod propagation;` and re-exports in `<package-root>/src/lib.rs`
+- [x] T002 [P] Define `Injector` trait with `fn set(&mut self, key: &str, value: &str)` in `<package-root>/src/carrier.rs`
+- [x] T003 [P] Define `Extractor` trait with `fn get(&self, key: &str) -> Option<&str>` and `fn get_all(&self, key: &str) -> Vec<&str>` in `<package-root>/src/carrier.rs`
+- [x] T004 Define `Propagator` trait with associated type `Context`, methods `inject`, `extract`, `fields` in `<package-root>/src/carrier.rs`
+- [x] T005 Implement `MapCarrier` (HashMap-based) as both `Injector` and `Extractor` in `<package-root>/src/carrier.rs`
+- [x] T006 Wire up `lib.rs` with `pub mod carrier; pub mod trace_context; pub mod correlation; pub mod baggage; pub mod propagation;` and re-exports in `<package-root>/src/lib.rs`
 
 **Checkpoint**: Carrier abstraction ready -- all user stories can now be implemented independently
 
@@ -51,15 +51,15 @@ Paths use `<package-root>/` as a placeholder. Actual package root, crate placeme
 
 ### Implementation for User Story 1
 
-- [ ] T007 [P] [US1] Create `TraceId([u8; 16])`, `SpanId([u8; 8])` newtypes with hex formatting and parsing in `<package-root>/src/trace_context.rs`
-- [ ] T008 [P] [US1] Create `TraceFlags(u8)` newtype with sampled/random-trace-id bitmask methods in `<package-root>/src/trace_context.rs`
-- [ ] T009 [P] [US1] Create `TraceState` struct with max 32 vendor entries in `<package-root>/src/trace_context.rs`
-- [ ] T010 [P] [US1] Create `TraceContext` struct with `trace_id`, `span_id`, `parent_span_id`, `trace_flags`, `trace_state` fields and validation (no all-zero IDs, no version ff) in `<package-root>/src/trace_context.rs`
-- [ ] T011 [US1] Implement `traceparent` header parsing (`FromStr` for `TraceContext`) with fixed-length 55-char format in `<package-root>/src/trace_context.rs`
-- [ ] T012 [US1] Implement `traceparent` header serialization (`Display` for `TraceContext`) in `<package-root>/src/trace_context.rs`
+- [x] T007 [P] [US1] Create `TraceId([u8; 16])`, `SpanId([u8; 8])` newtypes with hex formatting and parsing in `<package-root>/src/trace_context.rs`
+- [x] T008 [P] [US1] Create `TraceFlags(u8)` newtype with sampled/random-trace-id bitmask methods in `<package-root>/src/trace_context.rs`
+- [x] T009 [P] [US1] Create `TraceState` struct with max 32 vendor entries in `<package-root>/src/trace_context.rs`
+- [x] T010 [P] [US1] Create `TraceContext` struct with `trace_id`, `span_id`, `parent_span_id`, `trace_flags`, `trace_state` fields and validation (no all-zero IDs, no version ff) in `<package-root>/src/trace_context.rs`
+- [x] T011 [US1] Implement `traceparent` header parsing (`FromStr` for `TraceContext`) with fixed-length 55-char format in `<package-root>/src/trace_context.rs`
+- [x] T012 [US1] Implement `traceparent` header serialization (`Display` for `TraceContext`) in `<package-root>/src/trace_context.rs`
 - [ ] T013 [US1] Implement `tracestate` header parsing and serialization in `<package-root>/src/trace_context.rs`
 - [ ] T014 [P] [US1] Implement `TraceContextPropagator` (inject: sets `traceparent`/`tracestate`, extract: parses headers, fields: `["traceparent", "tracestate"]`) in `<package-root>/src/propagation.rs`
-- [ ] T015 [P] [US1] Write round-trip test -- inject then extract yields original context -- in `<package-root>/tests/trace_context_test.rs`
+- [x] T015 [P] [US1] Write round-trip test -- inject then extract yields original context -- in `<package-root>/tests/trace_context_test.rs`
 - [ ] T016 [P] [US1] Write multi-hop test -- 5 simulated hops, same trace_id, unique span_ids, correct parent chain -- in `<package-root>/tests/trace_context_test.rs`
 - [ ] T017 [P] [US1] Write malformed context test -- all-zeros, bad format, wrong length produce empty context without panic -- in `<package-root>/tests/trace_context_test.rs`
 
@@ -76,9 +76,9 @@ Paths use `<package-root>/` as a placeholder. Actual package root, crate placeme
 ### Implementation for User Story 2
 
 - [ ] T018 [P] [US2] Create `CorrelationIdentifier` struct with `id: Uuid` and `created_at: i64`, implement `new()` using `uuid::Uuid::new_v7()` in `<package-root>/src/correlation.rs`
-- [ ] T019 [US2] Implement `CorrelationPropagator` (inject: sets `correlation-id` header, extract: parses UUID v7 or generates new one, fields: `["correlation-id"]`) in `<package-root>/src/propagation.rs`
+- [x] T019 [US2] Implement `CorrelationPropagator` (inject: sets `correlation-id` header, extract: parses UUID v7 or generates new one, fields: `["correlation-id"]`) in `<package-root>/src/propagation.rs`
 - [ ] T020 [P] [US2] Write correlation ID generation test -- valid UUID v7, time-sortable, non-zero -- in `<package-root>/tests/correlation_test.rs`
-- [ ] T021 [P] [US2] Write correlation round-trip test -- inject then extract returns same UUID -- in `<package-root>/tests/correlation_test.rs`
+- [x] T021 [P] [US2] Write correlation round-trip test -- inject then extract returns same UUID -- in `<package-root>/tests/correlation_test.rs`
 
 **Checkpoint**: Cross-signal correlation is functional and independently testable
 
@@ -92,8 +92,8 @@ Paths use `<package-root>/` as a placeholder. Actual package root, crate placeme
 
 ### Implementation for User Story 3
 
-- [ ] T022 [P] [US3] Create `BaggageProperty` enum (key-value or flag) and `BaggageEntry` struct with `key`, `value`, `properties` in `<package-root>/src/baggage.rs`
-- [ ] T023 [P] [US3] Create `Baggage` struct with `entries: Vec<BaggageEntry>`, max 180 entries, max 64KB total size in `<package-root>/src/baggage.rs`
+- [x] T022 [P] [US3] Create `BaggageProperty` enum (key-value or flag) and `BaggageEntry` struct with `key`, `value`, `properties` in `<package-root>/src/baggage.rs`
+- [x] T023 [P] [US3] Create `Baggage` struct with `entries: Vec<BaggageEntry>`, max 180 entries, max 64KB total size in `<package-root>/src/baggage.rs`
 - [ ] T024 [US3] Implement `baggage` header parsing -- comma-separated `key=value` with URL-percent-encoded values -- in `<package-root>/src/baggage.rs`
 - [ ] T025 [US3] Implement `baggage` header serialization in `<package-root>/src/baggage.rs`
 - [ ] T026 [P] [US3] Implement `BaggagePropagator` (inject: sets `baggage` header, extract: parses header, fields: `["baggage"]`) in `<package-root>/src/propagation.rs`
