@@ -19,7 +19,7 @@ Extended Governance:
 - **Goal**: AS-01 fully compliant — architecture resolution + implementation audit + PR-18 remediation complete
 
 ## Status
-- **Architecture**: COMPLIANT — all 5 audit objectives pass, 4 findings resolved
+- **Architecture**: COMPLIANT — all 5 audit objectives pass, 4 findings resolved; final read-only audit: COMPLIANT, zero findings
 - **Plan**: COMPLIANT — all 17 tasks traceable to spec requirements
 - **Implementation**: COMPLIANT — 55/55 tests pass, 0 contract violations, 0 unauthorized implementation
 - **Governance**: All frozen artifacts immutable; implementation only modifies src/** and tests/**
@@ -47,6 +47,7 @@ Extended Governance:
 - `f0a791a` — chore: track .specify and .opencode infrastructure files
 - `a5b5995` — fix(as-01): resolve architecture findings, remediate stale remediation.md, add validation boundary tests
 - `c9d29b6` — fix(as-01): remediate 9 architecture gaps
+- `6e69fe4` — chore: persist anchored summary to AGENTS.md
 
 ## Next Steps
 - No outstanding work for AS-01
