@@ -8,7 +8,8 @@ use std::time::Duration;
 
 use serde_json;
 
-use as_02::{DeliveryMode, PayloadEnvelope, PropagationMetadata, TelemetryBatch, TransportError, TransportMetadata, TransportResult};
+use as_02::{DeliveryMode, PayloadEnvelope, TelemetryBatch, TransportError, TransportResult};
+use as_02::payload::{PropagationMetadata, TransportMetadata};
 
 #[test]
 fn test_delivery_mode_serialization() {
