@@ -19,14 +19,11 @@
 //! - [`DeliveryMode::Batch`] - Multiple telemetry items are sent together
 //! - [`DeliveryMode::Streaming`] - Data is sent in a streaming fashion
 
-use std::future::Future;
-use std::time::Duration;
 
-use serde::{Deserialize, Serialize};
-
-use crate::batch::TelemetryBatch;
-use crate::error::{TransportError, TransportResult};
 use crate::payload::PayloadEnvelope;
+use crate::TransportResult;
+use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 /// The canonical delivery mode for telemetry data.
 ///

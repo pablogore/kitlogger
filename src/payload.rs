@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::batch::TelemetryBatch;
-use crate::transport::{BackpressureSignal, DeliveryMode};
+
 
 /// Metadata for transport-specific information.
 ///

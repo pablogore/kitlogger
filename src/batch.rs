@@ -3,7 +3,7 @@
 //! This module defines the [`TelemetryBatch`] struct which is used to
 //! organize telemetry data into batches for transport.
 
-use std::collections::HashMap;
+
 
 use serde::{Deserialize, Serialize};
 

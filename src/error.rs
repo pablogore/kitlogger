@@ -4,7 +4,7 @@
 //! which are used to represent errors that can occur during transport operations.
 
 use std::fmt;
-use std::time::Duration;
+
 
 use serde::{Deserialize, Serialize};
 
