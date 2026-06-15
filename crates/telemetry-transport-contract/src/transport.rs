@@ -68,7 +68,7 @@ pub struct BackpressureSignal {
 /// # Examples
 ///
 /// ```rust
-    /// use telemetry_transport_contract::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
+/// use telemetry_transport_contract::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
 /// use async_trait::async_trait;
 ///
 /// struct MockTransport;
@@ -96,17 +96,43 @@ pub trait Transport: Send + Sync {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// use telemetry_transport_contract::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
+    /// ```rust
+    /// use telemetry_transport_contract::{Transport, TransportResult, DeliveryMode,
+    ///     TelemetryBatch, Resource, Span};
+    /// use telemetry_transport_contract::payload::{TransportMetadata, PropagationMetadata};
+    /// use telemetry_transport_contract::payload::PayloadEnvelope;
+    /// use async_trait::async_trait;
     ///
-    /// // Assuming you have a transport implementation
-    /// # let transport: &dyn Transport = todo!();
-    /// # let envelope: PayloadEnvelope = todo!();
-    /// let result = transport.send(envelope).await;
-    /// match result {
-    ///     Ok(mode) => println!("Delivered as {:?}", mode),
-    ///     Err(e) => eprintln!("Transport error: {}", e),
+    /// struct MyTransport;
+    ///
+    /// #[async_trait]
+    /// impl Transport for MyTransport {
+    ///     async fn send(&self, envelope: PayloadEnvelope) -> TransportResult<DeliveryMode> {
+    ///         let _ = envelope;
+    ///         Ok(DeliveryMode::FireAndForget)
+    ///     }
     /// }
+    ///
+    /// let rt = tokio::runtime::Builder::new_current_thread().build().unwrap();
+    /// rt.block_on(async {
+    ///     let transport = MyTransport;
+    ///     let batch = TelemetryBatch::new(
+    ///         Resource("resource-1".to_string()),
+    ///         vec![Span("trace-1".to_string())],
+    ///         vec![],
+    ///         vec![],
+    ///     ).unwrap();
+    ///     let envelope = PayloadEnvelope {
+    ///         transport_metadata: TransportMetadata::now(),
+    ///         propagation_metadata: PropagationMetadata::default(),
+    ///         payload: batch,
+    ///     };
+    ///     let result = transport.send(envelope).await;
+    ///     match result {
+    ///         Ok(mode) => println!("Delivered as {:?}", mode),
+    ///         Err(e) => eprintln!("Transport error: {}", e),
+    ///     }
+    /// });
     /// ```
     async fn send(&self, envelope: PayloadEnvelope) -> TransportResult<DeliveryMode>;
 }

@@ -1,14 +1,12 @@
-//! Tests for the batch module.
-
 use serde_test::{assert_tokens, Token};
 
-use telemetry_transport_contract::TelemetryBatch;
+use telemetry_transport_contract::{Resource, TelemetryBatch, Span, Metric, LogRecord};
 
 #[test]
 fn test_telemetry_batch_serde() {
     let batch = TelemetryBatch::new(
-        "resource1".to_string(),
-        vec!["trace1".to_string()],
+        Resource("resource1".to_string()),
+        vec![Span("trace1".to_string())],
         vec![],
         vec![],
     ).unwrap();
@@ -16,9 +14,11 @@ fn test_telemetry_batch_serde() {
     assert_tokens(&batch, &[
         Token::Struct { name: "TelemetryBatch", len: 4 },
         Token::Str("resource"),
+        Token::NewtypeStruct { name: "Resource" },
         Token::Str("resource1"),
         Token::Str("traces"),
         Token::Seq { len: Some(1) },
+        Token::NewtypeStruct { name: "Span" },
         Token::Str("trace1"),
         Token::SeqEnd,
         Token::Str("metrics"),
@@ -34,23 +34,38 @@ fn test_telemetry_batch_serde() {
 #[test]
 fn test_telemetry_batch_empty_validation() {
     let result = TelemetryBatch::new(
-        "resource1".to_string(),
+        Resource("resource1".to_string()),
         vec![],
         vec![],
         vec![],
     );
 
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err().to_string(), "invalid telemetry batch");
+    assert_eq!(
+        result.unwrap_err().to_string(),
+        "telemetry batch must contain at least one signal type"
+    );
 }
 
 #[test]
 fn test_telemetry_batch_non_empty_validation() {
     let result = TelemetryBatch::new(
-        "resource1".to_string(),
+        Resource("resource1".to_string()),
         vec![],
-        vec!["metric1".to_string()],
+        vec![Metric("metric1".to_string())],
         vec![],
+    );
+
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_telemetry_batch_only_logs() {
+    let result = TelemetryBatch::new(
+        Resource("resource1".to_string()),
+        vec![],
+        vec![],
+        vec![LogRecord("log1".to_string())],
     );
 
     assert!(result.is_ok());
