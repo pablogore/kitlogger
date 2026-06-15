@@ -1,12 +1,6 @@
-[package]
-name = "context-propagation"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-uuid = { version = "1.0", features = ["v7", "serde"] }
-serde = { version = "1.0", features = ["derive"] }
-
-[dev-dependencies]
-tokio = { version = "1.0", features = ["full"] }
-serde_json = "1.0"
+[workspace]
+resolver = "2"
+members = [
+    "crates/context-propagation",
+    "crates/telemetry-transport-contract",
+]

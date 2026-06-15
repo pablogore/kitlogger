@@ -1,10 +1,12 @@
+use serde::{Deserialize, Serialize};
+
 /// Transport-specific metadata required for context carriage.
 ///
 /// PropagationMetadata captures the transport binding details needed to
 /// carry telemetry context across execution boundaries. Each transport
 /// (HTTP, gRPC, messaging) defines its own metadata describing how context
 /// headers or fields are formatted, encoded, and transmitted.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PropagationMetadata {
     /// Transport protocol name (e.g., "http", "grpc", "kafka")
     pub transport: String,
