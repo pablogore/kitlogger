@@ -15,7 +15,7 @@ at specs/002-core-telemetry-domain-model-as-02-transport-agnostic-telemetry-flow
 ## Status
 - **Architecture**: Complete — Transport contracts owned by AS-02; concrete transports are separate specs
 - **Plan**: Complete — research.md (10 decisions), data-model.md (7 entities), contracts/transport-api.md, quickstart.md (6 scenarios), plan.md regenerated
-- **Implementation**: Complete — 97 unit tests + 3 doc-tests = **100 passing**
+- **Implementation**: Complete — 97 unit tests + 4 doc-tests = **101 passing**
 - **Requirement Classification**: 7 FUNCTIONAL (REQ→SC→PLAN→TASK→CODE→TEST) + 4 CONSTRAINT (REQ→ARCH→CODE→TEST)
 - **Traceability**: 11/11 GREEN — all 11 FRs have complete chains
 - **Governance**: Frozen artifacts immutable after approval; all audits passed
