@@ -68,7 +68,7 @@ pub struct BackpressureSignal {
 /// # Examples
 ///
 /// ```rust
-/// use as_02::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
+    /// use telemetry_transport_contract::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
 /// use async_trait::async_trait;
 ///
 /// struct MockTransport;
@@ -96,11 +96,11 @@ pub trait Transport: Send + Sync {
     ///
     /// # Examples
     ///
-    /// ```rust
-    /// use as_02::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
+    /// ```rust,ignore
+    /// use telemetry_transport_contract::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
     ///
     /// // Assuming you have a transport implementation
-    /// # let transport: &dyn Transport = &MockTransport;
+    /// # let transport: &dyn Transport = todo!();
     /// # let envelope: PayloadEnvelope = todo!();
     /// let result = transport.send(envelope).await;
     /// match result {

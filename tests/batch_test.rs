@@ -2,7 +2,7 @@
 
 use serde_test::{assert_tokens, Token};
 
-use as_02::TelemetryBatch;
+use telemetry_transport_contract::TelemetryBatch;
 
 #[test]
 fn test_telemetry_batch_serde() {

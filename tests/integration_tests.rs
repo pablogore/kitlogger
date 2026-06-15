@@ -8,8 +8,8 @@ use std::time::Duration;
 
 use serde_json;
 
-use as_02::{DeliveryMode, PayloadEnvelope, TelemetryBatch, TransportError, TransportResult};
-use as_02::payload::{PropagationMetadata, TransportMetadata};
+use telemetry_transport_contract::{BackpressureSignal, DeliveryMode, PayloadEnvelope, TelemetryBatch, TransportError, TransportResult};
+use telemetry_transport_contract::payload::{PropagationMetadata, TransportMetadata};
 
 #[test]
 fn test_delivery_mode_serialization() {
@@ -81,7 +81,7 @@ fn test_transport_error_is_non_exhaustive() {
 
     // Test backpressure variant
     let result: TransportResult<DeliveryMode> = Err(TransportError::Backpressure(
-        as_02::BackpressureSignal {
+        BackpressureSignal {
             retry_after: Some(Duration::from_secs(10)),
         }
     ));

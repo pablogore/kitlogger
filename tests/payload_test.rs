@@ -2,8 +2,8 @@
 
 use serde_test::{assert_tokens, Token};
 
-use as_02::payload::{PayloadEnvelope, TransportMetadata, PropagationMetadata};
-use as_02::batch::TelemetryBatch;
+use telemetry_transport_contract::payload::{PayloadEnvelope, TransportMetadata, PropagationMetadata};
+use telemetry_transport_contract::batch::TelemetryBatch;
 
 #[test]
 fn test_transport_metadata_serde() {

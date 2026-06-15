@@ -24,7 +24,7 @@ impl TransportMetadata {
     /// # Examples
     ///
     /// ```rust
-    /// use as_02::TransportMetadata;
+    /// use telemetry_transport_contract::payload::TransportMetadata;
     ///
     /// let metadata = TransportMetadata::now();
     /// assert!(metadata.timestamp.elapsed().unwrap().as_secs() < 1);
@@ -52,7 +52,7 @@ impl Default for PropagationMetadata {
     /// # Examples
     ///
     /// ```rust
-    /// use as_02::PropagationMetadata;
+    /// use telemetry_transport_contract::payload::PropagationMetadata;
     ///
     /// let metadata = PropagationMetadata::default();
     /// assert!(metadata.context.is_empty());
@@ -73,12 +73,13 @@ impl Default for PropagationMetadata {
 /// # Examples
 ///
 /// ```rust
-/// use as_02::{PayloadEnvelope, TelemetryBatch, TransportMetadata, PropagationMetadata};
+/// use telemetry_transport_contract::payload::{PayloadEnvelope, TransportMetadata, PropagationMetadata};
+/// use telemetry_transport_contract::TelemetryBatch;
 ///
 /// let envelope = PayloadEnvelope {
 ///     transport_metadata: TransportMetadata::now(),
 ///     propagation_metadata: PropagationMetadata::default(),
-///     payload: TelemetryBatch::new("resource1".to_string(), vec![], vec![], vec![]).unwrap(),
+///     payload: TelemetryBatch::new("resource1".to_string(), vec!["trace1".to_string()], vec![], vec![]).unwrap(),
 /// };
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

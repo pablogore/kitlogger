@@ -1,5 +1,5 @@
 [package]
-name = "as-02"
+name = "telemetry-transport-contract"
 version = "0.1.0"
 edition = "2021"
 
@@ -15,5 +15,5 @@ uuid = { version = "1.0", features = ["v4"] }
 async-trait = "0.1"
 
 [lib]
-name = "as_02"
+name = "telemetry_transport_contract"
 path = "src/lib.rs"

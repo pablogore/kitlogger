@@ -2,7 +2,7 @@
 
 use serde_test::{assert_tokens, Token};
 
-use as_02::{DeliveryMode, BackpressureSignal, TransportError};
+use telemetry_transport_contract::{DeliveryMode, BackpressureSignal, TransportError};
 
 #[test]
 fn test_delivery_mode_serde() {

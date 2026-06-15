@@ -25,7 +25,7 @@ pub type TransportResult<T> = Result<T, TransportError>;
 /// # Examples
 ///
 /// ```rust
-/// use as_02::{TransportError, TransportResult};
+/// use telemetry_transport_contract::{TransportError, TransportResult};
 ///
 /// fn handle_result() -> TransportResult<()> {
 ///     // Simulate an error

@@ -17,26 +17,26 @@ use crate::error::{TransportError, TransportResult};
 ///
 /// # Examples
 ///
-/// ```rust
-/// use as_02::{TelemetryBatch, TransportResult};
-///
-/// // This will succeed
-/// let batch = TelemetryBatch::new(
-///     "resource1".to_string(),
-///     vec!["trace1".to_string()],
-///     vec![],
-///     vec![],
-/// );
-///
-/// // This will fail because all categories are empty
-/// let empty_batch = TelemetryBatch::new(
-///     "resource1".to_string(),
-///     vec![],
-///     vec![],
-///     vec![],
-/// );
-/// assert!(empty_batch.is_err());
-/// ```
+    /// ```rust
+    /// use telemetry_transport_contract::{TelemetryBatch, TransportResult};
+    ///
+    /// // This will succeed
+    /// let batch = TelemetryBatch::new(
+    ///     "resource1".to_string(),
+    ///     vec!["trace1".to_string()],
+    ///     vec![],
+    ///     vec![],
+    /// );
+    ///
+    /// // This will fail because all categories are empty
+    /// let empty_batch = TelemetryBatch::new(
+    ///     "resource1".to_string(),
+    ///     vec![],
+    ///     vec![],
+    ///     vec![],
+    /// );
+    /// assert!(empty_batch.is_err());
+    /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TelemetryBatch {
     /// The resource identifier for this batch.
@@ -70,7 +70,7 @@ impl TelemetryBatch {
     /// # Examples
     ///
     /// ```rust
-    /// use as_02::{TelemetryBatch, TransportResult};
+    /// use telemetry_transport_contract::{TelemetryBatch, TransportResult};
     ///
     /// // This will succeed
     /// let batch = TelemetryBatch::new(
