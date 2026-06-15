@@ -1,17 +1,28 @@
-pub mod api;
-pub mod baggage;
-pub mod carrier;
-pub mod correlation;
-pub mod models;
-pub mod noop;
-pub mod propagation;
-pub mod propagation_metadata;
-pub mod trace_context;
-pub mod traits;
-pub mod validation;
+//! Transport contract types for telemetry data flow.
+//!
+//! This crate provides the canonical transport abstraction for sending telemetry
+//! data across execution boundaries. It defines the core types and traits that
+//! all concrete transport implementations must satisfy.
+//!
+//! # Core Types
+//!
+//! - [`Transport`] - The main trait for sending telemetry
+//! - [`PayloadEnvelope`] - Wrapper for telemetry data with metadata
+//! - [`TelemetryBatch`] - Container for traces, metrics, and logs
+//! - [`DeliveryMode`] - Enum representing how data was delivered
+//! - [`TransportError`] - Error type for transport operations
+//! - [`BackpressureSignal`] - Flow control signal for backpressure
 
-pub use baggage::*;
-pub use correlation::*;
-pub use propagation::*;
-pub use propagation_metadata::*;
-pub use trace_context::*;
+pub mod transport;
+pub mod payload;
+pub mod batch;
+pub mod error;
+
+// Re-export public types for convenient access
+pub use transport::Transport;
+pub use transport::DeliveryMode;
+pub use transport::BackpressureSignal;
+pub use payload::PayloadEnvelope;
+pub use batch::TelemetryBatch;
+pub use error::TransportResult;
+pub use error::TransportError;
