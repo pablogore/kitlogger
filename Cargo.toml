@@ -1,12 +1,13 @@
 [package]
-name = "context-propagation"
+name = "as-02"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-uuid = { version = "1.0", features = ["v7", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
+uuid = { version = "1.0", features = ["v4"] }
+async-trait = "0.1"
 
-[dev-dependencies]
-tokio = { version = "1.0", features = ["full"] }
-serde_json = "1.0"
+[lib]
+name = "as_02"
+path = "src/lib.rs"
