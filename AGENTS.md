@@ -1,52 +1,41 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/002-core-telemetry-domain-model-as-01-context-propagation-and-correlation/plan.md
+at specs/002-core-telemetry-domain-model-as-02-transport-agnostic-telemetry-flow/plan.md
 <!-- SPECKIT END -->
 
 <!-- ANCHORED SUMMARY -->
 # Anchored Summary
 
 ## Session Context
-- **ACTIVE_SPEC_ID**: `002-core-telemetry-domain-model-as-01-context-propagation-and-correlation`
-- **Branch**: `002-core-telemetry-domain-model-as-01-context-propagation-and-correlation`
-- **Goal**: AS-01 fully compliant — architecture resolution + implementation audit + PR-18 remediation complete
+- **ACTIVE_SPEC_ID**: `002-core-telemetry-domain-model-as-02-transport-agnostic-telemetry-flow`
+- **Branch**: `main`
+- **Goal**: AS-02 plan — generate research, data model, contracts, quickstart (post-clarification regeneration)
 
 ## Status
-- **Architecture**: COMPLIANT — all 5 audit objectives pass, 4 findings resolved; final read-only audit: COMPLIANT, zero findings
-- **Plan**: COMPLIANT — all 17 tasks traceable to spec requirements
-- **Implementation**: COMPLIANT — 55/55 tests pass, 0 contract violations, 0 unauthorized implementation
-- **Governance**: All frozen artifacts immutable; implementation only modifies src/** and tests/**
-- **PR-18**: Fully remediated — last action: removed undocumented `MapCarrier::keys()` and `get_values()`
+- **Architecture**: Pre-plan — Transport contracts owned by AS-02; concrete transports are separate specs
+- **Plan**: Complete — research.md (10 decisions), data-model.md (7 entities), contracts/transport-api.md, quickstart.md (6 scenarios), plan.md regenerated
+- **Implementation**: Not started
+- **Governance**: Frozen artifacts immutable after approval
 
 ## Key Decisions
-- Architecture artifacts (data-model.md, contracts/propagator-api.md) resolved pre-freeze to match implementation
-- `Propagator::extract` → `Option<Self::Context>` with documented failure semantics
-- `parent-span-id` is a non-W3C extension header, documented in contract serialization formats
-- `CorrelationIdentifier::is_valid()` and `from_uuid()` returning `Option` — validation matches data model
-- Timestamps use `uuid::get_timestamp()` API (official uuid crate)
-- Transport carriers (HttpHeaderCarrier, GrpcMetadataCarrier) moved to AS-02 ownership
-- Stale files `http_propagation.rs`, `grpc_propagation.rs` deleted
-- Stale comment in `trace_context.rs` removed
+- Transport trait with `std::future::Future` only (no Tokio dependency)
+- DeliveryMode returned as enum value, not associated type
+- Serde derives on PayloadEnvelope and TelemetryBatch
+- Non-exhaustive TransportError enum with Backpressure variant
+- Backpressure belongs to TransportError::Backpressure, not DeliveryMode
+- Concrete carriers (HttpHeaderCarrier, GrpcMetadataCarrier) belong to child transport binding specs
+- AS-02 uses MapCarrier from AS-01 for mock-based testing
+- TelemetryBatch constructor rejects all-empty batches
+- Execution boundaries are informative only
+- Manual Error/Display impls (no thiserror — undeclared dependency)
 
-## Test Count
-- `tests/baggage_test.rs`: 13
-- `tests/correlation_test.rs`: 9
-- `tests/trace_context_test.rs`: 13
-- `tests/propagation_test.rs`: 20
-- **Total**: 55/55 pass
-
-## Commits
-- `d3de6c1` — docs: add architecture governance rules to AGENTS.md
-- `f0a791a` — chore: track .specify and .opencode infrastructure files
-- `a5b5995` — fix(as-01): resolve architecture findings, remediate stale remediation.md, add validation boundary tests
-- `c9d29b6` — fix(as-01): remediate 9 architecture gaps
-- `6e69fe4` — chore: persist anchored summary to AGENTS.md
-
-## Next Steps
-- No outstanding work for AS-01
-- Architecture governance rules enforced for future implementation
-- Any architecture conflict → STOP → Architecture Finding → wait for approval<!-- /ANCHORED SUMMARY -->
+## Generated Artifacts
+- `research.md` — 10 research decisions resolved (updated with 8 clarifications)
+- `data-model.md` — 7 entities defined (DeliveryMode, BackpressureSignal, TelemetryBatch, PayloadEnvelope, TransportResult, TransportError, Transport trait)
+- `contracts/transport-api.md` — Transport trait, no concrete carriers (re-exported from AS-01)
+- `quickstart.md` — 6 validation scenarios, mock-based, no concrete transports
+- `plan.md` — Technical Context, Constitution Check, project structure (no carrier_ext.rs)<!-- /ANCHORED SUMMARY -->
 
 # Architecture Governance (Mandatory)
 
