@@ -3,7 +3,7 @@
 //! This module contains tests for the core types defined in the transport
 //! contract, ensuring they behave as expected.
 
-use std::collections::HashMap;
+
 use std::time::Duration;
 
 use serde_json;
