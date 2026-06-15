@@ -1,53 +1,56 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/002-core-telemetry-domain-model-as-02-transport-agnostic-telemetry-flow/plan.md
+at specs/002-core-telemetry-domain-model-as-03-telemetry-adapter-contracts/plan.md
 <!-- SPECKIT END -->
 
 <!-- ANCHORED SUMMARY -->
 # Anchored Summary
 
 ## Session Context
-- **ACTIVE_SPEC_ID**: `002-core-telemetry-domain-model-as-02-transport-agnostic-telemetry-flow`
+- **ACTIVE_SPEC_ID**: `002-core-telemetry-domain-model-as-03-telemetry-adapter-contracts`
 - **Branch**: `main`
-- **Purpose**: Implementation phase for telemetry transport contract crate
+- **Purpose**: Design phase for telemetry adapter contracts crate
 
 ## Status
-- **Architecture**: Complete — Transport contracts owned by AS-02; concrete transports are separate specs
-- **Plan**: Complete — research.md (10 decisions), data-model.md (7 entities), contracts/transport-api.md, quickstart.md (6 scenarios), plan.md regenerated
-- **Implementation**: Complete — 97 unit tests + 4 doc-tests = **101 passing**
-- **Requirement Classification**: 7 FUNCTIONAL (REQ→SC→PLAN→TASK→CODE→TEST) + 4 CONSTRAINT (REQ→ARCH→CODE→TEST)
-- **Traceability**: 11/11 GREEN — all 11 FRs have complete chains
-- **Governance**: Frozen artifacts immutable after approval; all audits passed
+- **Architecture**: Complete — Adapter contracts owned by AS-03; concrete adapters are separate specs
+- **Plan**: Complete — research.md (25 decisions), data-model.md (14 entities), contracts/adapter-api.md, quickstart.md (6 scenarios), plan.md regenerated, tasks.md (25 tasks across 6 phases)
+- **Implementation**: Not started — design phase
+- **Requirement Classification**: Pending
+- **Traceability**: Pending
+- **Governance**: Frozen artifacts immutable after approval; all Session 2026-06-16 and 2026-06-17 clarifications integrated
 
-## Implemented Entities
-- `src/transport.rs` — Transport trait, DeliveryMode enum (4 variants), BackpressureSignal struct
-- `src/batch.rs` — TelemetryBatch struct (traces, metrics, logs) with empty-rejection constructor
-- `src/payload.rs` — PayloadEnvelope struct (transport_metadata, propagation_metadata, payload)
-- `src/error.rs` — TransportError enum (5 variants: Timeout, Unavailable, Backpressure, PayloadTooLarge, Unsupported), TransportResult alias
-- `src/lib.rs` — Public API re-exports (Carrier from AS-01, all AS-02 types)
-- `tests/` — 18 transport tests, 8 payload tests, 4 batch tests, 9 integration tests
+## Implemented Entities (Design)
+- `spec.md` — 3 clarification sessions (2026-06-14, 2026-06-15, 2026-06-16), 12 FRs, 11 SCs, Key Entities, Ownership Boundary, Assumptions
+- `contracts/adapter-api.md` — CommonAdapterBase, LifecycleAdapter, TelemetryDelivery, ProviderAdapter, ExporterAdapter, Adapter supertrait, AdapterRegistry (Arc-based), AdapterLifecycle transition matrix, HealthReport, AdapterResult/AdapterError, mapping contracts, multiplexing contract
+- `data-model.md` — 14 entities with fields, relationships, transition matrix
+- `research.md` — 20 architecture decisions (AD-1 through AD-20), including object safety, Arc registry, LifecycleAdapter, TelemetryDelivery, HealthReport, Stopped vs Shutdown semantics
+- `tasks.md` — 25 tasks across 6 phases (Setup, Foundational, US1-MVP, US2-Registry, US3-Lifecycle, Polish)
+- `tech-stack.yaml` — Added async-trait macro declaration
 
-## Key Architecture Decisions
-- Transport trait with `std::future::Future` only (no Tokio dependency)
-- DeliveryMode returned as enum value, not associated type
-- Serde derives on PayloadEnvelope and TelemetryBatch
-- Non-exhaustive enums (DeliveryMode, TransportError) for future transport extensibility
-- Backpressure belongs to TransportError::Backpressure, not DeliveryMode
-- MapCarrier from AS-01 for mock-based testing
-- TelemetryBatch constructor rejects all-empty batches
+## Key Architecture Decisions (AS-03)
+- LifecycleAdapter trait (flush, shutdown) separated from CommonAdapterBase (identity, health)
+- TelemetryDelivery trait for multiplexing operations; uses `&self` for Arc compatibility
+- All adapter traits MUST be object-safe for `dyn Trait` registry usage
+- Registry stores `Arc<dyn Adapter + Send + Sync>`; `get()` returns `Arc<dyn Adapter>`
+- Registered→Shutdown and Initialized→Shutdown allowed for startup failure scenarios
+- Stopped retains resources; Shutdown releases resources and is terminal
+- HealthReport struct (AdapterHealth + String reason + SystemTime timestamp)
 - Manual Error/Display impls (no thiserror — undeclared dependency)
-- Concrete carriers owned by child transport binding specs, not AS-02
+- async-trait for all async traits (consistent with AS-02)
+- Registry supports both ProviderAdapter and ExporterAdapter through common Adapter supertrait
+- All adapter methods use `&self` receiver; concrete adapters own synchronization via interior mutability
+- Registry storage: `RwLock<HashMap<AdapterId, Arc<dyn Adapter>>>` (canonical form)
+- LifecycleAdapter remains object-safe; all lifecycle operations callable through Arc<dyn Adapter>
 
-## Generated Artifacts
-- `research.md` — 10 research decisions resolved (updated with 8 clarifications)
-- `data-model.md` — 7 entities defined
-- `contracts/transport-api.md` — Transport trait, no concrete carriers
-- `quickstart.md` — 6 validation scenarios, mock-based
+## Generated Artifacts (AS-03)
+- `research.md` — 25 research decisions resolved (4 sessions: 10 + 10 + 5 ADs)
+- `data-model.md` — 14 entities defined with full relationship diagram
+- `contracts/adapter-api.md` — 7 traits, Registry API, transition matrix, mapping contracts
+- `quickstart.md` — 6 validation scenarios (Arc-based registry, startup failure transitions, HealthReport)
 - `plan.md` — Technical Context, Constitution Check, project structure
-- `specify/clarify.md` — Requirement classification (FUNCTIONAL vs CONSTRAINT)
-- `.governance-audit.md` — 13 governance findings (all resolved)
-- `.traceability-audit.md` — 11/11 GREEN traceability<!-- /ANCHORED SUMMARY -->
+- `tasks.md` — 25 tasks across 6 phases (Setup→Foundational→US1→US2→US3→Polish)
+- `tech-stack.yaml` — async-trait added, all technologies validated<!-- /ANCHORED SUMMARY -->
 
 # Architecture Governance (Mandatory)
 
