@@ -15,7 +15,7 @@ at specs/002-core-telemetry-domain-model-as-03-telemetry-adapter-contracts/plan.
 ## Status
 - **Architecture**: Complete — Adapter contracts owned by AS-03; concrete adapters are separate specs
 - **Plan**: Complete — research.md (25 decisions), data-model.md (14 entities), contracts/adapter-api.md, quickstart.md (6 scenarios), plan.md regenerated, tasks.md (25 tasks across 6 phases)
-- **Implementation**: Not started — design phase
+- **Implementation**: Complete — 24 unit tests = **24 passing**
 - **Requirement Classification**: Pending
 - **Traceability**: Pending
 - **Governance**: Frozen artifacts immutable after approval; all Session 2026-06-16 and 2026-06-17 clarifications integrated

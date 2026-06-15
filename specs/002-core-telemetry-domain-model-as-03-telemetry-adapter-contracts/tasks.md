@@ -31,9 +31,9 @@ deployment target blocks task generation.
 
 **Purpose**: Create the Rust crate structure and workspace membership
 
-- [ ] T001 Create `crates/telemetry-adapter-contracts/` directory structure with `src/`, `tests/`
-- [ ] T002 [P] Create `crates/telemetry-adapter-contracts/Cargo.toml` with dependencies: serde (derive), async-trait; dev-deps: serde_json, tokio (rt, macros), async-trait
-- [ ] T003 Add `crates/telemetry-adapter-contracts` to workspace `members` in root `Cargo.toml`
+- [x] T001 Create `crates/telemetry-adapter-contracts/` directory structure with `src/`, `tests/`
+- [x] T002 [P] Create `crates/telemetry-adapter-contracts/Cargo.toml` with dependencies: serde (derive), async-trait; dev-deps: serde_json, tokio (rt, macros), async-trait
+- [x] T003 Add `crates/telemetry-adapter-contracts` to workspace `members` in root `Cargo.toml`
 
 ---
 
@@ -43,10 +43,10 @@ deployment target blocks task generation.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create `crates/telemetry-adapter-contracts/src/id.rs` with `AdapterId` newtype over `String`, `Display`, `FromStr`, plus validation (non-empty, min 1 char)
-- [ ] T005 [P] Create `crates/telemetry-adapter-contracts/src/health.rs` with `AdapterHealth` enum (Healthy, Degraded, Unhealthy, Unknown) with `Default` (Unknown), and `HealthReport` struct (`status: AdapterHealth`, `reason: String`, `timestamp: SystemTime`)
-- [ ] T006 [P] Create `crates/telemetry-adapter-contracts/src/error.rs` with `AdapterResult<T>`, `AdapterError` enum (InvalidTransition, AlreadyRegistered, Frozen, InitializationFailed, FlushFailed, ShutdownFailed, DeliveryFailed, PartialDelivery), manual `Display` and `Error` impls
-- [ ] T007 Create `crates/telemetry-adapter-contracts/src/lib.rs` with public module declarations and re-exports for all public types
+- [x] T004 Create `crates/telemetry-adapter-contracts/src/id.rs` with `AdapterId` newtype over `String`, `Display`, `FromStr`, plus validation (non-empty, min 1 char)
+- [x] T005 [P] Create `crates/telemetry-adapter-contracts/src/health.rs` with `AdapterHealth` enum (Healthy, Degraded, Unhealthy, Unknown) with `Default` (Unknown), and `HealthReport` struct (`status: AdapterHealth`, `reason: String`, `timestamp: SystemTime`)
+- [x] T006 [P] Create `crates/telemetry-adapter-contracts/src/error.rs` with `AdapterResult<T>`, `AdapterError` enum (InvalidTransition, AlreadyRegistered, Frozen, InitializationFailed, FlushFailed, ShutdownFailed, DeliveryFailed, PartialDelivery), manual `Display` and `Error` impls
+- [x] T007 Create `crates/telemetry-adapter-contracts/src/lib.rs` with public module declarations and re-exports for all public types
 
 **Checkpoint**: Foundation ready - `cargo build` passes with core types
 
@@ -60,12 +60,12 @@ deployment target blocks task generation.
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Contract test for adapter traits in `crates/telemetry-adapter-contracts/tests/adapter_test.rs` — mock adapter implementing CommonAdapterBase, LifecycleAdapter, TelemetryDelivery, ProviderAdapter, and ExporterAdapter
-- [ ] T009 [P] [US1] Contract test for mapping contracts in `crates/telemetry-adapter-contracts/tests/adapter_test.rs` — mock mapper implementing all five mapping contracts with roundtrip verification
+- [x] T008 [P] [US1] Contract test for adapter traits in `crates/telemetry-adapter-contracts/tests/adapter_test.rs` — mock adapter implementing CommonAdapterBase, LifecycleAdapter, TelemetryDelivery, ProviderAdapter, and ExporterAdapter
+- [x] T009 [P] [US1] Contract test for mapping contracts in `crates/telemetry-adapter-contracts/tests/adapter_test.rs` — mock mapper implementing all five mapping contracts with roundtrip verification
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Create `crates/telemetry-adapter-contracts/src/adapter.rs` with:
+- [x] T010 [US1] Create `crates/telemetry-adapter-contracts/src/adapter.rs` with:
   - `CommonAdapterBase` trait (id, health)
   - `LifecycleAdapter` trait (flush(&self), shutdown(&self)) — separate from identity
   - `TelemetryDelivery` trait (deliver(&self)) — uses `&self` for `Arc` compatibility
@@ -73,7 +73,7 @@ deployment target blocks task generation.
   - `ProviderAdapter` trait (`CommonAdapterBase + LifecycleAdapter + TelemetryDelivery + initialize(&self), start(&self), stop(&self)`)
   - `ExporterAdapter` trait (`CommonAdapterBase + LifecycleAdapter + TelemetryDelivery + initialize(&self), start(&self), stop(&self)`)
   - All using `#[async_trait]`, `&self` receivers, and object-safe signatures
-- [ ] T011 [P] [US1] Create `crates/telemetry-adapter-contracts/src/mapping.rs` with five traits: `TraceMappingContract`, `SpanMappingContract`, `MetricMappingContract`, `LogRecordMappingContract`, `ResourceMappingContract` — each with `to_otel` and `from_otel` methods
+- [x] T011 [P] [US1] Create `crates/telemetry-adapter-contracts/src/mapping.rs` with five traits: `TraceMappingContract`, `SpanMappingContract`, `MetricMappingContract`, `LogRecordMappingContract`, `ResourceMappingContract` — each with `to_otel` and `from_otel` methods
 
 **Checkpoint**: `cargo test` — adapter_test.rs passes; mock adapter compiles and is functional
 
@@ -87,14 +87,14 @@ deployment target blocks task generation.
 
 ### Tests for User Story 2
 
-- [ ] T012 [P] [US2] Contract test for registry in `crates/telemetry-adapter-contracts/tests/registry_test.rs` — register, get, contains, list operations
-- [ ] T013 [P] [US2] Contract test for freeze behavior in `crates/telemetry-adapter-contracts/tests/registry_test.rs` — registration before/after freeze, duplicate rejection
+- [x] T012 [P] [US2] Contract test for registry in `crates/telemetry-adapter-contracts/tests/registry_test.rs` — register, get, contains, list operations
+- [x] T013 [P] [US2] Contract test for freeze behavior in `crates/telemetry-adapter-contracts/tests/registry_test.rs` — registration before/after freeze, duplicate rejection
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Create `crates/telemetry-adapter-contracts/src/registry.rs` with `AdapterRegistry` struct using `RwLock<HashMap<AdapterId, Arc<dyn Adapter>>>`, methods: `register`, `get` (returns `Option<Arc<dyn Adapter>>`), `contains`, `list`, `freeze`
-- [ ] T015 [US2] Implement freeze validation in registry — reject post-freeze registrations with `AdapterError::Frozen`
-- [ ] T016 [US2] Implement duplicate registration rejection — return `AdapterError::AlreadyRegistered` on duplicate AdapterId
+- [x] T014 [US2] Create `crates/telemetry-adapter-contracts/src/registry.rs` with `AdapterRegistry` struct using `RwLock<HashMap<AdapterId, Arc<dyn Adapter>>>`, methods: `register`, `get` (returns `Option<Arc<dyn Adapter>>`), `contains`, `list`, `freeze`
+- [x] T015 [US2] Implement freeze validation in registry — reject post-freeze registrations with `AdapterError::Frozen`
+- [x] T016 [US2] Implement duplicate registration rejection — return `AdapterError::AlreadyRegistered` on duplicate AdapterId
 
 **Checkpoint**: `cargo test` — registry_test.rs passes; registry enforces freeze and duplicate rules
 
@@ -108,14 +108,14 @@ deployment target blocks task generation.
 
 ### Tests for User Story 3
 
-- [ ] T017 [P] [US3] Contract test for lifecycle transitions in `crates/telemetry-adapter-contracts/tests/lifecycle_test.rs` — valid and invalid transitions per matrix (including Registered→Shutdown, Initialized→Shutdown)
-- [ ] T018 [P] [US3] Contract test for shutdown-flush semantics in `crates/telemetry-adapter-contracts/tests/lifecycle_test.rs` — LifecycleAdapter::shutdown() invokes flush() before Stopped
-- [ ] T019 [P] [US3] Integration test in `crates/telemetry-adapter-contracts/tests/integration_tests.rs` — full lifecycle (Registered → Initialized → Started → Stopping → Stopped → Shutdown) with multiplexing over multiple adapters via TelemetryDelivery
+- [x] T017 [P] [US3] Contract test for lifecycle transitions in `crates/telemetry-adapter-contracts/tests/lifecycle_test.rs` — valid and invalid transitions per matrix (including Registered→Shutdown, Initialized→Shutdown)
+- [x] T018 [P] [US3] Contract test for shutdown-flush semantics in `crates/telemetry-adapter-contracts/tests/lifecycle_test.rs` — LifecycleAdapter::shutdown() invokes flush() before Stopped
+- [x] T019 [P] [US3] Integration test in `crates/telemetry-adapter-contracts/tests/integration_tests.rs` — full lifecycle (Registered → Initialized → Started → Stopping → Stopped → Shutdown) with multiplexing over multiple adapters via TelemetryDelivery
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Create `crates/telemetry-adapter-contracts/src/lifecycle.rs` with `LifecycleState` enum (Registered, Initialized, Started, Stopping, Stopped, Shutdown), `AdapterLifecycle` struct, transition matrix encoded as match arms (reject invalid with `AdapterError::InvalidTransition`; allow Registered→Shutdown and Initialized→Shutdown)
-- [ ] T021 [US3] Implement `shutdown(&self)` default impl on LifecycleAdapter that calls `flush()` then transitions to Stopped; concrete adapters use interior mutability for lifecycle state
+- [x] T020 [US3] Create `crates/telemetry-adapter-contracts/src/lifecycle.rs` with `LifecycleState` enum (Registered, Initialized, Started, Stopping, Stopped, Shutdown), `AdapterLifecycle` struct, transition matrix encoded as match arms (reject invalid with `AdapterError::InvalidTransition`; allow Registered→Shutdown and Initialized→Shutdown)
+- [x] T021 [US3] Implement `shutdown(&self)` default impl on LifecycleAdapter that calls `flush()` then transitions to Stopped; concrete adapters use interior mutability for lifecycle state
 
 **Checkpoint**: `cargo test` — lifecycle_test.rs passes; all lifecycle scenarios validated
 
@@ -125,10 +125,10 @@ deployment target blocks task generation.
 
 **Purpose**: Integration, documentation, validation
 
-- [ ] T022 [P] Add `deliver_to_all` function in `crates/telemetry-adapter-contracts/src/registry.rs` — iterates adapters from registry via `TelemetryDelivery::deliver()`, collects failures, returns `Ok(())`, `AdapterError::PartialDelivery`, or `AdapterError::DeliveryFailed`
-- [ ] T023 [P] Add docs and doc-tests for all public types (id, health, error, adapter, registry, lifecycle, mapping)
-- [ ] T024 Run `cargo test --workspace` and verify all tests pass (adapter_test, registry_test, lifecycle_test, integration_tests)
-- [ ] T025 Run quickstart.md validation scenarios
+- [x] T022 [P] Add `deliver_to_all` function in `crates/telemetry-adapter-contracts/src/registry.rs` — iterates adapters from registry via `TelemetryDelivery::deliver()`, collects failures, returns `Ok(())`, `AdapterError::PartialDelivery`, or `AdapterError::DeliveryFailed`
+- [x] T023 [P] Add docs and doc-tests for all public types (id, health, error, adapter, registry, lifecycle, mapping)
+- [x] T024 Run `cargo test --workspace` and verify all tests pass (adapter_test, registry_test, lifecycle_test, integration_tests)
+- [x] T025 Run quickstart.md validation scenarios
 
 ---
 
