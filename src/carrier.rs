@@ -35,16 +35,6 @@ impl MapCarrier {
             data: HashMap::new(),
         }
     }
-
-    pub fn keys(&self) -> impl Iterator<Item = &String> {
-        self.data.keys()
-    }
-
-    pub fn get_values(&self, key: &str) -> Vec<&String> {
-        self.data
-            .get(key)
-            .map_or(Vec::new(), |v| v.iter().collect())
-    }
 }
 
 impl Default for MapCarrier {

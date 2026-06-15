@@ -148,3 +148,15 @@ fn test_correlation_from_uuid_preserves_timestamp() {
     assert_eq!(original.created_at(), restored.created_at());
     assert_eq!(original.id(), restored.id());
 }
+
+#[test]
+fn test_correlation_serde_roundtrip() {
+    let original = CorrelationIdentifier::new();
+
+    let serialized = serde_json::to_string(&original).expect("serialize");
+    let deserialized: CorrelationIdentifier =
+        serde_json::from_str(&serialized).expect("deserialize");
+
+    assert_eq!(original.id(), deserialized.id());
+    assert_eq!(original.created_at(), deserialized.created_at());
+}

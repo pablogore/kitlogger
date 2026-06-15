@@ -38,6 +38,25 @@ Generic context propagation contract.
 
 `extract` returns `None` when extraction fails — the carrier contains no valid context data or the data is malformed. Implementations must not panic on malformed input. A `None` return signals that no context was available; callers should fall back to a fresh/default context as appropriate for their domain.
 
+### PropagationMetadata
+
+```rust
+pub struct PropagationMetadata {
+    pub transport: String,
+    pub entries: Vec<(String, String)>,
+}
+impl PropagationMetadata {
+    pub fn new(transport: &str) -> Self;
+    pub fn add(&mut self, key: &str, value: &str);
+    pub fn get(&self, key: &str) -> Option<&str>;
+    pub fn keys(&self) -> impl Iterator<Item = &String>;
+    pub fn is_empty(&self) -> bool;
+}
+impl Default for PropagationMetadata;
+```
+
+Transport-specific metadata container. `new(transport)` creates empty metadata, `add` appends a key-value entry, `get` retrieves the first value for a key, `keys()` returns an iterator over all entry keys, `is_empty()` checks for entries. `Default` uses transport `"unknown"`.
+
 ### MapCarrier
 
 ```rust
