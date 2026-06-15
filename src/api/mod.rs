@@ -3,12 +3,12 @@
 //! This module provides factory functions and APIs for creating telemetry entities.
 
 use crate::models::{
-    Context, Resource, InstrumentationScope, Span, LogRecord, Metric, AttributeValue, 
-    SpanStatus, LogSeverity
+    AttributeValue, Context, InstrumentationScope, LogRecord, LogSeverity, Metric, Resource, Span,
+    SpanStatus,
 };
 use std::collections::HashMap;
 
-pub use crate::validation::{validators, validation, TelemetryError};
+pub use crate::validation::{validation, validators, TelemetryError};
 
 /// A builder for creating Context objects
 pub struct ContextBuilder {
@@ -301,7 +301,10 @@ pub mod factory {
     }
 
     /// Creates a new instrumentation scope with version
-    pub fn new_instrumentation_scope_with_version(name: String, version: String) -> InstrumentationScope {
+    pub fn new_instrumentation_scope_with_version(
+        name: String,
+        version: String,
+    ) -> InstrumentationScope {
         InstrumentationScope::with_version(name, version)
     }
 
@@ -331,7 +334,14 @@ pub mod factory {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos() as u64;
-        LogRecord::new(context, resource, instrumentation_scope, timestamp, severity, body)
+        LogRecord::new(
+            context,
+            resource,
+            instrumentation_scope,
+            timestamp,
+            severity,
+            body,
+        )
     }
 
     /// Creates a new metric

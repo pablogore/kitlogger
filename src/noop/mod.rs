@@ -3,8 +3,8 @@
 //! These implementations provide no-op behavior for all telemetry components,
 //! ensuring that the system can function without any actual telemetry backend.
 
-use crate::models::{Context, Resource, InstrumentationScope, Span, LogRecord, Metric};
-use crate::traits::{Logger, Tracer, Meter};
+use crate::models::{Context, InstrumentationScope, LogRecord, Metric, Resource, Span};
+use crate::traits::{Logger, Meter, Tracer};
 
 /// A no-op logger that does nothing when asked to emit logs
 pub struct NoOpLogger;
@@ -29,7 +29,7 @@ impl Tracer for NoOpTracer {
             0,
         )
     }
-    
+
     fn end_span(&self, _span: Span) {
         // No-op implementation
     }
@@ -42,15 +42,15 @@ impl Meter for NoOpMeter {
     fn record_counter(&self, _metric: Metric, _value: f64) {
         // No-op implementation
     }
-    
+
     fn record_gauge(&self, _metric: Metric, _value: f64) {
         // No-op implementation
     }
-    
+
     fn record_histogram(&self, _metric: Metric, _value: f64) {
         // No-op implementation
     }
-    
+
     fn record_up_down_counter(&self, _metric: Metric, _value: f64) {
         // No-op implementation
     }

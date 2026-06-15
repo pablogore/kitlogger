@@ -2,7 +2,6 @@
 
 use crate::models::AttributeValue;
 
-
 /// An error that can occur during telemetry validation
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TelemetryError {
@@ -77,7 +76,10 @@ pub fn validate_metric_name(name: &str) -> Result<(), TelemetryError> {
 }
 
 /// Validates a resource attribute
-pub fn validate_resource_attribute(key: &str, value: &AttributeValue) -> Result<(), TelemetryError> {
+pub fn validate_resource_attribute(
+    key: &str,
+    value: &AttributeValue,
+) -> Result<(), TelemetryError> {
     if key.is_empty() {
         Err(TelemetryError::InvalidResourceAttribute)
     } else {

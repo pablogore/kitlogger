@@ -67,6 +67,8 @@ Baggage must propagate across service boundaries to carry application-specific c
 - **FR-003**: System MUST support Baggage propagation (key-value pairs) across execution boundaries
 - **FR-004**: System MUST support Propagation Metadata for transport-specific context carriage
 - **FR-005**: System MUST generate unique correlation identifiers for each operation
+- **FR-006**: System MUST reject baggage containing more than 180 entries
+- **FR-007**: System MUST reject baggage whose serialized size exceeds 64 KiB
 
 ### Key Entities
 
