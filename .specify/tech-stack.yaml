@@ -1,0 +1,16 @@
+stack:
+  language: Rust
+
+  runtime:
+    - Tokio
+
+  testing:
+    - cargo test
+
+  observability:
+    - OpenTelemetry
+
+governance:
+  technology_inference: forbidden
+  explicit_declaration_required: true
+  single_stack_per_artifact: true
