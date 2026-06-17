@@ -18,7 +18,7 @@
 
 ## Scope
 
-Define the canonical telemetry configuration model with explicit semantic entities: TelemetryConfig, SamplingPolicy, ExporterConfig, ResourceConfig, VerbosityPolicy, ValidationRule, and SchemaVersion. This specification owns telemetry configuration semantics only. Configuration infrastructure (loading, sources, parsing, environment integration, secrets, precedence, runtime reload, lifecycle) belongs to Kit Config. ConfigurationSchema is an implementation artifact derived from these semantic entities.
+Define the canonical telemetry configuration model with explicit semantic entities: TelemetryConfig, SamplingPolicy, ExporterConfig, ResourceConfig, VerbosityPolicy, and SchemaVersion; plus cross-cutting inline validation constraints on all field definitions. This specification owns telemetry configuration semantics only. Configuration infrastructure (loading, sources, parsing, environment integration, secrets, precedence, runtime reload, lifecycle) belongs to Kit Config. ConfigurationSchema is an implementation artifact derived from these semantic entities.
 
 ## Non-Scope
 
@@ -72,37 +72,37 @@ A KitLogger administrator must be able to configure resource attributes that ide
 ### Functional Requirements
 
 - **FR-001**: System MUST define a TelemetryConfig entity with enabled/disabled and top-level telemetry settings
-- **FR-002**: System MUST define a SamplingPolicy entity with sampling rate and policy type
-- **FR-003**: System MUST define an ExporterConfig entity per exporter type with selection and endpoint settings
+- **FR-002**: System MUST define a SamplingPolicy entity with sampling rate and policy type from a closed canonical set: AlwaysOn, AlwaysOff, TraceIdRatio, ParentBased, ConsistentProbability. An Extension variant accepting a provider-defined identifier enables future extensibility; extension opt-in requires a SchemaVersion bump.
+- **FR-003**: System MUST define a generic ExporterConfig entity with fields: exporter_type (closed set), endpoint, compression, headers, timeout. Exporter-specific settings via a structured settings map with per-type validation. New exporter types are added to the closed set; addition requires a SchemaVersion bump.
 - **FR-004**: System MUST define a ResourceConfig entity with resource attribute defaults and overrides
-- **FR-005**: System MUST define a VerbosityPolicy entity with per-signal verbosity levels
-- **FR-006**: System MUST define a ValidationRule entity for all configurable value constraints
-- **FR-007**: System MUST define a SchemaVersion entity for configuration schema versioning
+- **FR-005**: System MUST define a VerbosityPolicy entity with a fixed canonical level set shared across all signals (traces, metrics, logs): OFF, ERROR, WARN, INFO, DEBUG, TRACE. Per-signal threshold may be set independently to any level in the set.
+- **FR-006**: System MUST define inline validation constraints on all configurable fields using declarative rule metadata (e.g., range, required, uri, pattern). Constraints are embedded in field definitions; there is no standalone ValidationRule entity with its own identity or lifecycle.
+- **FR-007**: System MUST define a SchemaVersion entity that versions the entire telemetry configuration: semantic model entities, their defaults, and all telemetry settings. Kit Config configuration pipeline version is independent and owned by Kit Config.
 - **FR-008**: System MUST define configuration defaults for all required settings
 - **FR-009**: System MUST NOT define configuration loading, sources, parsing, or infrastructure
 
 ### Key Entities
 
 - **TelemetryConfig**: Top-level configuration entity controlling telemetry enabled/disabled and global settings
-- **SamplingPolicy**: Configuration entity defining sampling rate and policy type for telemetry volume control
-- **ExporterConfig**: Per-exporter configuration entity with selection, endpoint, and behavior settings
+- **SamplingPolicy**: Configuration entity defining sampling rate and policy type. Canonical policy types: AlwaysOn, AlwaysOff, TraceIdRatio, ParentBased, ConsistentProbability. Extension variant for provider-defined identifiers. Extension opt-in requires SchemaVersion bump.
+- **ExporterConfig**: Generic configuration entity with fields: exporter_type (closed set), endpoint, compression, headers, timeout. Exporter-specific settings via structured settings map with per-type validation. New exporter types require SchemaVersion bump.
 - **ResourceConfig**: Configuration entity for resource attribute defaults and overrides (service.name, service.version, deployment.environment)
-- **VerbosityPolicy**: Configuration entity defining per-signal verbosity levels (trace, metric, log)
-- **ValidationRule**: A constraint entity enforcing valid configuration values across all semantic entities
-- **SchemaVersion**: Version identifier for the configuration schema, enabling future schema evolution
+- **VerbosityPolicy**: Configuration entity defining a fixed canonical level set shared across traces, metrics, and logs: OFF, ERROR, WARN, INFO, DEBUG, TRACE. Per-signal threshold independently configurable. Set is fixed and not extensible.
+- **ValidationRule**: Cross-cutting validation constraints embedded as declarative metadata on each entity's field definitions (e.g., range, required, uri, pattern). Not a standalone entity with identity or lifecycle. AS-04 defines what to validate; Kit Config owns how to execute validation.
+- **SchemaVersion**: Version identifier for the entire telemetry configuration (semantic model entities, defaults, and telemetry settings). Kit Config pipeline version is independent.
 
 ## Success Criteria
 
 ### Measurable Outcomes
 
-- **SC-001**: All seven semantic entities (TelemetryConfig, SamplingPolicy, ExporterConfig, ResourceConfig, VerbosityPolicy, ValidationRule, SchemaVersion) are defined and documented
+- **SC-001**: All six semantic entities (TelemetryConfig, SamplingPolicy, ExporterConfig, ResourceConfig, VerbosityPolicy, SchemaVersion) plus cross-cutting inline validation constraints are defined and documented
 - **SC-002**: TelemetryConfig includes enabled/disabled toggle with documented defaults
-- **SC-003**: SamplingPolicy defines rate and policy type with validation constraints
-- **SC-004**: ExporterConfig supports per-exporter-type selection, endpoint, and behavior settings
+- **SC-003**: SamplingPolicy defines rate and closed canonical policy type set (AlwaysOn, AlwaysOff, TraceIdRatio, ParentBased, ConsistentProbability) with validation constraints and Extension variant
+- **SC-004**: ExporterConfig defines generic fields (exporter_type, endpoint, compression, headers, timeout) with per-type validation for exporter-specific settings; new exporter types require SchemaVersion bump
 - **SC-005**: ResourceConfig defines service.name, service.version, deployment.environment with defaults
-- **SC-006**: VerbosityPolicy defines per-signal levels (trace, metric, log) with validation
-- **SC-007**: ValidationRule enforces constraints across all semantic entities
-- **SC-008**: SchemaVersion is present and enables future schema evolution
+- **SC-006**: VerbosityPolicy defines fixed canonical level set (OFF, ERROR, WARN, INFO, DEBUG, TRACE) shared across traces, metrics, and logs; per-signal threshold independently configurable; set is fixed and not extensible
+- **SC-007**: All configuration fields carry inline declarative validation constraints (range, required, uri, pattern); validation contract is defined by AS-04, validation execution is owned by Kit Config
+- **SC-008**: SchemaVersion is present, versions the entire telemetry configuration (semantic model + defaults + settings), and enables future schema evolution independently from Kit Config pipeline version
 - **SC-009**: No configuration infrastructure (loading, parsing, sources) is defined in this specification
 
 ## Ownership Boundary
@@ -110,12 +110,12 @@ A KitLogger administrator must be able to configure resource attributes that ide
 This specification owns:
 
 - TelemetryConfig entity with enable/disable and global settings
-- SamplingPolicy entity with rate and policy type
-- ExporterConfig entity per exporter type with selection and endpoint
+- SamplingPolicy entity with rate and closed canonical policy type set (AlwaysOn, AlwaysOff, TraceIdRatio, ParentBased, ConsistentProbability) plus Extension variant
+- ExporterConfig entity with generic fields (exporter_type, endpoint, compression, headers, timeout) and per-type validated settings map; exporter type is a closed set; new types require SchemaVersion bump
 - ResourceConfig entity with resource attribute defaults
-- VerbosityPolicy entity with per-signal levels
-- ValidationRule entity for value constraints
-- SchemaVersion entity for schema evolution
+- VerbosityPolicy entity with fixed canonical level set (OFF, ERROR, WARN, INFO, DEBUG, TRACE) shared across all signals; per-signal threshold independently configurable
+- Inline validation constraints (range, required, uri, pattern) on all configuration field definitions
+- SchemaVersion entity versioning the entire telemetry configuration (semantic model + defaults + settings); Kit Config pipeline version is independent
 
 This specification does not own:
 
@@ -130,6 +130,14 @@ This specification does not own:
 ### Session 2026-06-14
 
 - Q: Canonical Configuration Model → A: Explicit semantic entities: TelemetryConfig, SamplingPolicy, ExporterConfig, ResourceConfig, VerbosityPolicy, ValidationRule, SchemaVersion (B)
+
+### Session 2026-06-17
+
+- Q: SamplingPolicy — supported policy types, OTel alignment, and extensibility model → A: Closed set + versioned extensibility (C). Canonical policy types: AlwaysOn, AlwaysOff, TraceIdRatio, ParentBased (delegates to head decision), ConsistentProbability (trace-id consistent, OTel standard). An Extension variant accepts a provider-defined policy identifier. The canonical set is closed and versioned; extension opt-in requires explicit SchemaVersion bump.
+- Q: ExporterConfig — generic entity with type discriminator vs per-exporter-type entities → A: Generic entity with typed settings (B). Single ExporterConfig entity with fields: exporter_type (closed set), endpoint, compression, headers, timeout. Exporter-specific settings via a structured settings map with per-type validation. New exporters add entries to the closed type set (SchemaVersion bump required).
+- Q: ValidationRule — canonical entity, derived artifact, or validation contract → A: Validation contract embedded in field definitions (B). Constraints are inline field metadata (e.g., `sampling_rate: f64 [range=0.0..1.0]`), not a standalone entity with identity or lifecycle. AS-04 expresses what to validate; Kit Config owns how to execute.
+- Q: SchemaVersion — what exactly does it version → A: SchemaVersion versions the entire telemetry configuration (B): semantic model, defaults, and all telemetry settings. Kit Config's configuration pipeline version is independent and owned by Kit Config.
+- Q: VerbosityPolicy — canonical levels, cross-signal sharing, and extensibility → A: Simple fixed set shared across all signals (C). Canonical levels: OFF, ERROR, WARN, INFO, DEBUG, TRACE. Same level set applies to traces, metrics, and logs. Set is fixed and not extensible.
 
 ## Assumptions
 
