@@ -209,7 +209,9 @@ fn test_trace_context_zero_trace_id() {
 fn test_tracestate_max_entries() {
     let mut state = TraceState::new();
     for i in 0..32 {
-        assert!(state.add(&format!("key{}", i), &format!("value{}", i)).is_ok());
+        assert!(state
+            .add(&format!("key{}", i), &format!("value{}", i))
+            .is_ok());
     }
     let result = state.add("overflow", "value");
     assert!(result.is_err());

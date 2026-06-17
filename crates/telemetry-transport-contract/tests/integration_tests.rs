@@ -24,12 +24,7 @@ fn test_delivery_mode_serialization() {
 
 #[test]
 fn test_telemetry_batch_rejects_all_empty() {
-    let batch = TelemetryBatch::new(
-        Resource("resource".to_string()),
-        vec![],
-        vec![],
-        vec![],
-    );
+    let batch = TelemetryBatch::new(Resource("resource".to_string()), vec![], vec![], vec![]);
     assert!(batch.is_err());
 }
 
@@ -100,11 +95,10 @@ fn test_transport_error_is_non_exhaustive() {
         Err(_) => {}
     }
 
-    let result: TransportResult<DeliveryMode> = Err(TransportError::Backpressure(
-        BackpressureSignal {
+    let result: TransportResult<DeliveryMode> =
+        Err(TransportError::Backpressure(BackpressureSignal {
             retry_after: Some(Duration::from_secs(10)),
-        },
-    ));
+        }));
     match result {
         Ok(_) => panic!("Expected error"),
         Err(TransportError::Timeout) => panic!("Unexpected timeout"),

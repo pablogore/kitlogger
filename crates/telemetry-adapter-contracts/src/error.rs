@@ -1,5 +1,4 @@
 /// Error types for telemetry adapter operations.
-
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
@@ -9,10 +8,7 @@ pub type AdapterResult<T> = Result<T, AdapterError>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AdapterError {
-    InvalidTransition {
-        from: String,
-        to: String,
-    },
+    InvalidTransition { from: String, to: String },
     AlreadyRegistered(AdapterId),
     Frozen,
     InitializationFailed(String),

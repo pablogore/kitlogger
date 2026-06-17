@@ -19,7 +19,6 @@
 //! - [`DeliveryMode::Batch`] - Multiple telemetry items are sent together
 //! - [`DeliveryMode::Streaming`] - Data is sent in a streaming fashion
 
-
 use crate::payload::PayloadEnvelope;
 use crate::TransportResult;
 use serde::{Deserialize, Serialize};

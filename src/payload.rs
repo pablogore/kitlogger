@@ -18,24 +18,14 @@ pub struct TransportMetadata {
 }
 
 impl TransportMetadata {
-    /// Creates new transport metadata with the current timestamp.
-    pub fn now() -> Self {
+    /// Creates new transport metadata.
+    pub fn new() -> Self {
         TransportMetadata {
             timestamp: std::time::SystemTime::now(),
-            content_type: "application/json".to_string(),
-            encoding: "utf-8".to_string(),
+            content_type: String::new(),
+            encoding: String::new(),
         }
     }
-}
-
-/// Metadata for context propagation.
-///
-/// This struct contains information needed to propagate context
-/// across execution boundaries.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PropagationMetadata {
-    /// Context propagation data.
-    pub context: String,
 }
 
 /// Envelope for telemetry payloads.
@@ -48,7 +38,9 @@ pub struct PayloadEnvelope {
     pub transport_metadata: TransportMetadata,
     
     /// Metadata for context propagation.
-    pub propagation_metadata: PropagationMetadata,
+    /// 
+    /// TODO: Import canonical PropagationMetadata from AS-01
+    pub propagation_metadata: String,
     
     /// The actual telemetry data payload.
     pub payload: TelemetryBatch,
