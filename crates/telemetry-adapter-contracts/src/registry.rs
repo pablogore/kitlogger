@@ -19,11 +19,7 @@ impl AdapterRegistry {
         }
     }
 
-    pub fn register(
-        &mut self,
-        id: AdapterId,
-        adapter: Arc<dyn Adapter>,
-    ) -> AdapterResult<()> {
+    pub fn register(&mut self, id: AdapterId, adapter: Arc<dyn Adapter>) -> AdapterResult<()> {
         if self.frozen {
             return Err(AdapterError::Frozen);
         }
@@ -39,10 +35,7 @@ impl AdapterRegistry {
     }
 
     pub fn get(&self, id: &AdapterId) -> Option<Arc<dyn Adapter>> {
-        let map = self
-            .adapters
-            .read()
-            .ok()?;
+        let map = self.adapters.read().ok()?;
         map.get(id).cloned()
     }
 

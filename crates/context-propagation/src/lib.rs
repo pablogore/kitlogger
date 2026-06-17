@@ -5,14 +5,14 @@
 //! core types and traits for W3C Trace Context, Baggage, and Correlation
 //! identifier propagation.
 
-pub mod trace_context;
-pub mod correlation;
+pub mod api;
 pub mod baggage;
 pub mod carrier;
+pub mod correlation;
+pub mod models;
+pub mod noop;
 pub mod propagation;
 pub mod propagation_metadata;
-pub mod models;
+pub mod trace_context;
 pub mod traits;
-pub mod noop;
-pub mod api;
 pub mod validation;

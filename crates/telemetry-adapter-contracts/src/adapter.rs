@@ -31,7 +31,8 @@ pub trait TelemetryDelivery: Send + Sync {
 pub trait Adapter: CommonAdapterBase + LifecycleAdapter + TelemetryDelivery + Send + Sync {}
 
 /// Blanket impl: any type implementing all bases automatically implements Adapter.
-impl<T> Adapter for T where T: CommonAdapterBase + LifecycleAdapter + TelemetryDelivery + Send + Sync {}
+impl<T> Adapter for T where T: CommonAdapterBase + LifecycleAdapter + TelemetryDelivery + Send + Sync
+{}
 
 /// Provider-side operations.
 #[async_trait]

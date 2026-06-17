@@ -1,52 +1,35 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-/// Placeholder for Resource type (defined in AS-03)
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Resource {
-    // Placeholder fields - actual implementation in AS-03
-    pub name: String,
-}
-
-/// Placeholder for Span type (defined in AS-03)
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Span {
-    // Placeholder fields - actual implementation in AS-03
-    pub name: String,
-}
-
-/// Placeholder for Metric type (defined in AS-03)
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Metric {
-    // Placeholder fields - actual implementation in AS-03
-    pub name: String,
-}
-
-/// Placeholder for LogRecord type (defined in AS-03)
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct LogRecord {
-    // Placeholder fields - actual implementation in AS-03
-    pub message: String,
-}
-
 /// Telemetry batch containing telemetry data.
 ///
 /// This struct represents a batch of telemetry data that can be sent
 /// across an execution boundary. It contains resource information and
 /// collections of different types of telemetry signals.
+/// 
+/// Note: Resource, Span, Metric, and LogRecord types are defined in AS-03.
+/// This is a placeholder for the canonical types from the owning specification.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TelemetryBatch {
     /// Resource information for the telemetry data.
-    pub resource: Resource,
+    /// 
+    /// TODO: Replace with canonical Resource type from AS-03
+    pub resource: String,
     
     /// Collection of trace spans.
-    pub traces: Vec<Span>,
+    /// 
+    /// TODO: Replace with canonical Span type from AS-03
+    pub traces: Vec<String>,
     
     /// Collection of metrics.
-    pub metrics: Vec<Metric>,
+    /// 
+    /// TODO: Replace with canonical Metric type from AS-03
+    pub metrics: Vec<String>,
     
     /// Collection of log records.
-    pub logs: Vec<LogRecord>,
+    /// 
+    /// TODO: Replace with canonical LogRecord type from AS-03
+    pub logs: Vec<String>,
 }
 
 impl TelemetryBatch {
@@ -62,10 +45,10 @@ impl TelemetryBatch {
     /// * `Ok(TelemetryBatch)` if at least one of traces, metrics, or logs is non-empty
     /// * `Err(TelemetryBatchError)` if all signal types are empty
     pub fn new(
-        resource: Resource,
-        traces: Vec<Span>,
-        metrics: Vec<Metric>,
-        logs: Vec<LogRecord>,
+        resource: String,
+        traces: Vec<String>,
+        metrics: Vec<String>,
+        logs: Vec<String>,
     ) -> Result<Self, TelemetryBatchError> {
         if traces.is_empty() && metrics.is_empty() && logs.is_empty() {
             return Err(TelemetryBatchError::EmptyBatch);

@@ -4,7 +4,7 @@ use std::time::SystemTime;
 use async_trait::async_trait;
 
 use telemetry_adapter_contracts::{
-    Adapter, AdapterError, AdapterHealth, AdapterId, AdapterResult, AdapterRegistry,
+    Adapter, AdapterError, AdapterHealth, AdapterId, AdapterRegistry, AdapterResult,
     CommonAdapterBase, HealthReport, LifecycleAdapter, TelemetryDelivery,
 };
 
