@@ -1,39 +1,91 @@
 use async_trait::async_trait;
 use serde_test::{assert_tokens, Token};
 
+use telemetry_transport_contract::payload::{PropagationMetadata, TransportMetadata};
 use telemetry_transport_contract::{
     BackpressureSignal, DeliveryMode, PayloadEnvelope, Transport, TransportError, TransportResult,
 };
-use telemetry_transport_contract::payload::{PropagationMetadata, TransportMetadata};
-use telemetry_transport_contract::{Resource, TelemetryBatch, Span};
+use telemetry_transport_contract::{Resource, Span, TelemetryBatch};
 
 #[test]
 fn test_delivery_mode_serde() {
-    assert_tokens(&DeliveryMode::FireAndForget, &[Token::UnitVariant { name: "DeliveryMode", variant: "FireAndForget" }]);
-    assert_tokens(&DeliveryMode::RequestResponse, &[Token::UnitVariant { name: "DeliveryMode", variant: "RequestResponse" }]);
-    assert_tokens(&DeliveryMode::Batch, &[Token::UnitVariant { name: "DeliveryMode", variant: "Batch" }]);
-    assert_tokens(&DeliveryMode::Streaming, &[Token::UnitVariant { name: "DeliveryMode", variant: "Streaming" }]);
+    assert_tokens(
+        &DeliveryMode::FireAndForget,
+        &[Token::UnitVariant {
+            name: "DeliveryMode",
+            variant: "FireAndForget",
+        }],
+    );
+    assert_tokens(
+        &DeliveryMode::RequestResponse,
+        &[Token::UnitVariant {
+            name: "DeliveryMode",
+            variant: "RequestResponse",
+        }],
+    );
+    assert_tokens(
+        &DeliveryMode::Batch,
+        &[Token::UnitVariant {
+            name: "DeliveryMode",
+            variant: "Batch",
+        }],
+    );
+    assert_tokens(
+        &DeliveryMode::Streaming,
+        &[Token::UnitVariant {
+            name: "DeliveryMode",
+            variant: "Streaming",
+        }],
+    );
 }
 
 #[test]
 fn test_backpressure_signal_serde() {
-    let signal = BackpressureSignal {
-        retry_after: None,
-    };
-    assert_tokens(&signal, &[
-        Token::Struct { name: "BackpressureSignal", len: 1 },
-        Token::Str("retry_after"),
-        Token::None,
-        Token::StructEnd,
-    ]);
+    let signal = BackpressureSignal { retry_after: None };
+    assert_tokens(
+        &signal,
+        &[
+            Token::Struct {
+                name: "BackpressureSignal",
+                len: 1,
+            },
+            Token::Str("retry_after"),
+            Token::None,
+            Token::StructEnd,
+        ],
+    );
 }
 
 #[test]
 fn test_transport_error_serde() {
-    assert_tokens(&TransportError::Timeout, &[Token::UnitVariant { name: "TransportError", variant: "Timeout" }]);
-    assert_tokens(&TransportError::Unavailable, &[Token::UnitVariant { name: "TransportError", variant: "Unavailable" }]);
-    assert_tokens(&TransportError::PayloadTooLarge, &[Token::UnitVariant { name: "TransportError", variant: "PayloadTooLarge" }]);
-    assert_tokens(&TransportError::UnsupportedTransport, &[Token::UnitVariant { name: "TransportError", variant: "UnsupportedTransport" }]);
+    assert_tokens(
+        &TransportError::Timeout,
+        &[Token::UnitVariant {
+            name: "TransportError",
+            variant: "Timeout",
+        }],
+    );
+    assert_tokens(
+        &TransportError::Unavailable,
+        &[Token::UnitVariant {
+            name: "TransportError",
+            variant: "Unavailable",
+        }],
+    );
+    assert_tokens(
+        &TransportError::PayloadTooLarge,
+        &[Token::UnitVariant {
+            name: "TransportError",
+            variant: "PayloadTooLarge",
+        }],
+    );
+    assert_tokens(
+        &TransportError::UnsupportedTransport,
+        &[Token::UnitVariant {
+            name: "TransportError",
+            variant: "UnsupportedTransport",
+        }],
+    );
 }
 
 #[test]
@@ -43,7 +95,9 @@ fn test_transport_error_backpressure_json_roundtrip() {
     let deserialized: TransportError = serde_json::from_str(&json).unwrap();
     assert_eq!(err, deserialized);
 
-    let err = TransportError::Backpressure(BackpressureSignal { retry_after: Some(std::time::Duration::from_secs(30)) });
+    let err = TransportError::Backpressure(BackpressureSignal {
+        retry_after: Some(std::time::Duration::from_secs(30)),
+    });
     let json = serde_json::to_string(&err).unwrap();
     let deserialized: TransportError = serde_json::from_str(&json).unwrap();
     assert_eq!(err, deserialized);
@@ -52,10 +106,25 @@ fn test_transport_error_backpressure_json_roundtrip() {
 #[test]
 fn test_transport_error_display() {
     assert_eq!(format!("{}", TransportError::Timeout), "transport timeout");
-    assert_eq!(format!("{}", TransportError::Unavailable), "transport unavailable");
-    assert_eq!(format!("{}", TransportError::Backpressure(BackpressureSignal { retry_after: None })), "transport backpressure");
-    assert_eq!(format!("{}", TransportError::PayloadTooLarge), "payload too large");
-    assert_eq!(format!("{}", TransportError::UnsupportedTransport), "unsupported transport");
+    assert_eq!(
+        format!("{}", TransportError::Unavailable),
+        "transport unavailable"
+    );
+    assert_eq!(
+        format!(
+            "{}",
+            TransportError::Backpressure(BackpressureSignal { retry_after: None })
+        ),
+        "transport backpressure"
+    );
+    assert_eq!(
+        format!("{}", TransportError::PayloadTooLarge),
+        "payload too large"
+    );
+    assert_eq!(
+        format!("{}", TransportError::UnsupportedTransport),
+        "unsupported transport"
+    );
 }
 
 #[test]
@@ -68,7 +137,10 @@ fn test_transport_error_is_error() {
 fn test_telemetry_batch_error_is_error() {
     let error = telemetry_transport_contract::TelemetryBatchError;
     let _error: &dyn std::error::Error = &error;
-    assert_eq!(error.to_string(), "telemetry batch must contain at least one signal type");
+    assert_eq!(
+        error.to_string(),
+        "telemetry batch must contain at least one signal type"
+    );
 }
 
 struct MockTransport;
@@ -91,7 +163,8 @@ async fn test_mock_transport_implements_trait() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     assert!(result.is_ok());
@@ -109,11 +182,12 @@ async fn test_mock_transport_returns_request_response() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     match result {
-        Ok(DeliveryMode::RequestResponse) => {},
+        Ok(DeliveryMode::RequestResponse) => {}
         Ok(other) => panic!("Expected RequestResponse, got {:?}", other),
         Err(e) => panic!("Expected Ok, got {}", e),
     }
@@ -139,11 +213,12 @@ async fn test_mock_transport_returns_streaming() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     match result {
-        Ok(DeliveryMode::Streaming) => {},
+        Ok(DeliveryMode::Streaming) => {}
         Ok(other) => panic!("Expected Streaming, got {:?}", other),
         Err(e) => panic!("Expected Ok, got {}", e),
     }
@@ -169,11 +244,12 @@ async fn test_mock_transport_returns_batch() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     match result {
-        Ok(DeliveryMode::Batch) => {},
+        Ok(DeliveryMode::Batch) => {}
         Ok(other) => panic!("Expected Batch, got {:?}", other),
         Err(e) => panic!("Expected Ok, got {}", e),
     }
@@ -199,11 +275,12 @@ async fn test_mock_transport_returns_unavailable() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     match result {
-        Err(TransportError::Unavailable) => {},
+        Err(TransportError::Unavailable) => {}
         Ok(mode) => panic!("Expected Err(Unavailable), got Ok({:?})", mode),
         Err(e) => panic!("Expected Err(Unavailable), got Err({})", e),
     }
@@ -214,7 +291,9 @@ struct MockTransportBackpressure;
 #[async_trait]
 impl Transport for MockTransportBackpressure {
     async fn send(&self, _envelope: PayloadEnvelope) -> TransportResult<DeliveryMode> {
-        Err(TransportError::Backpressure(BackpressureSignal { retry_after: Some(std::time::Duration::from_secs(30)) }))
+        Err(TransportError::Backpressure(BackpressureSignal {
+            retry_after: Some(std::time::Duration::from_secs(30)),
+        }))
     }
 }
 
@@ -229,13 +308,14 @@ async fn test_mock_transport_returns_backpressure() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     match result {
         Err(TransportError::Backpressure(ref signal)) => {
             assert_eq!(signal.retry_after, Some(std::time::Duration::from_secs(30)));
-        },
+        }
         Ok(mode) => panic!("Expected Err(Backpressure), got Ok({:?})", mode),
         Err(e) => panic!("Expected Err(Backpressure), got Err({})", e),
     }
@@ -261,11 +341,12 @@ async fn test_mock_transport_returns_timeout() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     match result {
-        Err(TransportError::Timeout) => {},
+        Err(TransportError::Timeout) => {}
         Ok(mode) => panic!("Expected Err(Timeout), got Ok({:?})", mode),
         Err(e) => panic!("Expected Err(Timeout), got Err({})", e),
     }
@@ -291,11 +372,12 @@ async fn test_mock_transport_returns_payload_too_large() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     match result {
-        Err(TransportError::PayloadTooLarge) => {},
+        Err(TransportError::PayloadTooLarge) => {}
         Ok(mode) => panic!("Expected Err(PayloadTooLarge), got Ok({:?})", mode),
         Err(e) => panic!("Expected Err(PayloadTooLarge), got Err({})", e),
     }
@@ -316,7 +398,8 @@ async fn test_as02_defines_contracts_only() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     assert!(result.is_ok());
@@ -345,7 +428,8 @@ async fn test_no_runtime_transport() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     assert!(result.is_ok());
@@ -372,11 +456,12 @@ async fn test_mock_transport_returns_unsupported() {
             vec![Span("trace1".to_string())],
             vec![],
             vec![],
-        ).unwrap(),
+        )
+        .unwrap(),
     };
     let result = transport.send(envelope).await;
     match result {
-        Err(TransportError::UnsupportedTransport) => {},
+        Err(TransportError::UnsupportedTransport) => {}
         Ok(mode) => panic!("Expected Err(UnsupportedTransport), got Ok({:?})", mode),
         Err(e) => panic!("Expected Err(UnsupportedTransport), got Err({})", e),
     }

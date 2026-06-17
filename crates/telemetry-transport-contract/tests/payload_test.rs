@@ -1,6 +1,8 @@
 use context_propagation::carrier::{Extractor, Injector, MapCarrier};
-use telemetry_transport_contract::payload::{PayloadEnvelope, PropagationMetadata, TransportMetadata};
-use telemetry_transport_contract::{Resource, TelemetryBatch, Span};
+use telemetry_transport_contract::payload::{
+    PayloadEnvelope, PropagationMetadata, TransportMetadata,
+};
+use telemetry_transport_contract::{Resource, Span, TelemetryBatch};
 
 #[test]
 fn test_transport_metadata_serde() {
@@ -38,7 +40,8 @@ fn test_payload_envelope_serde() {
         vec![Span("trace1".to_string())],
         vec![],
         vec![],
-    ).unwrap();
+    )
+    .unwrap();
 
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
@@ -62,12 +65,7 @@ fn test_propagation_metadata_serde() {
 
 #[test]
 fn test_telemetry_batch_rejects_all_empty_in_payload() {
-    let result = TelemetryBatch::new(
-        Resource("resource1".to_string()),
-        vec![],
-        vec![],
-        vec![],
-    );
+    let result = TelemetryBatch::new(Resource("resource1".to_string()), vec![], vec![], vec![]);
     assert!(result.is_err());
     assert_eq!(
         result.unwrap_err().to_string(),
@@ -94,7 +92,8 @@ fn test_payload_envelope_serde_with_map_carrier() {
         vec![Span("trace1".to_string())],
         vec![],
         vec![],
-    ).unwrap();
+    )
+    .unwrap();
 
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
@@ -105,8 +104,14 @@ fn test_payload_envelope_serde_with_map_carrier() {
     let serialized = serde_json::to_string(&envelope).unwrap();
     let deserialized: PayloadEnvelope = serde_json::from_str(&serialized).unwrap();
 
-    assert_eq!(envelope.payload.traces.len(), deserialized.payload.traces.len());
-    assert_eq!(envelope.propagation_metadata.transport, deserialized.propagation_metadata.transport);
+    assert_eq!(
+        envelope.payload.traces.len(),
+        deserialized.payload.traces.len()
+    );
+    assert_eq!(
+        envelope.propagation_metadata.transport,
+        deserialized.propagation_metadata.transport
+    );
     assert_eq!(
         deserialized.propagation_metadata.get("trace_id"),
         Some("abc123")

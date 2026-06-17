@@ -22,7 +22,7 @@ pub use health::{AdapterHealth, HealthReport};
 pub use id::AdapterId;
 pub use lifecycle::{AdapterLifecycle, LifecycleState};
 pub use mapping::{
-    LogRecordMappingContract, MetricMappingContract, ResourceMappingContract,
-    SpanMappingContract, TraceMappingContract,
+    LogRecordMappingContract, MetricMappingContract, ResourceMappingContract, SpanMappingContract,
+    TraceMappingContract,
 };
 pub use registry::AdapterRegistry;

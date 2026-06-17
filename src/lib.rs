@@ -16,5 +16,6 @@ mod batch;
 mod payload;
 
 pub use transport::*;
+pub use error::*;
 pub use batch::*;
 pub use payload::*;

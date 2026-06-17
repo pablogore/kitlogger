@@ -1,5 +1,4 @@
 /// Health types for adapter health reporting.
-
 use std::time::SystemTime;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
