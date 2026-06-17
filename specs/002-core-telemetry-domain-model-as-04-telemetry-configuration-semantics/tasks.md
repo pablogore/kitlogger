@@ -28,7 +28,7 @@ description: "Task list for Telemetry Configuration Semantics"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create `crates/telemetry-config-semantics/Cargo.toml` with Rust edition 2021, serde (derive) dependency, and library crate declaration
+- [x] T001 Create `crates/telemetry-config-semantics/Cargo.toml` with Rust edition 2021, serde (derive) dependency, and library crate declaration
 
 ---
 
@@ -38,9 +38,9 @@ description: "Task list for Telemetry Configuration Semantics"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 [P] Define SchemaVersion struct with semver `version: String` and optional `description: String` fields in `crates/telemetry-config-semantics/src/schema_version.rs`; implement Default returning "1.0.0"
-- [ ] T003 [P] Define VerbosityLevel enum (Off, Error, Warn, Info, Debug, Trace) and VerbosityPolicy struct with per-signal fields (trace_level, metric_level, log_level) in `crates/telemetry-config-semantics/src/verbosity_policy.rs`; implement Default returning Info for all signals
-- [ ] T004 Create `crates/telemetry-config-semantics/src/lib.rs` with `pub mod` declarations for all six entity modules (schema_version, verbosity_policy, telemetry_config, sampling_policy, exporter_config, resource_config) and re-export all public structs and enums
+- [x] T002 [P] Define SchemaVersion struct with semver `version: String` and optional `description: String` fields in `crates/telemetry-config-semantics/src/schema_version.rs`; implement Default returning "1.0.0"
+- [x] T003 [P] Define VerbosityLevel enum (Off, Error, Warn, Info, Debug, Trace) and VerbosityPolicy struct with per-signal fields (trace_level, metric_level, log_level) in `crates/telemetry-config-semantics/src/verbosity_policy.rs`; implement Default returning Info for all signals
+- [x] T004 Create `crates/telemetry-config-semantics/src/lib.rs` with `pub mod` declarations for all six entity modules (schema_version, verbosity_policy, telemetry_config, sampling_policy, exporter_config, resource_config) and re-export all public structs and enums
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -52,8 +52,8 @@ description: "Task list for Telemetry Configuration Semantics"
 
 **Independent Test**: Create a TelemetryConfig with `enabled: false` and verify that all default composition fields are populated while the disabled flag is respected.
 
-- [ ] T005 [US1] Define TelemetryConfig struct with `enabled: bool`, optional composition fields (sampling, exporters, resources, verbosity), and required `schema_version: SchemaVersion` in `crates/telemetry-config-semantics/src/telemetry_config.rs`; implement Default with enabled=true and all sub-entity defaults
-- [ ] T006 [US1] Create unit tests in `crates/telemetry-config-semantics/tests/config_test.rs` for: TelemetryConfig default construction (enabled=true), disabled flag parsing, schema_version default ("1.0.0"), and Quickstart scenarios 1-2
+- [x] T005 [US1] Define TelemetryConfig struct with `enabled: bool`, optional composition fields (sampling, exporters, resources, verbosity), and required `schema_version: SchemaVersion` in `crates/telemetry-config-semantics/src/telemetry_config.rs`; implement Default with enabled=true and all sub-entity defaults
+- [x] T006 [US1] Create unit tests in `crates/telemetry-config-semantics/tests/config_test.rs` for: TelemetryConfig default construction (enabled=true), disabled flag parsing, schema_version default ("1.0.0"), and Quickstart scenarios 1-2
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently — TelemetryConfig with SchemaVersion and VerbosityPolicy defaults
 
@@ -65,10 +65,10 @@ description: "Task list for Telemetry Configuration Semantics"
 
 **Independent Test**: Create a SamplingPolicy with type TraceIdRatio and rate 0.1; verify the type and rate are stored correctly; verify rate 1.5 is rejected by the type system or constructor.
 
-- [ ] T007 [US2] Define SamplingPolicyType enum (AlwaysOn, AlwaysOff, TraceIdRatio, ParentBased, ConsistentProbability, Extension(String)) in `crates/telemetry-config-semantics/src/sampling_policy.rs`
-- [ ] T008 [US2] Define SamplingPolicy struct with `policy_type: SamplingPolicyType` and `sampling_rate: f64` fields in `crates/telemetry-config-semantics/src/sampling_policy.rs`; implement Default (AlwaysOn, rate 1.0); add constructor validation for rate range [0.0, 1.0]
-- [ ] T009 [US2] Integrate SamplingPolicy as optional composition field (`sampling: Option<SamplingPolicy>`) in TelemetryConfig; update Default to include SamplingPolicy default
-- [ ] T010 [US2] Add unit tests in `crates/telemetry-config-semantics/tests/config_test.rs` for: SamplingPolicyType enum variants, rate validation (0.0, 0.5, 1.0 valid; -0.1, 1.5 invalid), Default construction, Extension variant, and Quickstart scenario 3
+- [x] T007 [US2] Define SamplingPolicyType enum (AlwaysOn, AlwaysOff, TraceIdRatio, ParentBased, ConsistentProbability, Extension(String)) in `crates/telemetry-config-semantics/src/sampling_policy.rs`
+- [x] T008 [US2] Define SamplingPolicy struct with `policy_type: SamplingPolicyType` and `sampling_rate: f64` fields in `crates/telemetry-config-semantics/src/sampling_policy.rs`; implement Default (AlwaysOn, rate 1.0); add constructor validation for rate range [0.0, 1.0]
+- [x] T009 [US2] Integrate SamplingPolicy as optional composition field (`sampling: Option<SamplingPolicy>`) in TelemetryConfig; update Default to include SamplingPolicy default
+- [x] T010 [US2] Add unit tests in `crates/telemetry-config-semantics/tests/config_test.rs` for: SamplingPolicyType enum variants, rate validation (0.0, 0.5, 1.0 valid; -0.1, 1.5 invalid), Default construction, Extension variant, and Quickstart scenario 3
 
 **Checkpoint**: User Stories 1 AND 2 should both work independently — TelemetryConfig with SamplingPolicy
 
@@ -80,10 +80,10 @@ description: "Task list for Telemetry Configuration Semantics"
 
 **Independent Test**: Create an ExporterConfig with type "otlp" and endpoint "http://localhost:4317"; verify serialization round-trip; verify invalid timeout_secs is rejected.
 
-- [ ] T011 [P] [US3] Define CompressionType enum (None, Gzip) in `crates/telemetry-config-semantics/src/exporter_config.rs`
-- [ ] T012 [US3] Define ExporterConfig struct with fields: `exporter_type: String`, `endpoint: Option<String>`, `compression: CompressionType`, `headers: HashMap<String, String>`, `timeout_secs: u64`, `settings: HashMap<String, String>` in `crates/telemetry-config-semantics/src/exporter_config.rs`; implement Default ("console", no endpoint, no compression, empty headers, 30s timeout, empty settings)
-- [ ] T013 [US3] Integrate ExporterConfig as optional vec field (`exporters: Option<Vec<ExporterConfig>>`) in TelemetryConfig; update Default to include single default console ExporterConfig
-- [ ] T014 [US3] Add unit tests in `crates/telemetry-config-semantics/tests/config_test.rs` for: ExporterConfig default construction, exporter_type as string, CompressionType enum, timeout_secs bounds, settings map, and Quickstart scenario 4
+- [x] T011 [P] [US3] Define CompressionType enum (None, Gzip) in `crates/telemetry-config-semantics/src/exporter_config.rs`
+- [x] T012 [US3] Define ExporterConfig struct with fields: `exporter_type: String`, `endpoint: Option<String>`, `compression: CompressionType`, `headers: HashMap<String, String>`, `timeout_secs: u64`, `settings: HashMap<String, String>` in `crates/telemetry-config-semantics/src/exporter_config.rs`; implement Default ("console", no endpoint, no compression, empty headers, 30s timeout, empty settings)
+- [x] T013 [US3] Integrate ExporterConfig as optional vec field (`exporters: Option<Vec<ExporterConfig>>`) in TelemetryConfig; update Default to include single default console ExporterConfig
+- [x] T014 [US3] Add unit tests in `crates/telemetry-config-semantics/tests/config_test.rs` for: ExporterConfig default construction, exporter_type as string, CompressionType enum, timeout_secs bounds, settings map, and Quickstart scenario 4
 
 **Checkpoint**: User Stories 1, 2, AND 3 should all work independently — TelemetryConfig with SamplingPolicy and ExporterConfig
 
@@ -95,9 +95,9 @@ description: "Task list for Telemetry Configuration Semantics"
 
 **Independent Test**: Create a ResourceConfig with service_name "my-service", service_version "2.0.0", deployment_environment "production"; verify all fields are stored correctly.
 
-- [ ] T015 [P] [US4] Define ResourceConfig struct with fields: `service_name: String`, `service_version: String`, `deployment_environment: String`, `attributes: HashMap<String, String>` in `crates/telemetry-config-semantics/src/resource_config.rs`; implement Default ("", "unknown", "development", empty map)
-- [ ] T016 [US4] Integrate ResourceConfig as optional composition field (`resources: Option<ResourceConfig>`) in TelemetryConfig; update Default to include default ResourceConfig
-- [ ] T017 [US4] Add unit tests in `crates/telemetry-config-semantics/tests/config_test.rs` for: ResourceConfig default values (service_version="unknown", deployment_environment="development"), empty service_name handling, arbitrary attributes map, and Quickstart scenarios 5-7 (verbosity + schema_version)
+- [x] T015 [P] [US4] Define ResourceConfig struct with fields: `service_name: String`, `service_version: String`, `deployment_environment: String`, `attributes: HashMap<String, String>` in `crates/telemetry-config-semantics/src/resource_config.rs`; implement Default ("", "unknown", "development", empty map)
+- [x] T016 [US4] Integrate ResourceConfig as optional composition field (`resources: Option<ResourceConfig>`) in TelemetryConfig; update Default to include default ResourceConfig
+- [x] T017 [US4] Add unit tests in `crates/telemetry-config-semantics/tests/config_test.rs` for: ResourceConfig default values (service_version="unknown", deployment_environment="development"), empty service_name handling, arbitrary attributes map, and Quickstart scenarios 5-7 (verbosity + schema_version)
 
 **Checkpoint**: All four user stories should now work independently — complete TelemetryConfig aggregate
 
@@ -107,10 +107,10 @@ description: "Task list for Telemetry Configuration Semantics"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T018 [P] Add serde Serialize/Deserialize derives to all entity structs and enums; add serde rename attributes matching config-schema-contract.md field naming conventions
-- [ ] T019 [P] Audit all contract files against implementation: verify config-schema-contract.md field names match serde attributes, verify adapter-integration-contract.md constraints match ExporterConfig.exporter_type handling
-- [ ] T020 Run `cargo test` in `crates/telemetry-config-semantics/` and fix any compilation or test failures
-- [ ] T021 Run quickstart.md full validation suite against the implemented crate
+- [x] T018 [P] Add serde Serialize/Deserialize derives to all entity structs and enums; add serde rename attributes matching config-schema-contract.md field naming conventions
+- [x] T019 [P] Audit all contract files against implementation: verify config-schema-contract.md field names match serde attributes, verify adapter-integration-contract.md constraints match ExporterConfig.exporter_type handling
+- [x] T020 Run `cargo test` in `crates/telemetry-config-semantics/` and fix any compilation or test failures
+- [x] T021 Run quickstart.md full validation suite against the implemented crate
 
 ---
 

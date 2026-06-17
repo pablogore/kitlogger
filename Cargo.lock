@@ -315,6 +315,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "telemetry-config-semantics"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "telemetry-transport-contract"
 version = "0.1.0"
 dependencies = [
