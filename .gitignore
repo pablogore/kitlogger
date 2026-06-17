@@ -2,3 +2,5 @@
 /crates/*/target
 /crates/*/Cargo.lock
 /.DS_Store
+/debug
+/release
