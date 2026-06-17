@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use async_trait::async_trait;
+use telemetry_types::{PayloadEnvelope, TelemetryBatch, TransportMetadata, PropagationMetadata};
 
 use telemetry_adapter_contracts::{
     AdapterError, AdapterHealth, AdapterId, AdapterLifecycle, AdapterRegistry, AdapterResult,
@@ -55,7 +56,7 @@ impl LifecycleAdapter for LifecycleMock {
 
 #[async_trait]
 impl TelemetryDelivery for LifecycleMock {
-    async fn deliver(&self, _envelope: Vec<u8>) -> AdapterResult<()> {
+    async fn deliver(&self, _envelope: PayloadEnvelope) -> AdapterResult<()> {
         Ok(())
     }
 }
@@ -200,10 +201,25 @@ async fn test_full_lifecycle_with_multiplexing() {
     registry.freeze();
 
     // Both adapters should receive delivery
+    let envelope = PayloadEnvelope {
+        transport_metadata: TransportMetadata {
+            protocol: "test".to_string(),
+            endpoint: "test".to_string(),
+            attributes: std::collections::HashMap::new(),
+        },
+        propagation_metadata: PropagationMetadata {
+            headers: std::collections::HashMap::new(),
+        },
+        payload: TelemetryBatch {
+            traces: vec![],
+            metrics: vec![],
+            logs: vec![],
+        },
+    };
     let result = telemetry_adapter_contracts::registry::deliver_to_all(
         &registry,
         &[id1, id2],
-        vec![1, 2, 3],
+        envelope,
     )
     .await;
     assert!(result.is_ok());

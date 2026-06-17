@@ -310,6 +310,7 @@ dependencies = [
  "async-trait",
  "serde",
  "serde_json",
+ "telemetry-types",
  "tokio",
 ]
 
@@ -324,6 +325,14 @@ dependencies = [
  "serde_test",
  "tokio",
  "uuid",
+]
+
+[[package]]
+name = "telemetry-types"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

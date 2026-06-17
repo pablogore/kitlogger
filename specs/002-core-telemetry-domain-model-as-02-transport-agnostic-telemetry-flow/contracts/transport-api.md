@@ -1,6 +1,6 @@
 # Transport Contract API
 
-> **Ownership**: AS-02 owns Transport trait, PayloadEnvelope, TelemetryBatch, TransportResult/TransportError, DeliveryMode, BackpressureSignal, and carrier abstraction traits (Injector/Extractor from AS-01). Concrete transports (HTTP, gRPC, CLI, Kafka, etc.) and concrete carriers (HttpHeaderCarrier, GrpcMetadataCarrier) are separate binding specifications.
+> **Ownership**: AS-02 owns Transport trait, TransportResult/TransportError, and DeliveryMode. PayloadEnvelope, TelemetryBatch, TransportMetadata, and BackpressureSignal are owned by the shared `telemetry-types` crate (see ADR-007). Carrier abstraction traits (Injector/Extractor) are from AS-01. Concrete transports (HTTP, gRPC, CLI, Kafka, etc.) and concrete carriers (HttpHeaderCarrier, GrpcMetadataCarrier) are separate binding specifications.
 
 ## Transport Trait
 
@@ -18,35 +18,19 @@ pub trait Transport: Send + Sync {
 - Uses `std::future::Future` only — no async runtime dependency
 - `Send + Sync` bounds allow sharing across threads
 
-## PayloadEnvelope
+## PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal
+
+These types are defined in the shared `telemetry-types` crate. See `crates/telemetry-types/` for authoritative definitions.
 
 ```rust
-#[derive(Serialize, Deserialize)]
-pub struct PayloadEnvelope {
-    pub transport_metadata: TransportMetadata,
-    pub propagation_metadata: PropagationMetadata,
-    pub payload: TelemetryBatch,
-}
+// telemetry-types provides:
+use telemetry_types::{PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal};
 ```
 
-- `transport_metadata`: Timestamp, content-type, encoding hints
-- `propagation_metadata`: Context/correlation metadata carried from AS-01
-- `payload`: The sole payload type — a TelemetryBatch
-
-## TelemetryBatch
-
-```rust
-#[derive(Serialize, Deserialize)]
-pub struct TelemetryBatch {
-    pub resource: Resource,
-    pub traces: Vec<Span>,
-    pub metrics: Vec<Metric>,
-    pub logs: Vec<LogRecord>,
-}
-```
-
-- Constructor validates: at least one of `traces`, `metrics`, `logs` must be non-empty
-- Returns `Result<Self, TelemetryBatchError>` from `new()`
+- `PayloadEnvelope`: Wraps transport_metadata, propagation_metadata, and a TelemetryBatch
+- `TelemetryBatch`: Contains resource, traces, metrics, logs; constructor rejects all-empty batches
+- `TransportMetadata`: Timestamp, content-type, encoding hints
+- `BackpressureSignal`: Flow control signal with retry-after hint
 
 ## DeliveryMode
 
@@ -83,7 +67,11 @@ pub enum TransportError {
 
 ## BackpressureSignal
 
+Defined in `telemetry-types`. Used by `TransportError::Backpressure`.
+
 ```rust
+use telemetry_types::BackpressureSignal;
+
 pub struct BackpressureSignal {
     pub retry_after: Option<Duration>,
 }
@@ -107,7 +95,7 @@ pub trait Extractor {
 
 ## Mock-Based Testing Contract
 
-AS-02 tests validate abstract contracts using `MapCarrier` from AS-01:
+AS-02 tests validate abstract contracts using `MapCarrier` from AS-01 and types from `telemetry-types`:
 
 ```rust
 // Example test structure (not real code):
@@ -115,6 +103,7 @@ AS-02 tests validate abstract contracts using `MapCarrier` from AS-01:
 mod tests {
     use super::*;
     use as_01::MapCarrier;
+    use telemetry_types::{PayloadEnvelope, TelemetryBatch};
 
     #[test]
     fn telemetry_batch_rejects_all_empty() {

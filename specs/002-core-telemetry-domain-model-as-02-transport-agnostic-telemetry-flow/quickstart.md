@@ -13,7 +13,7 @@
 **Purpose**: Verify FR-010 — TelemetryBatch constructor rejects empty batches.
 
 ```rust
-use as_02::TelemetryBatch;
+use telemetry_types::TelemetryBatch;
 
 let batch = TelemetryBatch::new(resource, vec![], vec![], vec![]);
 assert!(batch.is_err(), "Empty batch must be rejected");
@@ -49,7 +49,7 @@ for mode in &modes {
 **Purpose**: Verify PayloadEnvelope serialization/deserialization using MapCarrier from AS-01.
 
 ```rust
-use as_02::{PayloadEnvelope, TelemetryBatch};
+use telemetry_types::{PayloadEnvelope, TelemetryBatch, TransportMetadata};
 use as_01::MapCarrier;
 
 let envelope = PayloadEnvelope {
@@ -93,7 +93,8 @@ fn handle(result: TransportResult<DeliveryMode>) {
 **Purpose**: Verify Transport trait compiles with only std::future::Future (no Tokio dependency).
 
 ```rust
-use as_02::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
+use as_02::{Transport, TransportResult, DeliveryMode};
+use telemetry_types::PayloadEnvelope;
 use async_trait::async_trait;
 
 struct MockTransport;
@@ -113,7 +114,8 @@ impl Transport for MockTransport {
 **Purpose**: Verify abstract contract behavior via mocks (no concrete transports).
 
 ```rust
-use as_02::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
+use as_02::{Transport, TransportResult, DeliveryMode};
+use telemetry_types::{PayloadEnvelope, TransportMetadata};
 use as_01::MapCarrier;
 
 #[tokio::test]
@@ -137,11 +139,14 @@ async fn mock_transport_roundtrip() {
 # Run all AS-02 contract validation tests
 cargo test --lib -p as-02
 
-# Run with specific test name
-cargo test --lib -p as-02 -- telemetry_batch_rejects_all_empty
+# Run all shared types tests
+cargo test -p telemetry-types
 
-# Run with all features (serde)
-cargo test --lib -p as-02 --all-features
+# Run with specific test name
+cargo test --lib -p as-02 -- test_mock_transport_contract
+
+# Run all workspace tests
+cargo test --workspace
 ```
 
 ## References

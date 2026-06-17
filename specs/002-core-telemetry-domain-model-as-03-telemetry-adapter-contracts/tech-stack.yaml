@@ -15,5 +15,3 @@ macro:
   - async-trait
 observability:
   - OpenTelemetry
-identifier:
-  - uuid

@@ -16,7 +16,7 @@ Define the canonical adapter contract for telemetry provider abstraction. AS-03 
 
 **Language/Version**: Rust (edition 2021)
 
-**Primary Dependencies**: serde (derive), async-trait, context-propagation (AS-01 for canonical domain types)
+**Primary Dependencies**: serde (derive), async-trait, telemetry-types (shared canonical types — PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal)
 
 **Storage**: N/A (contract definitions only)
 
@@ -42,7 +42,7 @@ Define the canonical adapter contract for telemetry provider abstraction. AS-03 
 - Bidirectional mapping contracts (Canonical ↔ OpenTelemetry)
 - Adapter multiplexing with best-effort and aggregate failures
 
-**Scale/Scope**: Library crate providing ProviderAdapter, ExporterAdapter, CommonAdapterBase, LifecycleAdapter, TelemetryDelivery, Adapter supertrait, AdapterRegistry, AdapterLifecycle, AdapterId, AdapterHealth, HealthReport, AdapterResult/AdapterError, and five mapping contract traits.
+**Scale/Scope**: Library crate providing ProviderAdapter, ExporterAdapter, CommonAdapterBase, LifecycleAdapter, TelemetryDelivery, Adapter supertrait, AdapterRegistry, AdapterLifecycle, AdapterId, AdapterHealth, HealthReport, AdapterResult/AdapterError, and five mapping contract traits. Depends on `telemetry-types` for PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal.
 
 ## Constitution Check
 
@@ -50,7 +50,7 @@ Define the canonical adapter contract for telemetry provider abstraction. AS-03 
 
 1. **Atomic Specifications** - PASS: Single independently testable feature (telemetry adapter contracts)
 2. **Clear Boundaries** - PASS: Scope/non-scope well-defined; concrete adapter implementations explicitly excluded as separate specs
-3. **Dependency Management** - PASS: Depends only on parent capability canonical model; no circular dependencies
+3. **Dependency Management** - PASS: Depends on telemetry-types for shared canonical types (PayloadEnvelope, TelemetryBatch, TransportMetadata) and parent capability; no circular dependencies
 4. **Testability** - PASS: Success criteria defined with testable scenarios using mocks
 5. **Extensibility** - PASS: New adapter implementations are always separate specs; mapping contracts are trait-based
 
@@ -69,7 +69,6 @@ specs/002-core-telemetry-domain-model-as-03-telemetry-adapter-contracts/
 ├── data-model.md        # Phase 1 output
 ├── quickstart.md        # Phase 1 output
 ├── contracts/           # Phase 1 output
-├── checklists/          # Phase 2 output
 └── tasks.md             # Phase 2 output
 ```
 
@@ -90,8 +89,7 @@ crates/telemetry-adapter-contracts/
 └── tests/
     ├── adapter_test.rs      # Adapter contract validation tests
     ├── registry_test.rs     # Registry behavior tests
-    ├── lifecycle_test.rs    # Lifecycle transition tests
-    └── integration_tests.rs # End-to-end scenarios
+    └── lifecycle_test.rs    # Lifecycle transition + integration tests
 ```
 
 **Structure Decision**: Single Rust library crate with flat module organization. Adapter traits, registry, lifecycle, health, error types, mapping contracts, and identity type each in dedicated modules. Tests validate abstract contracts via mocks.

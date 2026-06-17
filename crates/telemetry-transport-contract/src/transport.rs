@@ -1,137 +1,82 @@
-//! Transport trait and core types for telemetry data flow.
-//!
-//! This module defines the [`Transport`] trait and related types that form the
-//! foundation of the telemetry transport contract.
-//!
-//! # Transport Trait
-//!
-//! The [`Transport`] trait is the core abstraction for sending telemetry data
-//! across execution boundaries. It is designed to be runtime-independent and
-//! supports multiple delivery modes.
-//!
-//! # Delivery Modes
-//!
-//! The [`DeliveryMode`] enum represents the different ways telemetry data can
-//! be delivered:
-//!
-//! - [`DeliveryMode::FireAndForget`] - Data is sent without waiting for a response
-//! - [`DeliveryMode::RequestResponse`] - Data is sent and a response is expected
-//! - [`DeliveryMode::Batch`] - Multiple telemetry items are sent together
-//! - [`DeliveryMode::Streaming`] - Data is sent in a streaming fashion
-
 use crate::payload::PayloadEnvelope;
-use crate::TransportResult;
+use crate::TransportError;
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-/// The canonical delivery mode for telemetry data.
+/// Delivery mode for telemetry transport operations.
 ///
-/// This enum represents how telemetry data was delivered by a transport.
-/// It is returned as a value from [`Transport::send()`] rather than as an
-/// associated type to allow runtime selection of delivery mode.
+/// This enum represents the different ways telemetry can be delivered
+/// across an execution boundary. It is returned as a value from
+/// `Transport::send()` to indicate which delivery mode was used.
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DeliveryMode {
-    /// Data is sent without waiting for a response.
+    /// Send the telemetry and forget about it.
+    ///
+    /// The sender does not wait for acknowledgment or response.
     FireAndForget,
-    /// Data is sent and a response is expected.
+    
+    /// Send the telemetry and wait for a response.
+    ///
+    /// The sender waits for an acknowledgment or response from the receiver.
     RequestResponse,
-    /// Multiple telemetry items are sent together.
+    
+    /// Send telemetry in batches.
+    ///
+    /// Multiple telemetry items are sent together in a batch.
     Batch,
-    /// Data is sent in a streaming fashion.
+    
+    /// Send telemetry in a streaming fashion.
+    ///
+    /// Telemetry is sent as a continuous stream of data.
     Streaming,
 }
 
-/// A signal sent back via [`TransportError::Backpressure`] to indicate flow control.
+/// Signal indicating that a transport operation is experiencing backpressure.
 ///
-/// This signal provides information about when to retry sending data,
-/// helping to manage backpressure in the system.
+/// This structure provides information about backpressure conditions,
+/// including a hint about when to retry the operation.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BackpressureSignal {
-    /// Recommended wait time before retrying.
+    /// Optional duration to wait before retrying the operation.
+    ///
+    /// If present, this indicates how long the sender should wait
+    /// before attempting to send again.
     pub retry_after: Option<Duration>,
 }
 
-/// The main transport trait for sending telemetry data.
+/// Result type for transport operations.
+pub type TransportResult<T> = Result<T, TransportError>;
+
+/// Transport trait for sending telemetry payloads.
 ///
-/// This trait defines the contract for sending telemetry data across execution
-/// boundaries. Implementations of this trait can be any transport mechanism
-/// (HTTP, gRPC, Kafka, etc.) as long as they satisfy the contract.
-///
-/// # Runtime Independence
-///
-/// The trait uses `std::future::Future` only, avoiding any dependency on
-/// specific async runtimes like Tokio. This allows concrete transport
-/// implementations to choose their own runtime.
-///
-/// # Examples
-///
-/// ```rust
-/// use telemetry_transport_contract::{Transport, PayloadEnvelope, TransportResult, DeliveryMode};
-/// use async_trait::async_trait;
-///
-/// struct MockTransport;
-///
-/// #[async_trait]
-/// impl Transport for MockTransport {
-///     async fn send(&self, envelope: PayloadEnvelope) -> TransportResult<DeliveryMode> {
-///         Ok(DeliveryMode::FireAndForget)
-///     }
-/// }
-/// ```
-#[async_trait::async_trait]
+/// This trait defines the contract for transport implementations.
+/// It is protocol-agnostic — implementors can use HTTP, gRPC, in-memory,
+/// or any other transport mechanism.
+#[async_trait]
 pub trait Transport: Send + Sync {
-    /// Send a telemetry payload across an execution boundary.
-    ///
-    /// Returns the delivery mode used for the operation.
-    ///
-    /// # Arguments
-    ///
-    /// * `envelope` - The payload to send, containing telemetry data and metadata
-    ///
-    /// # Returns
-    ///
-    /// A `TransportResult` containing the delivery mode used for the operation.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use telemetry_transport_contract::{Transport, TransportResult, DeliveryMode,
-    ///     TelemetryBatch, Resource, Span};
-    /// use telemetry_transport_contract::payload::{TransportMetadata, PropagationMetadata};
-    /// use telemetry_transport_contract::payload::PayloadEnvelope;
-    /// use async_trait::async_trait;
-    ///
-    /// struct MyTransport;
-    ///
-    /// #[async_trait]
-    /// impl Transport for MyTransport {
-    ///     async fn send(&self, envelope: PayloadEnvelope) -> TransportResult<DeliveryMode> {
-    ///         let _ = envelope;
-    ///         Ok(DeliveryMode::FireAndForget)
-    ///     }
-    /// }
-    ///
-    /// let rt = tokio::runtime::Builder::new_current_thread().build().unwrap();
-    /// rt.block_on(async {
-    ///     let transport = MyTransport;
-    ///     let batch = TelemetryBatch::new(
-    ///         Resource("resource-1".to_string()),
-    ///         vec![Span("trace-1".to_string())],
-    ///         vec![],
-    ///         vec![],
-    ///     ).unwrap();
-    ///     let envelope = PayloadEnvelope {
-    ///         transport_metadata: TransportMetadata::now(),
-    ///         propagation_metadata: PropagationMetadata::default(),
-    ///         payload: batch,
-    ///     };
-    ///     let result = transport.send(envelope).await;
-    ///     match result {
-    ///         Ok(mode) => println!("Delivered as {:?}", mode),
-    ///         Err(e) => eprintln!("Transport error: {}", e),
-    ///     }
-    /// });
-    /// ```
+    /// Send a telemetry payload and return the delivery mode used.
     async fn send(&self, envelope: PayloadEnvelope) -> TransportResult<DeliveryMode>;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_delivery_mode_serialization() {
+        let mode = DeliveryMode::FireAndForget;
+        let serialized = serde_json::to_string(&mode).unwrap();
+        let deserialized: DeliveryMode = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(mode, deserialized);
+    }
+
+    #[test]
+    fn test_backpressure_signal() {
+        let signal = BackpressureSignal {
+            retry_after: Some(std::time::Duration::from_secs(5)),
+        };
+        assert_eq!(signal.retry_after, Some(std::time::Duration::from_secs(5)));
+    }
 }

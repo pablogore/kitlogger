@@ -1,8 +1,7 @@
-use context_propagation::carrier::{Extractor, Injector, MapCarrier};
-use telemetry_transport_contract::payload::{
-    PayloadEnvelope, PropagationMetadata, TransportMetadata,
+use telemetry_transport_contract::{
+    Context, InstrumentationScope, PayloadEnvelope, PropagationMetadata, Resource, Span,
+    TelemetryBatch, TransportMetadata,
 };
-use telemetry_transport_contract::{Resource, Span, TelemetryBatch};
 
 #[test]
 fn test_transport_metadata_serde() {
@@ -35,9 +34,16 @@ fn test_propagation_metadata_add_and_get() {
 
 #[test]
 fn test_payload_envelope_serde() {
+    let scope = InstrumentationScope::new("test".to_string());
     let batch = TelemetryBatch::new(
-        Resource("resource1".to_string()),
-        vec![Span("trace1".to_string())],
+        Resource::new(),
+        vec![Span::new(
+            Context::new_root(),
+            Resource::new(),
+            scope,
+            "trace1".to_string(),
+            0,
+        )],
         vec![],
         vec![],
     )
@@ -56,16 +62,8 @@ fn test_payload_envelope_serde() {
 }
 
 #[test]
-fn test_propagation_metadata_serde() {
-    let metadata = PropagationMetadata::new("http");
-    let serialized = serde_json::to_string(&metadata).unwrap();
-    let deserialized: PropagationMetadata = serde_json::from_str(&serialized).unwrap();
-    assert_eq!(metadata.transport, deserialized.transport);
-}
-
-#[test]
-fn test_telemetry_batch_rejects_all_empty_in_payload() {
-    let result = TelemetryBatch::new(Resource("resource1".to_string()), vec![], vec![], vec![]);
+fn test_telemetry_batch_rejects_all_empty() {
+    let result = TelemetryBatch::new(Resource::new(), vec![], vec![], vec![]);
     assert!(result.is_err());
     assert_eq!(
         result.unwrap_err().to_string(),
@@ -75,6 +73,8 @@ fn test_telemetry_batch_rejects_all_empty_in_payload() {
 
 #[test]
 fn test_payload_envelope_serde_with_map_carrier() {
+    use context_propagation::carrier::{Extractor, Injector, MapCarrier};
+
     let mut carrier = MapCarrier::new();
     carrier.set("trace_id", "abc123");
     carrier.set("span_id", "def456");
@@ -87,9 +87,16 @@ fn test_payload_envelope_serde_with_map_carrier() {
         metadata.add("span_id", val);
     }
 
+    let scope = InstrumentationScope::new("test".to_string());
     let batch = TelemetryBatch::new(
-        Resource("resource1".to_string()),
-        vec![Span("trace1".to_string())],
+        Resource::new(),
+        vec![Span::new(
+            Context::new_root(),
+            Resource::new(),
+            scope,
+            "trace1".to_string(),
+            0,
+        )],
         vec![],
         vec![],
     )
@@ -116,4 +123,12 @@ fn test_payload_envelope_serde_with_map_carrier() {
         deserialized.propagation_metadata.get("trace_id"),
         Some("abc123")
     );
+}
+
+#[test]
+fn test_propagation_metadata_serde() {
+    let metadata = PropagationMetadata::new("http");
+    let serialized = serde_json::to_string(&metadata).unwrap();
+    let deserialized: PropagationMetadata = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(metadata.transport, deserialized.transport);
 }

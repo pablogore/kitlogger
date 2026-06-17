@@ -1,77 +1,47 @@
+use context_propagation::models::{LogRecord, Metric, Resource, Span};
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
-use crate::error::TelemetryBatchError;
-
-/// Placeholder — will be replaced by canonical definition from child spec.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Span(pub String);
-
-/// Placeholder — will be replaced by canonical definition from child spec.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Metric(pub String);
-
-/// Placeholder — will be replaced by canonical definition from child spec.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct LogRecord(pub String);
-
-/// Origin resource/entity identifier.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Resource(pub String);
-
-/// A batch of telemetry data.
+/// Telemetry batch containing telemetry data.
 ///
-/// This struct contains traces, metrics, and logs that are grouped together
-/// for transport. It enforces that at least one of these categories must be
-/// present to avoid empty batches.
-///
-/// # Examples
-///
-/// ```rust
-/// use telemetry_transport_contract::{TelemetryBatch, Span, Resource};
-///
-/// let batch = TelemetryBatch::new(
-///     Resource("resource1".to_string()),
-///     vec![Span("trace1".to_string())],
-///     vec![],
-///     vec![],
-/// );
-/// assert!(batch.is_ok());
-///
-/// let empty_batch = TelemetryBatch::new(
-///     Resource("resource1".to_string()),
-///     vec![],
-///     vec![],
-///     vec![],
-/// );
-/// assert!(empty_batch.is_err());
-/// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// This struct represents a batch of telemetry data that can be sent
+/// across an execution boundary. It contains resource information and
+/// collections of different types of telemetry signals.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TelemetryBatch {
-    /// The resource identifier for this batch.
+    /// Resource information for the telemetry data.
     pub resource: Resource,
 
-    /// The traces in this batch.
+    /// Collection of trace spans.
     pub traces: Vec<Span>,
 
-    /// The metrics in this batch.
+    /// Collection of metrics.
     pub metrics: Vec<Metric>,
 
-    /// The logs in this batch.
+    /// Collection of log records.
     pub logs: Vec<LogRecord>,
 }
 
 impl TelemetryBatch {
     /// Creates a new telemetry batch.
     ///
-    /// Returns an error if all signal types (traces, metrics, logs) are empty.
+    /// # Arguments
+    /// * `resource` - Resource information for the telemetry data
+    /// * `traces` - Collection of trace spans
+    /// * `metrics` - Collection of metrics
+    /// * `logs` - Collection of log records
+    ///
+    /// # Returns
+    /// * `Ok(TelemetryBatch)` if at least one of traces, metrics, or logs is non-empty
+    /// * `Err(TelemetryBatchError)` if all signal types are empty
     pub fn new(
         resource: Resource,
         traces: Vec<Span>,
         metrics: Vec<Metric>,
         logs: Vec<LogRecord>,
-    ) -> Result<TelemetryBatch, TelemetryBatchError> {
+    ) -> Result<Self, TelemetryBatchError> {
         if traces.is_empty() && metrics.is_empty() && logs.is_empty() {
-            return Err(TelemetryBatchError);
+            return Err(TelemetryBatchError::EmptyBatch);
         }
 
         Ok(TelemetryBatch {
@@ -82,3 +52,22 @@ impl TelemetryBatch {
         })
     }
 }
+
+/// Error type for telemetry batch operations.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum TelemetryBatchError {
+    /// Attempted to create a batch with all signal types empty.
+    EmptyBatch,
+}
+
+impl fmt::Display for TelemetryBatchError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TelemetryBatchError::EmptyBatch => {
+                write!(f, "telemetry batch must contain at least one signal type")
+            }
+        }
+    }
+}
+
+impl std::error::Error for TelemetryBatchError {}

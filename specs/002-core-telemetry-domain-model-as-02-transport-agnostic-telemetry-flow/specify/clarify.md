@@ -38,12 +38,12 @@ CONSTRAINT requirements MUST NOT require implementation tasks unless explicit im
 **Type**: FUNCTIONAL
 **Source**: `spec.md:75`
 
-**Rationale**: Defines concrete types (Transport trait, PayloadEnvelope, TransportResult/TransportError) that the system must implement.
+**Rationale**: Defines concrete types (Transport trait, TransportResult/TransportError) that the system must implement. PayloadEnvelope is provided by telemetry-types per ADR-007.
 
 **Traceability**:
 ```
-FR-001 → SC-001 → PLAN-005 → T002, T003, T005, T006, T007
-→ src/transport.rs, src/error.rs, src/payload.rs, src/lib.rs
+FR-001 → SC-001 → PLAN-005 → T002, T003, T006, T007
+→ src/transport.rs, src/error.rs, src/lib.rs (imports from telemetry-types)
 → tests/transport_test.rs:test_mock_transport_implements_trait
 ```
 
@@ -54,12 +54,12 @@ FR-001 → SC-001 → PLAN-005 → T002, T003, T005, T006, T007
 **Type**: FUNCTIONAL
 **Source**: `spec.md:76`
 
-**Rationale**: Defines the concrete TelemetryBatch struct with traces, metrics, and logs fields.
+**Rationale**: Defines the concrete TelemetryBatch struct with traces, metrics, and logs fields. Defined in telemetry-types per ADR-007.
 
 **Traceability**:
 ```
-FR-002 → SC-002 → PLAN-005 → T004
-→ src/batch.rs
+FR-002 → SC-002 → (telemetry-types implementation)
+→ crates/telemetry-types/src/batch.rs
 → tests/batch_test.rs:test_telemetry_batch_serde
 ```
 
@@ -70,14 +70,13 @@ FR-002 → SC-002 → PLAN-005 → T004
 **Type**: FUNCTIONAL
 **Source**: `spec.md:77`
 
-**Rationale**: Defines the concrete PayloadEnvelope struct with transport_metadata, propagation_metadata, and payload fields.
+**Rationale**: Defines the concrete PayloadEnvelope struct with transport_metadata, propagation_metadata, and payload fields. Defined in telemetry-types per ADR-007.
 
 **Traceability**:
 ```
-FR-003 → SC-002 → PLAN-005, PLAN-006 → T005, T010
-→ src/payload.rs
+FR-003 → SC-002 → (telemetry-types implementation)
+→ crates/telemetry-types/src/payload.rs
 → tests/payload_test.rs:test_payload_envelope_serde
-→ tests/payload_test.rs:test_payload_envelope_serde_with_map_carrier
 ```
 
 ---
@@ -120,12 +119,12 @@ FR-005 → SC-004 → PLAN-005 → T002
 **Type**: FUNCTIONAL
 **Source**: `spec.md:80`
 
-**Rationale**: Defines the concrete Backpressure variant on TransportError and the BackpressureSignal struct.
+**Rationale**: Defines the concrete Backpressure variant on TransportError. BackpressureSignal struct is defined in telemetry-types per ADR-007.
 
 **Traceability**:
 ```
 FR-006 → SC-005 → PLAN-005, PLAN-008 → T003, T014
-→ src/error.rs, src/transport.rs
+→ src/error.rs (imports BackpressureSignal from telemetry-types), src/transport.rs
 → tests/transport_test.rs:test_mock_transport_returns_backpressure
 ```
 
@@ -229,13 +228,13 @@ FR-011 → (ARCH: research.md AD-6, contracts/transport-api.md:17-19)
 
 | FR | SC | PLAN | TASK | CODE | TEST | Status |
 |----|----|------|------|------|------|--------|
-| FR-001 | SC-001 | PLAN-005 | T002, T003, T005, T006, T007 | transport.rs, error.rs, payload.rs, lib.rs | transport_test.rs | GREEN |
-| FR-002 | SC-002 | PLAN-005 | T004 | batch.rs | batch_test.rs | GREEN |
-| FR-003 | SC-002 | PLAN-005, PLAN-006 | T005, T010 | payload.rs | payload_test.rs | GREEN |
+| FR-001 | SC-001 | PLAN-005 | T002, T003, T006, T007 | transport.rs, error.rs, lib.rs (imports from telemetry-types) | transport_test.rs | GREEN |
+| FR-002 | SC-002 | telemetry-types | telemetry-types tasks | telemetry-types/src/batch.rs | telemetry-types batch_test.rs | GREEN |
+| FR-003 | SC-002 | telemetry-types | telemetry-types tasks | telemetry-types/src/payload.rs | telemetry-types payload_test.rs | GREEN |
 | FR-004 | SC-003 | PLAN-005 | T003 | error.rs | transport_test.rs | GREEN |
 | FR-005 | SC-004 | PLAN-005 | T002 | transport.rs | transport_test.rs | GREEN |
-| FR-006 | SC-005 | PLAN-005, PLAN-008 | T003, T014 | error.rs, transport.rs | transport_test.rs | GREEN |
-| FR-010 | SC-002 | PLAN-005, PLAN-006 | T004, T009 | batch.rs | batch_test.rs, payload_test.rs | GREEN |
+| FR-006 | SC-005 | PLAN-005, PLAN-008 | T003, T014 | error.rs (imports BackpressureSignal from telemetry-types), transport.rs | transport_test.rs | GREEN |
+| FR-010 | SC-002 | telemetry-types | telemetry-types tasks | telemetry-types/src/batch.rs | telemetry-types batch_test.rs | GREEN |
 
 ### CONSTRAINT (4)
 

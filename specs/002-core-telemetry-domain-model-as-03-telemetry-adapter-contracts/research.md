@@ -18,13 +18,14 @@
 
 ### AD-2: Thread-Safe Registry Pattern
 
-**Decision**: Implement AdapterRegistry using `std::sync::RwLock<HashMap<AdapterId, Box<dyn Adapter>>>`. Registration phase panics on concurrent access (single-threaded bootstrap assumption); lookup phase allows concurrent reads.
+**Decision**: Implement AdapterRegistry using `std::sync::RwLock<HashMap<AdapterId, Arc<dyn Adapter>>>`. Registration phase enforces freeze semantics via a `frozen` bool guard; lookup phase allows concurrent reads through RwLock. `Arc` provides shared ownership so multiple callers can reference the same adapter post-freeze.
 
-**Rationale**: The spec requires thread-safe lookup after freeze and registration only during bootstrap. `RwLock` provides optimal read concurrency for the lookup-heavy frozen phase. Wrapping in a dedicated struct enforces the freeze contract at the type level (expose `&Self` for reads, `&mut Self` for writes during bootstrap).
+**Rationale**: The spec requires thread-safe lookup after freeze and registration only during bootstrap. `RwLock` provides optimal read concurrency for the lookup-heavy frozen phase. Wrapping in a dedicated struct enforces the freeze contract at the type level (expose `&Self` for reads, `&mut Self` for writes during bootstrap). `Arc` is required for shared ownership across threads after freeze — `Box` would require exclusive access.
 
 **Alternatives considered**:
 - `Mutex<HashMap<...>>`: Lower read concurrency; acceptable but RwLock is more appropriate for read-heavy workloads
 - `parking_lot::RwLock`: Better performance but adds undeclared dependency; stick with std::sync
+- `Box<dyn Adapter>`: Exclusive ownership only; cannot share adapters across threads post-freeze
 
 ---
 
@@ -114,16 +115,16 @@
 
 ---
 
-### AD-10: Shutdown Flush Implementation
+### AD-10: Shutdown Flush Semantics
 
-**Decision**: `shutdown()` method is placed on the `LifecycleAdapter` trait (separate from `CommonAdapterBase`), with a default implementation that calls `flush()` then transitions to `Stopped`. Adapters may override `shutdown()` for custom behavior but SHOULD call `flush()` as part of shutdown.
+**Decision**: `shutdown()` method is placed on the `LifecycleAdapter` trait (separate from `CommonAdapterBase`). No default `shutdown()` implementation is provided because shutdown semantics depend on the concrete adapter's own state management. Concrete adapters SHOULD call `flush()` then transition to `Stopped` as part of their shutdown sequence.
 
-**Rationale**: Separating lifecycle operations into their own trait keeps `CommonAdapterBase` focused on identity and health. The default implementation ensures flush semantics are respected even if the adapter author forgets to call flush in custom shutdown logic. The "SHOULD" qualifier allows custom shutdown sequences while the default guarantees correctness.
+**Rationale**: Separating lifecycle operations into their own trait keeps `CommonAdapterBase` focused on identity and health. A default implementation is infeasible because shutdown requires adapter-specific state management (interior mutability, lifecycle state transitions), and an async fn default would break object safety. The "SHOULD" qualifier allows custom shutdown sequences while the behavioral contract in spec.md SC-004 requires shutdown to implicitly invoke flush.
 
 **Alternatives considered**:
 - `shutdown()` on CommonAdapterBase: Blurry responsibility boundary; identity/health mixed with lifecycle
+- Default shutdown impl: Infeasible with object safety; async trait default methods cannot be object-safe
 - Required `flush()` call before `shutdown()`: Weaker contract; caller must remember
-- No default: Every adapter must reimplement the same pattern; error-prone
 
 ---
 
@@ -141,9 +142,9 @@
 
 ### AD-12: TelemetryDelivery Trait
 
-**Decision**: Telemetry delivery operations are placed on a dedicated `TelemetryDelivery` trait with a `deliver(&self, envelope: PayloadEnvelope) -> AdapterResult<()>` method. Uses `&self` for `Arc` compatibility.
+**Decision**: Telemetry delivery operations are placed on a dedicated `TelemetryDelivery` trait with a `deliver(&self, envelope: PayloadEnvelope) -> AdapterResult<()>` method. Uses `&self` for `Arc` compatibility. `PayloadEnvelope` is imported from `telemetry-types` crate per ADR-007.
 
-**Rationale**: Separating delivery from lifecycle and identity allows the multiplexing contract to operate solely through the `TelemetryDelivery` interface without coupling to lifecycle state. The `&self` signature ensures object safety and compatibility with `Arc<dyn Adapter>` in the registry.
+**Rationale**: Separating delivery from lifecycle and identity allows the multiplexing contract to operate solely through the `TelemetryDelivery` interface without coupling to lifecycle state. The `&self` signature ensures object safety and compatibility with `Arc<dyn Adapter>` in the registry. PayloadEnvelope is a shared canonical type owned by telemetry-types to avoid peer dependency between AS-02 and AS-03.
 
 **Alternatives considered**:
 - `deliver()` on `CommonAdapterBase`: Blurry responsibility; delivery is orthogonal to identity

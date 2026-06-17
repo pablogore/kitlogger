@@ -2,16 +2,17 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use async_trait::async_trait;
+use telemetry_types::{PayloadEnvelope, TelemetryBatch, TransportMetadata, PropagationMetadata};
 
-use telemetry_adapter_contracts::mapping::{
-    LogRecord, Metric, OtelLogRecord, OtelMetric, OtelResource, OtelSpan, OtelTrace, Resource,
-    Span, Trace,
-};
 use telemetry_adapter_contracts::{
-    Adapter, AdapterHealth, AdapterId, AdapterResult, CommonAdapterBase, ExporterAdapter,
-    HealthReport, LifecycleAdapter, LogRecordMappingContract, MetricMappingContract,
-    ProviderAdapter, ResourceMappingContract, SpanMappingContract, TelemetryDelivery,
-    TraceMappingContract,
+    Adapter, AdapterHealth, AdapterId, AdapterResult,
+    CommonAdapterBase, ExporterAdapter, HealthReport, LifecycleAdapter, LogRecordMappingContract,
+    MetricMappingContract, ProviderAdapter, ResourceMappingContract, SpanMappingContract,
+    TelemetryDelivery, TraceMappingContract,
+};
+use telemetry_adapter_contracts::mapping::{
+    Trace, OtelTrace, Span, OtelSpan, Metric, OtelMetric, LogRecord, OtelLogRecord, Resource,
+    OtelResource,
 };
 
 /// Mock adapter for testing all base traits and both provider/exporter traits.
@@ -57,7 +58,7 @@ impl LifecycleAdapter for MockAdapter {
 
 #[async_trait]
 impl TelemetryDelivery for MockAdapter {
-    async fn deliver(&self, _envelope: Vec<u8>) -> AdapterResult<()> {
+    async fn deliver(&self, _envelope: PayloadEnvelope) -> AdapterResult<()> {
         Ok(())
     }
 }
@@ -113,7 +114,23 @@ async fn test_mock_adapter_arc_compatible() {
     assert_eq!(report.status, AdapterHealth::Healthy);
     assert!(adapter.flush().await.is_ok());
     assert!(adapter.shutdown().await.is_ok());
-    assert!(adapter.deliver(vec![]).await.is_ok());
+    // Create a mock PayloadEnvelope for testing
+    let envelope = PayloadEnvelope {
+        transport_metadata: TransportMetadata {
+            protocol: "test".to_string(),
+            endpoint: "test".to_string(),
+            attributes: std::collections::HashMap::new(),
+        },
+        propagation_metadata: PropagationMetadata {
+            headers: std::collections::HashMap::new(),
+        },
+        payload: TelemetryBatch {
+            traces: vec![],
+            metrics: vec![],
+            logs: vec![],
+        },
+    };
+    assert!(adapter.deliver(envelope).await.is_ok());
 }
 
 struct MockTraceMapper;

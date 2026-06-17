@@ -1,20 +1,29 @@
-pub mod batch;
-pub mod error;
+//! Transport-agnostic telemetry flow contracts.
+//!
+//! This crate defines the contracts for transporting telemetry data
+//! across execution boundaries in a transport-agnostic way.
+//!
+//! # Modules
+//!
+//! * `transport` - Defines the transport contract and related types
+//! * `error` - Defines the transport error types
+//! * `batch` - Defines the telemetry batch structure
+//! * `payload` - Defines the payload envelope structure
+
 pub mod payload;
-pub mod transport;
 
-pub use batch::LogRecord;
-pub use batch::Metric;
-pub use batch::Resource;
-pub use batch::Span;
-pub use batch::TelemetryBatch;
-pub use error::TelemetryBatchError;
-pub use error::TransportError;
-pub use error::TransportResult;
-pub use payload::PayloadEnvelope;
-pub use transport::BackpressureSignal;
-pub use transport::DeliveryMode;
-pub use transport::Transport;
+mod transport;
+mod error;
+mod batch;
 
-pub use context_propagation::carrier::Extractor;
-pub use context_propagation::carrier::Injector;
+// Re-export types from context-propagation crate
+pub use context_propagation::models::{
+    AttributeValue, Context, InstrumentationScope, LogRecord, LogSeverity, Metric, Resource, Span,
+    SpanStatus,
+};
+pub use context_propagation::propagation_metadata::PropagationMetadata;
+
+pub use transport::*;
+pub use error::*;
+pub use batch::*;
+pub use payload::*;

@@ -1,46 +1,33 @@
-use serde_test::{assert_tokens, Token};
-
-use telemetry_transport_contract::{LogRecord, Metric, Resource, Span, TelemetryBatch};
+use telemetry_transport_contract::{
+    Context, InstrumentationScope, LogRecord, LogSeverity, Metric, Resource, Span, TelemetryBatch,
+};
 
 #[test]
 fn test_telemetry_batch_serde() {
+    let scope = InstrumentationScope::new("test".to_string());
     let batch = TelemetryBatch::new(
-        Resource("resource1".to_string()),
-        vec![Span("trace1".to_string())],
+        Resource::new(),
+        vec![Span::new(
+            Context::new_root(),
+            Resource::new(),
+            scope,
+            "trace1".to_string(),
+            0,
+        )],
         vec![],
         vec![],
     )
     .unwrap();
 
-    assert_tokens(
-        &batch,
-        &[
-            Token::Struct {
-                name: "TelemetryBatch",
-                len: 4,
-            },
-            Token::Str("resource"),
-            Token::NewtypeStruct { name: "Resource" },
-            Token::Str("resource1"),
-            Token::Str("traces"),
-            Token::Seq { len: Some(1) },
-            Token::NewtypeStruct { name: "Span" },
-            Token::Str("trace1"),
-            Token::SeqEnd,
-            Token::Str("metrics"),
-            Token::Seq { len: Some(0) },
-            Token::SeqEnd,
-            Token::Str("logs"),
-            Token::Seq { len: Some(0) },
-            Token::SeqEnd,
-            Token::StructEnd,
-        ],
-    );
+    let json = serde_json::to_string(&batch).unwrap();
+    let deserialized: TelemetryBatch = serde_json::from_str(&json).unwrap();
+    assert_eq!(batch.traces.len(), deserialized.traces.len());
+    assert_eq!(batch.resource, deserialized.resource);
 }
 
 #[test]
 fn test_telemetry_batch_empty_validation() {
-    let result = TelemetryBatch::new(Resource("resource1".to_string()), vec![], vec![], vec![]);
+    let result = TelemetryBatch::new(Resource::new(), vec![], vec![], vec![]);
 
     assert!(result.is_err());
     assert_eq!(
@@ -51,10 +38,17 @@ fn test_telemetry_batch_empty_validation() {
 
 #[test]
 fn test_telemetry_batch_non_empty_validation() {
+    let scope = InstrumentationScope::new("test".to_string());
     let result = TelemetryBatch::new(
-        Resource("resource1".to_string()),
+        Resource::new(),
         vec![],
-        vec![Metric("metric1".to_string())],
+        vec![Metric::new(
+            Resource::new(),
+            scope,
+            "metric1".to_string(),
+            "".to_string(),
+            "".to_string(),
+        )],
         vec![],
     );
 
@@ -63,11 +57,19 @@ fn test_telemetry_batch_non_empty_validation() {
 
 #[test]
 fn test_telemetry_batch_only_logs() {
+    let scope = InstrumentationScope::new("test".to_string());
     let result = TelemetryBatch::new(
-        Resource("resource1".to_string()),
+        Resource::new(),
         vec![],
         vec![],
-        vec![LogRecord("log1".to_string())],
+        vec![LogRecord::new(
+            Context::new_root(),
+            Resource::new(),
+            scope,
+            0,
+            LogSeverity::Info,
+            "log1".to_string(),
+        )],
     );
 
     assert!(result.is_ok());

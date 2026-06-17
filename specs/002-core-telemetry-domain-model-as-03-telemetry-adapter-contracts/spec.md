@@ -16,11 +16,15 @@
 
 **Status**: Draft
 
+## Dependencies
+
+- `telemetry-types` (shared canonical types crate) — provides PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal
+
 ## Key Entities
 
 - **CommonAdapterBase**: Base trait with `id()` and `health()` methods; shared by all adapter types
 - **LifecycleAdapter**: Base trait with `flush(&self)` and `shutdown(&self)` methods using `&self` for Arc compatibility; inherited by ProviderAdapter and ExporterAdapter; concrete adapters own synchronization via interior mutability
-- **TelemetryDelivery**: Dedicated trait for telemetry delivery operations; inherited by delivery-capable adapters; defines the operation executed during multiplexing
+- **TelemetryDelivery**: Dedicated trait for telemetry delivery operations; inherited by delivery-capable adapters; defines the operation executed during multiplexing; `deliver()` accepts `PayloadEnvelope` from `telemetry-types`
 - **ProviderAdapter**: Trait for provider-side telemetry operations (initialize, start, stop); inherits from CommonAdapterBase, LifecycleAdapter, and TelemetryDelivery
 - **ExporterAdapter**: Trait for exporter-side telemetry operations (initialize, start, stop); inherits from CommonAdapterBase, LifecycleAdapter, and TelemetryDelivery
 - **AdapterRegistry**: Manages adapter registration (register(), get(), contains(), list()) using `Arc<dyn Adapter + Send + Sync>` storage; mutable until initialization, then frozen with thread-safe lookup; supports both ProviderAdapter and ExporterAdapter
@@ -48,7 +52,7 @@
 - **SC-008**: Only OpenTelemetry-compatible contracts are defined in AS-03; no concrete implementation is included
 - **SC-009**: Five bidirectional entity-specific mapping contracts (Trace, Span, Metric, LogRecord, Resource) are defined and documented separately
 - **SC-010**: HealthReport struct with AdapterHealth, reason, and timestamp is defined and testable
-- **SC-011**: All public adapter traits (CommonAdapterBase, LifecycleAdapter, TelemetryDelivery, ProviderAdapter, ExporterAdapter) compile with `dyn Trait` usage
+- **SC-011**: All public adapter traits (CommonAdapterBase, LifecycleAdapter, TelemetryDelivery, ProviderAdapter, ExporterAdapter, Adapter) compile with `dyn Trait` usage
 
 ## Ownership Boundary
 
@@ -145,3 +149,4 @@ This specification does not own:
 - AdapterRegistry storage is `RwLock<HashMap<AdapterId, Arc<dyn Adapter>>>`
 - Concrete adapters are responsible for interior mutability of their own state
 - All lifecycle operations are callable directly through Arc<dyn Adapter> from registry lookups
+- Shared canonical types (telemetry-types) define PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal; AS-03 depends on telemetry-types for PayloadEnvelope in TelemetryDelivery

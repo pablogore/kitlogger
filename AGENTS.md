@@ -13,18 +13,19 @@ at specs/002-core-telemetry-domain-model-as-03-telemetry-adapter-contracts/plan.
 - **Purpose**: Design phase for telemetry adapter contracts crate
 
 ## Status
-- **Architecture**: Complete — Adapter contracts owned by AS-03; concrete adapters are separate specs
-- **Plan**: Complete — research.md (25 decisions), data-model.md (14 entities), contracts/adapter-api.md, quickstart.md (6 scenarios), plan.md regenerated, tasks.md (25 tasks across 6 phases)
+- **Architecture**: Complete — Adapter contracts owned by AS-03; concrete adapters are separate specs. Shared canonical types layer (telemetry-types) introduced per ADR-007, owned by parent capability.
+- **Plan**: Complete — research.md (25 decisions), data-model.md (15 entities), contracts/adapter-api.md, quickstart.md (6 scenarios), plan.md regenerated, tasks.md (25 tasks across 6 phases)
 - **Implementation**: Complete — 24 unit tests = **24 passing**
 - **Requirement Classification**: Pending
 - **Traceability**: Pending
-- **Governance**: Frozen artifacts immutable after approval; all Session 2026-06-16 and 2026-06-17 clarifications integrated
+- **Governance**: Frozen artifacts immutable after approval; all Session 2026-06-16 and 2026-06-17 clarifications integrated. ADR-007 approved.
+- **ADR-007**: Shared canonical types layer (telemetry-types) owns PayloadEnvelope, TelemetryBatch, TelemetryBatchError, TransportMetadata, BackpressureSignal. AS-02 and AS-03 depend on telemetry-types instead of each other.
 
 ## Implemented Entities (Design)
-- `spec.md` — 3 clarification sessions (2026-06-14, 2026-06-15, 2026-06-16), 12 FRs, 11 SCs, Key Entities, Ownership Boundary, Assumptions
+- `spec.md` — 3 clarification sessions (2026-06-14, 2026-06-15, 2026-06-16), 11 SCs, Key Entities, Ownership Boundary, Assumptions
 - `contracts/adapter-api.md` — CommonAdapterBase, LifecycleAdapter, TelemetryDelivery, ProviderAdapter, ExporterAdapter, Adapter supertrait, AdapterRegistry (Arc-based), AdapterLifecycle transition matrix, HealthReport, AdapterResult/AdapterError, mapping contracts, multiplexing contract
-- `data-model.md` — 14 entities with fields, relationships, transition matrix
-- `research.md` — 20 architecture decisions (AD-1 through AD-20), including object safety, Arc registry, LifecycleAdapter, TelemetryDelivery, HealthReport, Stopped vs Shutdown semantics
+- `data-model.md` — 15 entities with fields, relationships, transition matrix
+- `research.md` — 25 architecture decisions (AD-1 through AD-25), including object safety, Arc registry, LifecycleAdapter, TelemetryDelivery, HealthReport, Stopped vs Shutdown semantics
 - `tasks.md` — 25 tasks across 6 phases (Setup, Foundational, US1-MVP, US2-Registry, US3-Lifecycle, Polish)
 - `tech-stack.yaml` — Added async-trait macro declaration
 
@@ -45,7 +46,7 @@ at specs/002-core-telemetry-domain-model-as-03-telemetry-adapter-contracts/plan.
 
 ## Generated Artifacts (AS-03)
 - `research.md` — 25 research decisions resolved (4 sessions: 10 + 10 + 5 ADs)
-- `data-model.md` — 14 entities defined with full relationship diagram
+- `data-model.md` — 15 entities defined with full relationship diagram
 - `contracts/adapter-api.md` — 7 traits, Registry API, transition matrix, mapping contracts
 - `quickstart.md` — 6 validation scenarios (Arc-based registry, startup failure transitions, HealthReport)
 - `plan.md` — Technical Context, Constitution Check, project structure

@@ -1,7 +1,7 @@
 [workspace]
-resolver = "2"
 members = [
     "crates/context-propagation",
-    "crates/telemetry-transport-contract",
     "crates/telemetry-adapter-contracts",
+    "crates/telemetry-transport-contract",
+    "crates/telemetry-types",
 ]

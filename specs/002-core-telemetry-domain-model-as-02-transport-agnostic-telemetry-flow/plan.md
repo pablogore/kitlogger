@@ -10,7 +10,7 @@ or undeclared technology is blocking; do not infer a replacement.
 
 ## Summary
 
-Define the canonical transport abstraction for telemetry data flow across execution boundaries. AS-02 owns the Transport contract (trait, PayloadEnvelope, TelemetryBatch, TransportResult/TransportError), abstract delivery modes (fire-and-forget, request/response, batch, streaming) returned as an enum, and backpressure semantics as TransportError::Backpressure. No concrete transport implementations or concrete carriers are owned here; all transports (HTTP, gRPC, CLI, Background Jobs, Kafka, NATS, RabbitMQ, SQS, EventBridge) are separate binding specifications that implement these contracts.
+Define the canonical transport abstraction for telemetry data flow across execution boundaries. AS-02 owns the Transport contract (trait, TransportResult/TransportError), DeliveryMode enum, and backpressure semantics as TransportError::Backpressure. AS-02 depends on `telemetry-types` for shared canonical payload types (PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal) and on AS-01 for context propagation types. No concrete transport implementations or concrete carriers are owned here; all transports (HTTP, gRPC, CLI, Background Jobs, Kafka, NATS, RabbitMQ, SQS, EventBridge) are separate binding specifications that implement these contracts.
 
 ## Technical Context
 
@@ -30,7 +30,7 @@ Define the canonical transport abstraction for telemetry data flow across execut
 
 **Constraints**: Must use std::future::Future only (no async runtime dependency). Must not depend on concrete transport implementations. Must not define concrete carrier implementations (HttpHeaderCarrier, GrpcMetadataCarrier belong to child specs). DeliveryMode returned as enum, not associated type. TelemetryBatch constructor must reject empty batches.
 
-**Scale/Scope**: Library crate providing Transport trait, PayloadEnvelope, TelemetryBatch, TransportResult/TransportError, DeliveryMode, and BackpressureSignal. Tests validate contracts via mocks (MapCarrier from AS-01).
+**Scale/Scope**: Library crate providing Transport trait, TransportResult/TransportError, and DeliveryMode. Depends on `telemetry-types` for PayloadEnvelope, TelemetryBatch, TransportMetadata, and BackpressureSignal. Tests validate contracts via mocks (MapCarrier from AS-01).
 
 ## Constitution Check
 
@@ -65,14 +65,23 @@ specs/002-core-telemetry-domain-model-as-02-transport-agnostic-telemetry-flow/
 ```text
 src/
 ├── lib.rs               # Crate root with re-exports
-├── transport.rs         # Transport trait, DeliveryMode, BackpressureSignal
-├── payload.rs           # PayloadEnvelope
-├── batch.rs             # TelemetryBatch (traces, metrics, logs)
+├── transport.rs         # Transport trait, DeliveryMode, BackpressureSignal (from telemetry-types)
 └── error.rs             # TransportResult, TransportError
 
 tests/
-├── transport_test.rs    # Transport contract validation tests (via mocks)
-└── payload_test.rs      # PayloadEnvelope and TelemetryBatch tests
+└── transport_test.rs    # Transport contract validation tests (via mocks)
+
+# Shared canonical types (telemetry-types crate)
+crates/telemetry-types/
+├── Cargo.toml           # Depends on context-propagation, serde
+├── src/
+│   ├── lib.rs           # Re-exports all public types
+│   ├── payload.rs       # PayloadEnvelope, TransportMetadata
+│   ├── batch.rs         # TelemetryBatch, TelemetryBatchError
+│   └── signal.rs        # BackpressureSignal
+└── tests/
+    ├── payload_test.rs  # PayloadEnvelope serde tests
+    └── batch_test.rs    # TelemetryBatch validation tests
 ```
 
 No carrier_ext.rs. AS-02 uses MapCarrier from AS-01 for mock-based testing. Concrete carriers (HttpHeaderCarrier, GrpcMetadataCarrier) belong to child transport binding specs.

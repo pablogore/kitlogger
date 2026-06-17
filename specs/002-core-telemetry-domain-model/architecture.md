@@ -42,22 +42,36 @@ Each candidate addresses one distinct concern, can be implemented independently,
 ## Dependency Graph
 
 ```text
-[AS-01] Context Propagation and Correlation
-[AS-02] Transport-Agnostic Telemetry Flow -> [AS-01]
-[AS-03] Telemetry Adapter Contracts
-[AS-04] Telemetry Configuration Semantics -> [AS-03]
-                                          -> Kit Config (external)
+[AS-01]      Context Propagation and Correlation
+[telemetry-types]  Shared Canonical Types Layer    ← NEW: cross-cutting pipeline types
+[AS-02]      Transport-Agnostic Telemetry Flow  →  [AS-01], [telemetry-types]
+[AS-03]      Telemetry Adapter Contracts        →  [telemetry-types]
+[AS-04]      Telemetry Configuration Semantics  →  [AS-03], Kit Config (external)
 ```
+
+The `telemetry-types` layer is a new shared crate owning cross-capability canonical pipeline types (PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal). It depends on AS-01 for domain model entities.
 
 ## Atomic Specification Candidates
 
 | Key | Name | Responsibility | Dependencies | Ownership Boundary |
 |-----|------|----------------|--------------|--------------------|
-| AS-01 | Context Propagation and Correlation | Define context propagation (Trace Context, Correlation ID, Baggage) and cross-signal correlation across Traces, Metrics, and Logs | None (parent capability) | Context, Correlation, Propagation Metadata |
-| AS-02 | Transport-Agnostic Telemetry Flow | Define abstract transport contracts for telemetry data flow across HTTP, gRPC, CLI, Background Jobs, and future transports | AS-01 | Transport abstraction, Protocol contracts, Execution boundary mapping |
-| AS-03 | Telemetry Adapter Contracts | Define OpenTelemetry adapter contract, adapter registry, and adapter lifecycle | None (parent capability) | OpenTelemetry adapter contract, Adapter registry, Adapter lifecycle |
+| AS-01 | Context Propagation and Correlation | Define context propagation (Trace Context, Correlation ID, Baggage) and cross-signal correlation across Traces, Metrics, and Logs | None (parent capability) | Context, Correlation, Propagation Metadata; Domain model entities (Resource, Span, Metric, LogRecord) |
+| AS-02 | Transport-Agnostic Telemetry Flow | Define abstract transport contracts for telemetry data flow across HTTP, gRPC, CLI, Background Jobs, and future transports | AS-01, telemetry-types | Transport abstraction, Protocol contracts, Execution boundary mapping, TransportError, DeliveryMode |
+| AS-03 | Telemetry Adapter Contracts | Define OpenTelemetry adapter contract, adapter registry, and adapter lifecycle | telemetry-types | OpenTelemetry adapter contract, Adapter registry, Adapter lifecycle, HealthReport, mapping contracts |
 | AS-04 | Telemetry Configuration Semantics | Define telemetry configuration schema, defaults, constraints, and validation rules | AS-03, Kit Config (external) | Configuration semantics, Validation rules, Defaults |
 
 ## Expansion Contract
 
 Each candidate becomes one independent top-level SpecKit specification through `expand`. Architecture assigns local candidate keys only; repository specification numbers are allocated during expansion.
+
+## Shared Canonical Types Layer
+
+The `telemetry-types` crate owns types consumed by multiple peer capabilities:
+
+- `PayloadEnvelope` — canonical telemetry data-in-transit wrapper
+- `TelemetryBatch` — canonical batch model with traces, metrics, logs
+- `TelemetryBatchError` — validation error for TelemetryBatch
+- `TransportMetadata` — transport-level metadata (timestamp, content-type, encoding)
+- `BackpressureSignal` — flow control signal
+
+These types are defined exactly once in `telemetry-types`. No duplicate ownership exists. See [ADR-007](ADR-007-shared-canonical-types.md).

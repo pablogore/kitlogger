@@ -3,6 +3,8 @@
 **Spec**: [Telemetry Adapter Contracts](../spec.md)
 **Date**: 2026-06-16
 
+> Shared canonical types (PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal) are owned by the `telemetry-types` crate per ADR-007. AS-03 imports them from `telemetry-types`.
+
 ## CommonAdapterBase
 
 Identity and health; no lifecycle concerns. All traits in AS-03 MUST be object-safe.
@@ -27,13 +29,15 @@ pub trait LifecycleAdapter: Send + Sync {
 }
 ```
 
-Default `shutdown()` impl calls `flush()` then transitions to `Stopped`. The `&self` receiver means concrete adapters must use interior mutability (e.g., `Mutex<AdapterLifecycle>`) for lifecycle state transitions.
+No default `shutdown()` implementation is provided because shutdown semantics depend on the concrete adapter's own state management. Concrete adapters SHOULD call `flush()` then transition to `Stopped` as part of their shutdown sequence. The `&self` receiver means concrete adapters must use interior mutability (e.g., `Mutex<AdapterLifecycle>`) for lifecycle state transitions.
 
 ## TelemetryDelivery
 
-Dedicated trait for delivery operations. Defines the operation executed during multiplexing.
+Dedicated trait for delivery operations. Defines the operation executed during multiplexing. Uses `PayloadEnvelope` from the shared `telemetry-types` crate.
 
 ```rust
+use telemetry_types::PayloadEnvelope;
+
 #[async_trait]
 pub trait TelemetryDelivery: Send + Sync {
     async fn deliver(&self, envelope: PayloadEnvelope) -> AdapterResult<()>;
@@ -246,9 +250,11 @@ pub trait ResourceMappingContract {
 
 ## Multiplexing Contract
 
-Delivers telemetry to multiple adapters via TelemetryDelivery trait. Uses `Arc`-based access from registry.
+Delivers telemetry to multiple adapters via TelemetryDelivery trait. Uses `Arc`-based access from registry. PayloadEnvelope is from `telemetry-types`.
 
 ```rust
+use telemetry_types::PayloadEnvelope;
+
 pub async fn deliver_to_all(
     registry: &AdapterRegistry,
     ids: &[AdapterId],

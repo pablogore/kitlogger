@@ -39,12 +39,12 @@ deployment target blocks task generation.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Implement DeliveryMode non-exhaustive enum (FireAndForget, RequestResponse, Batch, Streaming) and BackpressureSignal struct (retry_after: Option\<Duration\>) in `src/transport.rs` per data-model.md
-- [ ] T003 [P] Implement TransportError non-exhaustive enum (Timeout, Unavailable, Backpressure(BackpressureSignal), PayloadTooLarge, UnsupportedTransport) with manual Display and Error impls in `src/error.rs` per data-model.md
-- [ ] T004 [P] Implement TelemetryBatch struct (resource, traces, metrics, logs) with serde derives and constructor that returns Err when all signal types are empty in `src/batch.rs` per data-model.md
-- [ ] T005 [P] Implement PayloadEnvelope struct (transport_metadata, propagation_metadata, payload) with serde derives in `src/payload.rs` per data-model.md
-- [ ] T006 Implement Transport trait with `fn send(&self, envelope: PayloadEnvelope) -> impl Future<Output = TransportResult<DeliveryMode>> + Send` in `src/transport.rs` per contracts/transport-api.md; uses std::future::Future only, no async runtime dependency
-- [ ] T007 Wire up all modules (transport, error, batch, payload) and re-export public types in `src/lib.rs`
+- [ ] T002 Implement DeliveryMode non-exhaustive enum (FireAndForget, RequestResponse, Batch, Streaming) in `src/transport.rs` per data-model.md; BackpressureSignal struct is now in telemetry-types crate
+- [ ] T003 [P] Implement TransportError non-exhaustive enum (Timeout, Unavailable, Backpressure(BackpressureSignal), PayloadTooLarge, UnsupportedTransport) with manual Display and Error impls in `src/error.rs` per data-model.md; BackpressureSignal imported from telemetry-types
+- [ ] T004 [P] REMOVED from AS-02 — TelemetryBatch is now defined in `crates/telemetry-types/src/batch.rs` per ADR-007
+- [ ] T005 [P] REMOVED from AS-02 — PayloadEnvelope is now defined in `crates/telemetry-types/src/payload.rs` per ADR-007
+- [ ] T006 Implement Transport trait with `fn send(&self, envelope: PayloadEnvelope) -> impl Future<Output = TransportResult<DeliveryMode>> + Send` in `src/transport.rs` per contracts/transport-api.md; PayloadEnvelope imported from telemetry-types; uses std::future::Future only, no async runtime dependency
+- [ ] T007 Wire up all modules (transport, error) and re-export public types in `src/lib.rs`; import telemetry-types for PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 

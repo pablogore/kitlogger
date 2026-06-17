@@ -1,11 +1,11 @@
 use async_trait::async_trait;
 use serde_test::{assert_tokens, Token};
 
-use telemetry_transport_contract::payload::{PropagationMetadata, TransportMetadata};
 use telemetry_transport_contract::{
-    BackpressureSignal, DeliveryMode, PayloadEnvelope, Transport, TransportError, TransportResult,
+    BackpressureSignal, Context, DeliveryMode, InstrumentationScope, PayloadEnvelope,
+    PropagationMetadata, Resource, Span, TelemetryBatch, TelemetryBatchError, Transport,
+    TransportError, TransportMetadata, TransportResult,
 };
-use telemetry_transport_contract::{Resource, Span, TelemetryBatch};
 
 #[test]
 fn test_delivery_mode_serde() {
@@ -135,7 +135,7 @@ fn test_transport_error_is_error() {
 
 #[test]
 fn test_telemetry_batch_error_is_error() {
-    let error = telemetry_transport_contract::TelemetryBatchError;
+    let error = TelemetryBatchError::EmptyBatch;
     let _error: &dyn std::error::Error = &error;
     assert_eq!(
         error.to_string(),
@@ -155,12 +155,19 @@ impl Transport for MockTransport {
 #[tokio::test]
 async fn test_mock_transport_implements_trait() {
     let transport = MockTransport;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -174,12 +181,19 @@ async fn test_mock_transport_implements_trait() {
 #[tokio::test]
 async fn test_mock_transport_returns_request_response() {
     let transport = MockTransport;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -205,12 +219,19 @@ impl Transport for MockTransportStreaming {
 #[tokio::test]
 async fn test_mock_transport_returns_streaming() {
     let transport = MockTransportStreaming;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -236,12 +257,19 @@ impl Transport for MockTransportBatch {
 #[tokio::test]
 async fn test_mock_transport_returns_batch() {
     let transport = MockTransportBatch;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -267,12 +295,19 @@ impl Transport for MockTransportUnavailable {
 #[tokio::test]
 async fn test_mock_transport_returns_unavailable() {
     let transport = MockTransportUnavailable;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -300,12 +335,19 @@ impl Transport for MockTransportBackpressure {
 #[tokio::test]
 async fn test_mock_transport_returns_backpressure() {
     let transport = MockTransportBackpressure;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -333,12 +375,19 @@ impl Transport for MockTransportTimeout {
 #[tokio::test]
 async fn test_mock_transport_returns_timeout() {
     let transport = MockTransportTimeout;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -364,12 +413,19 @@ impl Transport for MockTransportPayloadTooLarge {
 #[tokio::test]
 async fn test_mock_transport_returns_payload_too_large() {
     let transport = MockTransportPayloadTooLarge;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -390,12 +446,19 @@ async fn test_mock_transport_returns_payload_too_large() {
 #[tokio::test]
 async fn test_as02_defines_contracts_only() {
     let transport = MockTransport;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("abstract"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -420,12 +483,19 @@ impl Transport for NoRuntimeTransport {
 #[tokio::test]
 async fn test_no_runtime_transport() {
     let transport = NoRuntimeTransport;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -448,12 +518,19 @@ impl Transport for MockTransportUnsupported {
 #[tokio::test]
 async fn test_mock_transport_returns_unsupported() {
     let transport = MockTransportUnsupported;
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("mock"),
         payload: TelemetryBatch::new(
-            Resource("resource1".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )

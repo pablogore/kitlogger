@@ -49,10 +49,7 @@ impl AdapterLifecycle {
             self.state = to;
             Ok(())
         } else {
-            Err(AdapterError::InvalidTransition {
-                from: format!("{from:?}"),
-                to: format!("{to:?}"),
-            })
+            Err(AdapterError::InvalidTransition { from, to })
         }
     }
 }

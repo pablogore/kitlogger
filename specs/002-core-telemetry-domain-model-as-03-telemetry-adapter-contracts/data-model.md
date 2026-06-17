@@ -25,9 +25,9 @@ Separate base trait for lifecycle operations (flush, shutdown).
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | `flush()` | `async fn(&self) -> AdapterResult<()>` | Flushes buffered telemetry to the transport layer |
-| `shutdown()` | `async fn(&self) -> AdapterResult<()>` | Implicitly calls `flush()` then transitions to Stopped; MAY be overridden |
+| `shutdown()` | `async fn(&self) -> AdapterResult<()>` | Concrete adapters SHOULD call `flush()` then transition to Stopped |
 
-**Validation**: Uses `&self` for Arc compatibility; concrete adapters own synchronization via interior mutability. `shutdown()` MUST call `flush()` before transitioning to `Stopped`.
+**Validation**: Uses `&self` for Arc compatibility; concrete adapters own synchronization via interior mutability. `shutdown()` SHOULD call `flush()` before transitioning to `Stopped`.
 
 ---
 
@@ -37,9 +37,9 @@ Dedicated trait for telemetry delivery operations; used during multiplexing.
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
-| `deliver()` | `async fn(&self, PayloadEnvelope) -> AdapterResult<()>` | Delivers a payload to this adapter |
+| `deliver()` | `async fn(&self, PayloadEnvelope) -> AdapterResult<()>` | Delivers a payload to this adapter; PayloadEnvelope from telemetry-types |
 
-**Validation**: Uses `&self` (consistent with all adapter traits) for `Arc` compatibility.
+**Validation**: Uses `&self` (consistent with all adapter traits) for `Arc` compatibility. PayloadEnvelope is provided by the shared `telemetry-types` crate (see ADR-007).
 
 ---
 

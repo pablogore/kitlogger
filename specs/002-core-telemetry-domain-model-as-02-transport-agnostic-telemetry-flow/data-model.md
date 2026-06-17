@@ -1,6 +1,18 @@
 # Data Model: Transport-Agnostic Telemetry Flow
 
-## Entities
+## Shared Canonical Types
+
+The following types are owned by the `telemetry-types` crate and are documented in its data model. They are referenced here for completeness but their authoritative definition lives in `telemetry-types`.
+
+- **PayloadEnvelope**: Canonical wrapper for transporting a TelemetryBatch across execution boundaries. Contains transport_metadata, propagation_metadata (from AS-01), and payload (TelemetryBatch).
+- **TelemetryBatch**: Canonical batch model carrying traces, metrics, and logs. Validation: at least one signal type must be non-empty.
+- **TransportMetadata**: Timestamp, content-type, encoding hints.
+- **BackpressureSignal**: Flow control signal with optional retry-after hint.
+- **TelemetryBatchError**: Validation error for TelemetryBatch empty rejection.
+
+See `crates/telemetry-types/` for authoritative definitions.
+
+## Entities (Owned by AS-02)
 
 ### DeliveryMode
 
@@ -12,41 +24,6 @@ Abstract delivery mode returned by the Transport trait as a value.
 
 - Non-exhaustive enum
 - Returned as a value from `Transport::send()`, not an associated type
-
-### BackpressureSignal
-
-Signal sent back via TransportError::Backpressure to indicate flow control.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| retry_after | Option\<Duration\> | Recommended wait time before retrying |
-
-### TelemetryBatch
-
-The canonical batch model carrying traces, metrics, and logs.
-
-| Field | Type | Constraints |
-|-------|------|-------------|
-| resource | Resource | Mandatory — origin resource/entity identifier |
-| traces | Vec\<Span\> | May be empty |
-| metrics | Vec\<Metric\> | May be empty |
-| logs | Vec\<LogRecord\> | May be empty |
-
-- **Validation**: At least one of traces, metrics, or logs must be non-empty
-- Constructor returns a `Result` and rejects all-empty batches
-
-### PayloadEnvelope
-
-Canonical wrapper for transporting a TelemetryBatch across execution boundaries.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| transport_metadata | TransportMetadata | Timestamp, content-type, encoding hints |
-| propagation_metadata | PropagationMetadata | Context/correlation metadata from AS-01 |
-| payload | TelemetryBatch | The telemetry data |
-
-- Serde Serialize/Deserialize derives
-- Carries but does not create propagation metadata
 
 ### TransportResult\<DeliveryMode\>
 
@@ -63,7 +40,7 @@ Error type for transport operations.
 |---------|---------|-------------|
 | Timeout | (none) | The transport operation timed out |
 | Unavailable | (none) | The destination is unreachable |
-| Backpressure | BackpressureSignal | Flow control signal with optional retry-after hint |
+| Backpressure | BackpressureSignal | Flow control signal with optional retry-after hint (type from telemetry-types) |
 | PayloadTooLarge | (none) | Payload exceeds transport limits |
 | UnsupportedTransport | (none) | The requested transport is not available |
 
@@ -82,23 +59,24 @@ pub trait Transport {
 }
 ```
 
+- PayloadEnvelope is from `telemetry-types`
 - Uses `std::future::Future` only — no async runtime dependency
 - DeliveryMode returned as enum value (not associated type)
 - Propagates carrier metadata via PayloadEnvelope.propagation_metadata
 
 ## Relationships
 
-- `Transport::send()` takes a `PayloadEnvelope` and returns `TransportResult<DeliveryMode>`
-- `PayloadEnvelope` contains one `TelemetryBatch`
-- `TelemetryBatch` contains lists of `Span`, `Metric`, and `LogRecord` (types from child specs)
-- `TransportResult::Err(TransportError::Backpressure(BackpressureSignal))` carries flow control signal
+- `Transport::send()` takes a `PayloadEnvelope` (from telemetry-types) and returns `TransportResult<DeliveryMode>`
+- `PayloadEnvelope` contains one `TelemetryBatch` (both from telemetry-types)
+- `TelemetryBatch` contains lists of `Span`, `Metric`, and `LogRecord` (types from AS-01)
+- `TransportResult::Err(TransportError::Backpressure(BackpressureSignal))` carries flow control signal (BackpressureSignal from telemetry-types)
 - Carrier abstraction traits (Injector, Extractor) are referenced from AS-01
 - MapCarrier (from AS-01) is the test-only carrier implementation; concrete carriers belong to child specs
 
 ## Validation Rules
 
-1. TelemetryBatch must have at least one signal type non-empty
-2. PayloadEnvelope must always carry a TelemetryBatch (never empty)
+1. TelemetryBatch must have at least one signal type non-empty (defined in telemetry-types)
+2. PayloadEnvelope must always carry a TelemetryBatch (never empty) (defined in telemetry-types)
 3. DeliveryMode variants are fixed for the contract lifetime; child specs do not add variants here
 4. TransportError variants are non-exhaustive; child specs contribute new variants via architecture finding
 

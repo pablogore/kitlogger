@@ -10,6 +10,8 @@
 
 use std::collections::HashMap;
 
+use serde::{Deserialize, Serialize};
+
 /// A unique identifier for a trace
 pub type TraceId = [u8; 16];
 
@@ -23,7 +25,7 @@ pub type CorrelationId = String;
 pub type Timestamp = u64;
 
 /// A context for telemetry correlation and propagation
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Context {
     /// The trace identifier
     pub trace_id: TraceId,
@@ -65,7 +67,7 @@ impl Context {
 }
 
 /// A resource represents the entity producing telemetry
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Resource {
     /// The resource attributes
     pub attributes: HashMap<String, AttributeValue>,
@@ -95,7 +97,7 @@ impl Resource {
 }
 
 /// An instrumentation scope represents the library or component that generated telemetry
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InstrumentationScope {
     /// The instrumentation scope name
     pub name: String,
@@ -122,7 +124,7 @@ impl InstrumentationScope {
 }
 
 /// An attribute value that can be used in telemetry
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum AttributeValue {
     /// A string attribute value
     String(String),
@@ -143,7 +145,7 @@ pub enum AttributeValue {
 }
 
 /// A span represents a single operation within a trace
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Span {
     /// The span name
     pub name: String,
@@ -186,7 +188,7 @@ impl Span {
 }
 
 /// The status of a span
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SpanStatus {
     /// The span has completed successfully
     Ok,
@@ -195,7 +197,7 @@ pub enum SpanStatus {
 }
 
 /// A log record represents a single log entry
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LogRecord {
     /// The log record body
     pub body: String,
@@ -236,7 +238,7 @@ impl LogRecord {
 }
 
 /// The severity of a log record
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum LogSeverity {
     /// Trace severity
     Trace,
@@ -253,7 +255,7 @@ pub enum LogSeverity {
 }
 
 /// A metric represents a single metric value
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Metric {
     /// The metric name
     pub name: String,

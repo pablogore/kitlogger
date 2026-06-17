@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use telemetry_transport_contract::payload::{PropagationMetadata, TransportMetadata};
 use telemetry_transport_contract::{
-    BackpressureSignal, DeliveryMode, PayloadEnvelope, Resource, Span, TelemetryBatch,
-    TransportError, TransportResult,
+    BackpressureSignal, Context, DeliveryMode, InstrumentationScope, LogRecord, LogSeverity, Metric,
+    PayloadEnvelope, PropagationMetadata, Resource, Span, TelemetryBatch, TelemetryBatchError,
+    TransportMetadata, TransportError, TransportResult,
 };
 
 #[test]
@@ -24,15 +24,22 @@ fn test_delivery_mode_serialization() {
 
 #[test]
 fn test_telemetry_batch_rejects_all_empty() {
-    let batch = TelemetryBatch::new(Resource("resource".to_string()), vec![], vec![], vec![]);
+    let batch = TelemetryBatch::new(Resource::new(), vec![], vec![], vec![]);
     assert!(batch.is_err());
 }
 
 #[test]
 fn test_telemetry_batch_accepts_non_empty() {
+    let scope = InstrumentationScope::new("test".to_string());
     let batch = TelemetryBatch::new(
-        Resource("resource".to_string()),
-        vec![Span("trace1".to_string())],
+        Resource::new(),
+        vec![Span::new(
+            Context::new_root(),
+            Resource::new(),
+            scope,
+            "trace1".to_string(),
+            0,
+        )],
         vec![],
         vec![],
     );
@@ -41,10 +48,17 @@ fn test_telemetry_batch_accepts_non_empty() {
 
 #[test]
 fn test_telemetry_batch_accepts_metrics_only() {
+    let scope = InstrumentationScope::new("test".to_string());
     let batch = TelemetryBatch::new(
-        Resource("resource".to_string()),
+        Resource::new(),
         vec![],
-        vec![telemetry_transport_contract::Metric("cpu".to_string())],
+        vec![Metric::new(
+            Resource::new(),
+            scope,
+            "cpu".to_string(),
+            "CPU usage".to_string(),
+            "percent".to_string(),
+        )],
         vec![],
     );
     assert!(batch.is_ok());
@@ -52,23 +66,38 @@ fn test_telemetry_batch_accepts_metrics_only() {
 
 #[test]
 fn test_telemetry_batch_accepts_logs_only() {
+    let scope = InstrumentationScope::new("test".to_string());
     let batch = TelemetryBatch::new(
-        Resource("resource".to_string()),
+        Resource::new(),
         vec![],
         vec![],
-        vec![telemetry_transport_contract::LogRecord("log1".to_string())],
+        vec![LogRecord::new(
+            Context::new_root(),
+            Resource::new(),
+            scope,
+            0,
+            LogSeverity::Info,
+            "log1".to_string(),
+        )],
     );
     assert!(batch.is_ok());
 }
 
 #[test]
 fn test_payload_envelope_serialization() {
+    let scope = InstrumentationScope::new("test".to_string());
     let envelope = PayloadEnvelope {
         transport_metadata: TransportMetadata::now(),
         propagation_metadata: PropagationMetadata::new("test"),
         payload: TelemetryBatch::new(
-            Resource("resource".to_string()),
-            vec![Span("trace1".to_string())],
+            Resource::new(),
+            vec![Span::new(
+                Context::new_root(),
+                Resource::new(),
+                scope,
+                "trace1".to_string(),
+                0,
+            )],
             vec![],
             vec![],
         )
@@ -124,4 +153,13 @@ fn test_transport_metadata_now() {
 fn test_propagation_metadata_default() {
     let metadata = PropagationMetadata::default();
     assert!(!metadata.transport.is_empty());
+}
+
+#[test]
+fn test_telemetry_batch_error_display() {
+    let error = TelemetryBatchError::EmptyBatch;
+    assert_eq!(
+        error.to_string(),
+        "telemetry batch must contain at least one signal type"
+    );
 }

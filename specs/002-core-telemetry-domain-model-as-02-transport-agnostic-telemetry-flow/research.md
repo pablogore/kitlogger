@@ -2,8 +2,8 @@
 
 ## 1. Transport Trait Shape
 
-- **Decision**: Single trait with `async fn send(&self, envelope: PayloadEnvelope) -> TransportResult<DeliveryMode>` using `std::future::Future` only
-- **Rationale**: Contract-only trait returns DeliveryMode as an enum value (not associated type). Uses std::future::Future for runtime independence — no Tokio coupling. Concrete transports (HTTP, gRPC) implement this trait without modifying AS-02.
+- **Decision**: Single trait with `async fn send(&self, envelope: PayloadEnvelope) -> TransportResult<DeliveryMode>` using `std::future::Future` only; PayloadEnvelope is from `telemetry-types`
+- **Rationale**: Contract-only trait returns DeliveryMode as an enum value (not associated type). Uses std::future::Future for runtime independence — no Tokio coupling. Concrete transports (HTTP, gRPC) implement this trait without modifying AS-02. PayloadEnvelope owned by `telemetry-types` per ADR-007.
 - **Alternatives considered**: Associated type for delivery mode (couples trait to mode), synchronous trait (incompatible with streaming)
 
 ## 2. DeliveryMode Enum Return Value
@@ -14,8 +14,8 @@
 
 ## 3. PayloadEnvelope Serialization
 
-- **Decision**: Serde Serialize/Deserialize derives on PayloadEnvelope and TelemetryBatch
-- **Rationale**: Serde is the standard Rust serialization framework, already declared in tech-stack. Derives provide zero-cost abstract serialization without coupling to a specific wire format.
+- **Decision**: Serde Serialize/Deserialize derives on PayloadEnvelope and TelemetryBatch (defined in telemetry-types)
+- **Rationale**: Serde is the standard Rust serialization framework, already declared in tech-stack. Derives provide zero-cost abstract serialization without coupling to a specific wire format. Types are owned by telemetry-types per ADR-007.
 - **Alternatives considered**: Manual serialization (error-prone, no serde ecosystem), custom trait (reinventing serde)
 
 ## 4. TransportError Model
@@ -26,8 +26,8 @@
 
 ## 5. Backpressure Semantics
 
-- **Decision**: Explicit `Backpressure` variant in `TransportError` with a `BackpressureSignal` value. No backpressure signal in `DeliveryMode`.
-- **Rationale**: Q4 clarifies backpressure belongs to TransportError::Backpressure, not DeliveryMode. Backpressure signal provides retry-after hint for flow control.
+- **Decision**: Explicit `Backpressure` variant in `TransportError` with a `BackpressureSignal` value. `BackpressureSignal` is owned by `telemetry-types`.
+- **Rationale**: Q4 clarifies backpressure belongs to TransportError::Backpressure, not DeliveryMode. Backpressure signal provides retry-after hint for flow control. BackpressureSignal is shared between AS-02 (TransportError::Backpressure) and AS-03 (flush/semantics) per ADR-007.
 - **Alternatives considered**: Backpressure in DeliveryMode (per Q4 rejected), separate backpressure callback (hard to compose), DeliveryMode-level flag (would require every mode variant to carry it)
 
 ## 6. Async Runtime Independence

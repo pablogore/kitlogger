@@ -7,7 +7,7 @@
 
 - Rust (edition 2021) with cargo test
 - Parent crate providing canonical domain types (Span, Metric, LogRecord, Resource)
-- AS-02 transport contract for PayloadEnvelope
+- `telemetry-types` crate for PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal
 
 ## Validation Scenarios
 
@@ -104,6 +104,8 @@ assert!(matches!(result, Err(AdapterError::AlreadyRegistered(_))));
 Deliver telemetry to multiple adapters; one fails, others succeed. Verify aggregate error.
 
 ```rust
+use telemetry_types::PayloadEnvelope;
+
 let mut registry = AdapterRegistry::new();
 let id1 = AdapterId::new("adapter-1").unwrap();
 let id2 = AdapterId::new("adapter-2").unwrap();
@@ -139,7 +141,14 @@ impl TraceMappingContract for MockTraceMapper {
 ## Running Validation
 
 ```bash
+# Run all workspace tests (includes telemetry-types and AS-03)
 cargo test --workspace
+
+# Run AS-03 adapter contract tests only
+cargo test -p telemetry-adapter-contracts
+
+# Run telemetry-types tests only
+cargo test -p telemetry-types
 ```
 
 All 6 scenarios are validated through unit tests in the crate's test suite.

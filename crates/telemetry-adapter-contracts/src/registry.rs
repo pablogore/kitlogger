@@ -4,6 +4,7 @@ use std::sync::{Arc, RwLock};
 use crate::adapter::Adapter;
 use crate::error::{AdapterError, AdapterResult};
 use crate::id::AdapterId;
+use telemetry_types::PayloadEnvelope;
 
 /// Thread-safe registry with Arc-based storage.
 pub struct AdapterRegistry {
@@ -63,7 +64,7 @@ impl AdapterRegistry {
 pub async fn deliver_to_all(
     registry: &AdapterRegistry,
     ids: &[AdapterId],
-    envelope: Vec<u8>,
+    envelope: PayloadEnvelope,
 ) -> AdapterResult<()> {
     let mut failures = Vec::new();
     for id in ids {

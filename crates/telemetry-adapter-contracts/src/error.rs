@@ -3,12 +3,13 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 
 use crate::id::AdapterId;
+use crate::lifecycle::LifecycleState;
 
 pub type AdapterResult<T> = Result<T, AdapterError>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AdapterError {
-    InvalidTransition { from: String, to: String },
+    InvalidTransition { from: LifecycleState, to: LifecycleState },
     AlreadyRegistered(AdapterId),
     Frozen,
     InitializationFailed(String),
@@ -22,7 +23,7 @@ impl Display for AdapterError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             AdapterError::InvalidTransition { from, to } => {
-                write!(f, "Invalid transition from {from} to {to}")
+                write!(f, "Invalid transition from {from:?} to {to:?}")
             }
             AdapterError::AlreadyRegistered(id) => {
                 write!(f, "Adapter already registered: {id}")

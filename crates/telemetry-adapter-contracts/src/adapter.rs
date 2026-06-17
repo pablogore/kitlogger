@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use telemetry_types::PayloadEnvelope;
 
 use crate::error::AdapterResult;
 use crate::health::HealthReport;
@@ -24,7 +25,7 @@ pub trait LifecycleAdapter: Send + Sync {
 /// Uses `&self` for Arc compatibility.
 #[async_trait]
 pub trait TelemetryDelivery: Send + Sync {
-    async fn deliver(&self, envelope: Vec<u8>) -> AdapterResult<()>;
+    async fn deliver(&self, envelope: PayloadEnvelope) -> AdapterResult<()>;
 }
 
 /// Common supertrait for registry storage.

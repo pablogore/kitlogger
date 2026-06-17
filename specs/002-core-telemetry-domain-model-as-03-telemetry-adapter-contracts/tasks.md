@@ -32,7 +32,7 @@ deployment target blocks task generation.
 **Purpose**: Create the Rust crate structure and workspace membership
 
 - [x] T001 Create `crates/telemetry-adapter-contracts/` directory structure with `src/`, `tests/`
-- [x] T002 [P] Create `crates/telemetry-adapter-contracts/Cargo.toml` with dependencies: serde (derive), async-trait; dev-deps: serde_json, tokio (rt, macros), async-trait
+- [x] T002 [P] Create `crates/telemetry-adapter-contracts/Cargo.toml` with dependencies: serde (derive), async-trait, telemetry-types; dev-deps: serde_json, tokio (rt, macros), async-trait
 - [x] T003 Add `crates/telemetry-adapter-contracts` to workspace `members` in root `Cargo.toml`
 
 ---
@@ -68,7 +68,7 @@ deployment target blocks task generation.
 - [x] T010 [US1] Create `crates/telemetry-adapter-contracts/src/adapter.rs` with:
   - `CommonAdapterBase` trait (id, health)
   - `LifecycleAdapter` trait (flush(&self), shutdown(&self)) — separate from identity
-  - `TelemetryDelivery` trait (deliver(&self)) — uses `&self` for `Arc` compatibility
+  - `TelemetryDelivery` trait (deliver(&self, PayloadEnvelope)) — uses `&self` for `Arc` compatibility; PayloadEnvelope imported from telemetry-types
   - `Adapter` supertrait (`CommonAdapterBase + LifecycleAdapter + TelemetryDelivery + Send + Sync`)
   - `ProviderAdapter` trait (`CommonAdapterBase + LifecycleAdapter + TelemetryDelivery + initialize(&self), start(&self), stop(&self)`)
   - `ExporterAdapter` trait (`CommonAdapterBase + LifecycleAdapter + TelemetryDelivery + initialize(&self), start(&self), stop(&self)`)
@@ -115,7 +115,7 @@ deployment target blocks task generation.
 ### Implementation for User Story 3
 
 - [x] T020 [US3] Create `crates/telemetry-adapter-contracts/src/lifecycle.rs` with `LifecycleState` enum (Registered, Initialized, Started, Stopping, Stopped, Shutdown), `AdapterLifecycle` struct, transition matrix encoded as match arms (reject invalid with `AdapterError::InvalidTransition`; allow Registered→Shutdown and Initialized→Shutdown)
-- [x] T021 [US3] Implement `shutdown(&self)` default impl on LifecycleAdapter that calls `flush()` then transitions to Stopped; concrete adapters use interior mutability for lifecycle state
+- [x] T021 [US3] LifecycleAdapter::shutdown() contract defined (no default impl); concrete adapter shutdown SHOULD call `flush()` then transition to Stopped; concrete adapters use interior mutability for lifecycle state
 
 **Checkpoint**: `cargo test` — lifecycle_test.rs passes; all lifecycle scenarios validated
 
@@ -125,7 +125,7 @@ deployment target blocks task generation.
 
 **Purpose**: Integration, documentation, validation
 
-- [x] T022 [P] Add `deliver_to_all` function in `crates/telemetry-adapter-contracts/src/registry.rs` — iterates adapters from registry via `TelemetryDelivery::deliver()`, collects failures, returns `Ok(())`, `AdapterError::PartialDelivery`, or `AdapterError::DeliveryFailed`
+- [x] T022 [P] Add `deliver_to_all` function in `crates/telemetry-adapter-contracts/src/registry.rs` — iterates adapters from registry via `TelemetryDelivery::deliver()`, collects failures, returns `Ok(())`, `AdapterError::PartialDelivery`, or `AdapterError::DeliveryFailed`; uses `PayloadEnvelope` from telemetry-types
 - [x] T023 [P] Add docs and doc-tests for all public types (id, health, error, adapter, registry, lifecycle, mapping)
 - [x] T024 Run `cargo test --workspace` and verify all tests pass (adapter_test, registry_test, lifecycle_test, integration_tests)
 - [x] T025 Run quickstart.md validation scenarios

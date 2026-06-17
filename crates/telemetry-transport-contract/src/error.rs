@@ -1,49 +1,35 @@
-use std::fmt;
-
+use crate::BackpressureSignal;
 use serde::{Deserialize, Serialize};
 
-use crate::transport::BackpressureSignal;
-
-/// The result type for transport operations.
-pub type TransportResult<T> = Result<T, TransportError>;
-
-/// Errors that can occur during transport operations.
+/// Error type for transport operations.
 ///
-/// This enum represents the various errors that can occur when sending
-/// telemetry data across execution boundaries. It is designed to be
-/// non-exhaustive to allow concrete transport implementations to add
+/// This enum represents various errors that can occur during telemetry transport.
+/// It is non-exhaustive to allow concrete transport implementations to add
 /// their own error variants without breaking changes.
-///
-/// # Examples
-///
-/// ```rust
-/// use telemetry_transport_contract::{TransportError, TransportResult};
-///
-/// fn handle_result() -> TransportResult<()> {
-///     Err(TransportError::Timeout)
-/// }
-/// ```
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TransportError {
-    /// The transport operation timed out.
+    /// The operation timed out.
     Timeout,
-
-    /// The destination is unreachable.
+    
+    /// The transport is currently unavailable.
     Unavailable,
-
-    /// The transport encountered a backpressure condition.
+    
+    /// The transport is experiencing backpressure.
+    ///
+    /// This variant contains a `BackpressureSignal` with information
+    /// about when to retry the operation.
     Backpressure(BackpressureSignal),
-
-    /// The payload exceeds transport limits.
+    
+    /// The payload is too large for the transport.
     PayloadTooLarge,
-
-    /// The requested transport is not available.
+    
+    /// The transport protocol is not supported.
     UnsupportedTransport,
 }
 
-impl fmt::Display for TransportError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for TransportError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             TransportError::Timeout => write!(f, "transport timeout"),
             TransportError::Unavailable => write!(f, "transport unavailable"),
@@ -55,15 +41,3 @@ impl fmt::Display for TransportError {
 }
 
 impl std::error::Error for TransportError {}
-
-/// Error returned when a `TelemetryBatch` is constructed with no signals.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TelemetryBatchError;
-
-impl fmt::Display for TelemetryBatchError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "telemetry batch must contain at least one signal type")
-    }
-}
-
-impl std::error::Error for TelemetryBatchError {}

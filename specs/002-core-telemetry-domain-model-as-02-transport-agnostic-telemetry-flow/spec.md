@@ -18,7 +18,7 @@
 
 ## Scope
 
-Define the canonical transport abstraction for telemetry data flow across execution boundaries. This specification owns the Transport contract, PayloadEnvelope, TelemetryBatch, TransportResult/TransportError model, abstract delivery modes, and backpressure semantics. No concrete transport implementations are owned here; all transports (HTTP, gRPC, CLI, Background Jobs, Kafka, NATS, RabbitMQ, Cron Jobs, Event Systems) are implemented as separate specifications that implement these contracts.
+Define the canonical transport abstraction for telemetry data flow across execution boundaries. This specification owns the Transport contract (trait, TransportResult/TransportError), DeliveryMode, and backpressure semantics. AS-02 depends on `telemetry-types` for shared canonical payload types (PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal) and on AS-01 for context propagation types. No concrete transport implementations are owned here; all transports (HTTP, gRPC, CLI, Background Jobs, Kafka, NATS, RabbitMQ, Cron Jobs, Event Systems) are implemented as separate specifications that implement these contracts.
 
 ## Non-Scope
 
@@ -37,6 +37,7 @@ Define abstract transport contracts for telemetry data flow across execution bou
 ## Dependencies
 
 - `002-core-telemetry-domain-model-as-01-context-propagation-and-correlation` (AS-01)
+- `telemetry-types` (shared canonical types crate)
 
 ## User Scenarios & Testing
 
@@ -72,9 +73,9 @@ The transport contract must remain stable when new delivery modes, error variant
 
 ### Functional Requirements
 
-- **FR-001**: System MUST define a canonical Transport contract consisting of Transport trait, PayloadEnvelope, and TransportResult/TransportError
-- **FR-002**: System MUST define a canonical TelemetryBatch model containing traces, metrics, and logs as the sole payload type
-- **FR-003**: System MUST define a PayloadEnvelope carrying transport metadata, propagation metadata (from AS-01), and a TelemetryBatch
+- **FR-001**: System MUST define a canonical Transport contract consisting of Transport trait and TransportResult/TransportError; PayloadEnvelope and TelemetryBatch are defined by telemetry-types
+- **FR-002**: System MUST define a canonical TelemetryBatch model containing traces, metrics, and logs as the sole payload type (owned by telemetry-types)
+- **FR-003**: System MUST define a PayloadEnvelope carrying transport metadata, propagation metadata (from AS-01), and a TelemetryBatch (owned by telemetry-types)
 - **FR-004**: System MUST define a TransportResult and TransportError model covering timeout, unavailable, backpressure, payload-too-large, and unsupported transport
 - **FR-005**: System MUST support abstract delivery modes as an enum return value on Transport trait: fire-and-forget, request/response, batch, and streaming
 - **FR-006**: System MUST define backpressure semantics via TransportError::Backpressure variant
@@ -86,10 +87,10 @@ The transport contract must remain stable when new delivery modes, error variant
 
 ### Key Entities
 
-- **Transport Contract**: Canonical abstraction owned by AS-02, consisting of Transport trait, PayloadEnvelope, TelemetryBatch, and TransportResult/TransportError
+- **Transport Contract**: Canonical abstraction owned by AS-02, consisting of Transport trait and TransportResult/TransportError; PayloadEnvelope and TelemetryBatch are provided by telemetry-types
 - **Transport Binding**: Concrete implementation of the transport contract for a specific protocol (owned by separate specs)
-- **PayloadEnvelope**: The canonical wrapper carrying transport metadata, propagation metadata (from AS-01), and a TelemetryBatch; owned by AS-02
-- **TelemetryBatch**: The canonical batch model containing traces, metrics, and logs; the sole payload type carried inside PayloadEnvelope
+- **PayloadEnvelope**: The canonical wrapper carrying transport metadata, propagation metadata (from AS-01), and a TelemetryBatch; owned by telemetry-types crate
+- **TelemetryBatch**: The canonical batch model containing traces, metrics, and logs; the sole payload type carried inside PayloadEnvelope; owned by telemetry-types crate
 - **TransportResult / TransportError**: Result type covering success, timeout, unavailable, backpressure, payload-too-large, and unsupported transport
 - **DeliveryMode**: Abstract delivery mode enum supporting fire-and-forget, request/response, batch, and streaming
 - **Execution Boundary**: Informative concept representing the scope of a single execution unit; AS-02 does not model concrete boundary types. Examples (HTTP request, gRPC stream, CLI command, job run) are for illustration only and belong to child transport specs.
@@ -98,8 +99,8 @@ The transport contract must remain stable when new delivery modes, error variant
 
 ### Measurable Outcomes
 
-- **SC-001**: Transport contract (trait + PayloadEnvelope + TelemetryBatch + TransportResult/TransportError) is defined and documented
-- **SC-002**: TelemetryBatch is the sole payload type inside PayloadEnvelope, carrying traces, metrics, and logs
+- **SC-001**: Transport contract (trait + TransportResult/TransportError) is defined and documented; PayloadEnvelope and TelemetryBatch are defined in telemetry-types
+- **SC-002**: TelemetryBatch is the sole payload type inside PayloadEnvelope, carrying traces, metrics, and logs (defined in telemetry-types)
 - **SC-003**: TransportResult covers timeout, unavailable, backpressure, payload-too-large, and unsupported transport errors
 - **SC-004**: All four delivery modes (fire-and-forget, request/response, batch, streaming) are representable as abstract modes
 - **SC-005**: Backpressure signals are propagated through the transport contract
@@ -109,12 +110,13 @@ The transport contract must remain stable when new delivery modes, error variant
 
 This specification owns:
 
-- Transport contract (trait, PayloadEnvelope, TelemetryBatch, TransportResult/TransportError)
-- TelemetryBatch model containing traces, metrics, and logs
-- PayloadEnvelope format carrying transport metadata, propagation metadata, and TelemetryBatch
-- Abstract delivery modes (fire-and-forget, request/response, batch, streaming)
+- Transport contract (trait, TransportResult/TransportError)
+- Abstract delivery modes (fire-and-forget, request/response, batch, streaming) as DeliveryMode enum
 - Backpressure semantics as TransportError::Backpressure variant
 - Carrier abstraction traits (Injector, Extractor — from AS-01, referenced as contract dependencies)
+
+This specification depends on `telemetry-types` for:
+- PayloadEnvelope, TelemetryBatch, TelemetryBatchError, TransportMetadata, BackpressureSignal
 
 This specification does not own:
 
@@ -133,13 +135,13 @@ This specification does not own:
 
 - Q: Transport Contract Shape → A: Transport + Payload Envelope + TransportResult/TransportError (C)
 - Q: Transport Implementation Scope → A: AS-02 defines contracts only; concrete transports are separate specs (B)
-- Q: Payload Envelope Ownership → A: AS-02 owns PayloadEnvelope and transport metadata (A)
+- Q: Payload Envelope Ownership → A: [SUPERSEDED BY ADR-007] Shared canonical types crate (telemetry-types) owns PayloadEnvelope and transport metadata; AS-02 depends on telemetry-types
 - Q: Context Propagation Integration → A: AS-02 carries propagation metadata provided by AS-01 but does not create or own context (B)
 - Q: Transport Error Model → A: Transport-level errors including timeout, unavailable, backpressure, payload-too-large, unsupported transport (A)
 - Q: Delivery Semantics → A: Fire-and-forget, request/response, batch, and streaming as abstract modes (D)
-- Q: Backpressure Ownership → A: Backpressure semantics as transport contract behavior (A)
+- Q: Backpressure Ownership → A: Backpressure semantics as transport contract behavior (A); BackpressureSignal struct owned by telemetry-types
 - Q: Future Transport Extensibility → A: Only new implementations are added; AS-02 contracts remain unchanged (A)
-- Q: Telemetry Payload Ownership → A: PayloadEnvelope carries a canonical TelemetryBatch model containing traces, metrics, and logs (C)
+- Q: Telemetry Payload Ownership → A: [SUPERSEDED BY ADR-007] Shared canonical types crate (telemetry-types) owns PayloadEnvelope and TelemetryBatch; AS-02 depends on telemetry-types
 
 ### Session 2026-06-15
 
@@ -160,3 +162,4 @@ This specification does not own:
 - Transport implementations handle wire-level encoding and protocol negotiation
 - Concrete transport specs implement the Transport contract defined here without modifying AS-02
 - AS-02 has no runtime dependency; Transport trait uses std::future::Future only
+- Shared canonical types (telemetry-types) define PayloadEnvelope, TelemetryBatch, TransportMetadata, BackpressureSignal; AS-02 depends on telemetry-types for these types

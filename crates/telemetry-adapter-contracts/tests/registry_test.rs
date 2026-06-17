@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use async_trait::async_trait;
+use telemetry_types::PayloadEnvelope;
 
 use telemetry_adapter_contracts::{
     Adapter, AdapterError, AdapterHealth, AdapterId, AdapterRegistry, AdapterResult,
@@ -45,7 +46,7 @@ impl LifecycleAdapter for MockAdapter {
 
 #[async_trait]
 impl TelemetryDelivery for MockAdapter {
-    async fn deliver(&self, _envelope: Vec<u8>) -> AdapterResult<()> {
+    async fn deliver(&self, _envelope: PayloadEnvelope) -> AdapterResult<()> {
         Ok(())
     }
 }

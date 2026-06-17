@@ -1,37 +1,55 @@
+use crate::TelemetryBatch;
+use context_propagation::propagation_metadata::PropagationMetadata;
 use serde::{Deserialize, Serialize};
 
-use crate::batch::TelemetryBatch;
-pub use context_propagation::propagation_metadata::PropagationMetadata;
-
-/// Metadata for transport-specific information.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Metadata about the transport layer.
+///
+/// This struct contains information about the transport layer that
+/// is used to send telemetry data.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TransportMetadata {
-    /// The timestamp when this metadata was created.
+    /// Timestamp of when the metadata was created.
     pub timestamp: std::time::SystemTime,
+    
+    /// Content type of the payload.
+    pub content_type: String,
+    
+    /// Encoding hints for the payload.
+    pub encoding: String,
 }
 
 impl TransportMetadata {
-    /// Creates new transport metadata with the current timestamp.
-    pub fn now() -> Self {
-        Self {
+    /// Creates new transport metadata.
+    pub fn new() -> Self {
+        TransportMetadata {
             timestamp: std::time::SystemTime::now(),
+            content_type: String::new(),
+            encoding: String::new(),
+        }
+    }
+    
+    /// Creates new transport metadata with current timestamp.
+    pub fn now() -> Self {
+        TransportMetadata {
+            timestamp: std::time::SystemTime::now(),
+            content_type: String::new(),
+            encoding: String::new(),
         }
     }
 }
 
-/// A payload envelope for telemetry data.
+/// Envelope for telemetry payloads.
 ///
-/// This struct wraps telemetry data with metadata for transport.
-/// It contains transport-specific metadata, propagation metadata,
-/// and the actual telemetry data.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// This struct wraps the telemetry data with metadata needed for transport
+/// across execution boundaries.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PayloadEnvelope {
-    /// Transport-specific metadata.
+    /// Metadata about the transport layer.
     pub transport_metadata: TransportMetadata,
-
-    /// Propagation metadata from AS-01.
+    
+    /// Metadata for context propagation.
     pub propagation_metadata: PropagationMetadata,
-
-    /// The telemetry data.
+    
+    /// The actual telemetry data payload.
     pub payload: TelemetryBatch,
 }
