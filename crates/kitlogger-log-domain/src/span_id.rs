@@ -2,8 +2,8 @@
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-/// Opaque string identifier for span-level identification within a trace.
-#[derive(Clone)]
+/// Opaque string identifier for span correlation.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpanId(String);
 
 impl SpanId {
@@ -31,7 +31,7 @@ impl AsRef<str> for SpanId {
 }
 
 impl From<String> for SpanId {
-    fn from(id: String) -> Self {
-        SpanId(id)
+    fn from(s: String) -> Self {
+        SpanId(s)
     }
 }

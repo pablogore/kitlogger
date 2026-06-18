@@ -5,7 +5,7 @@ use std::time::SystemTime;
 use crate::{LogAttribute, ValidationError};
 
 /// Canonical log entry. Immutable after construction.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct LogRecord {
     timestamp: SystemTime,
     severity: crate::Severity,
@@ -29,13 +29,6 @@ impl LogRecord {
     ) -> Result<Self, ValidationError> {
         if message.is_empty() {
             return Err(ValidationError::EmptyMessage);
-        }
-
-        // Validate all attribute names
-        for attr in &attributes {
-            // Attribute name validation is already done in LogAttribute::new
-            // But we'll check again to be safe
-            crate::log_attribute::validate_attribute_name(attr.name())?;
         }
 
         Ok(LogRecord {

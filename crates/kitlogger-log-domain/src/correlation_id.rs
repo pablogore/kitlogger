@@ -3,7 +3,7 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Opaque string identifier for cross-service correlation.
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct CorrelationId(String);
 
 impl CorrelationId {
@@ -31,7 +31,7 @@ impl AsRef<str> for CorrelationId {
 }
 
 impl From<String> for CorrelationId {
-    fn from(id: String) -> Self {
-        CorrelationId(id)
+    fn from(s: String) -> Self {
+        CorrelationId(s)
     }
 }

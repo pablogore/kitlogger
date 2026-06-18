@@ -2,6 +2,8 @@
 
 use std::time::SystemTime;
 
+use crate::ValidationError;
+
 /// Strongly typed wrapper for attribute values.
 ///
 /// Supports flat scalar types only (no nested objects).
@@ -50,7 +52,7 @@ impl LogAttributeValue {
     /// Creates a new Array variant.
     ///
     /// Enforces homogeneous element types at construction.
-    pub fn array(values: Vec<LogAttributeValue>) -> Result<Self, String> {
+    pub fn array(values: Vec<LogAttributeValue>) -> Result<Self, ValidationError> {
         if values.is_empty() {
             return Ok(LogAttributeValue::Array(values));
         }
@@ -58,7 +60,9 @@ impl LogAttributeValue {
         let first_type = &values[0];
         for value in &values {
             if std::mem::discriminant(value) != std::mem::discriminant(first_type) {
-                return Err("Array elements must be of the same type".to_string());
+                return Err(ValidationError::InvalidAttributeValue(
+                    "Array elements must be of the same type".to_string(),
+                ));
             }
         }
 

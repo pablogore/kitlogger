@@ -16,6 +16,12 @@ pub struct AdapterLifecycle {
     state: LifecycleState,
 }
 
+impl Default for AdapterLifecycle {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AdapterLifecycle {
     pub fn new() -> Self {
         AdapterLifecycle {

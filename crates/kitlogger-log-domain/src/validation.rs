@@ -3,7 +3,7 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Errors that can occur during log record construction.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValidationError {
     /// Message string is empty
     EmptyMessage,

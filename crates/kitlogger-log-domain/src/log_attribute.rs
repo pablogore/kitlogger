@@ -3,7 +3,7 @@
 use crate::{LogAttributeValue, ValidationError};
 
 /// A named key-value pair of structured data.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct LogAttribute {
     name: String,
     value: LogAttributeValue,
@@ -39,7 +39,9 @@ impl LogAttribute {
 pub fn validate_attribute_name(name: &str) -> Result<(), ValidationError> {
     // Check for empty name
     if name.is_empty() {
-        return Err(ValidationError::InvalidAttributeName("Name cannot be empty".to_string()));
+        return Err(ValidationError::InvalidAttributeName(
+            "Name cannot be empty".to_string(),
+        ));
     }
 
     // Check max length (64 characters)
@@ -50,13 +52,16 @@ pub fn validate_attribute_name(name: &str) -> Result<(), ValidationError> {
     }
 
     // Check pattern: ^[a-z][a-z0-9._]{0,63}$
-    if !name.chars().next().map_or(false, |c| c.is_ascii_lowercase()) {
+    if !name.chars().next().is_some_and(|c| c.is_ascii_lowercase()) {
         return Err(ValidationError::InvalidAttributeName(
             "Name must start with lowercase letter".to_string(),
         ));
     }
 
-    if !name.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '.' || c == '_') {
+    if !name
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '.' || c == '_')
+    {
         return Err(ValidationError::InvalidAttributeName(
             "Name contains invalid characters".to_string(),
         ));

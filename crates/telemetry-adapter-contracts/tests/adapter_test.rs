@@ -2,17 +2,17 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use async_trait::async_trait;
-use telemetry_types::{PayloadEnvelope, TelemetryBatch, TransportMetadata, PropagationMetadata};
+use telemetry_types::{PayloadEnvelope, PropagationMetadata, TelemetryBatch, TransportMetadata};
 
-use telemetry_adapter_contracts::{
-    Adapter, AdapterHealth, AdapterId, AdapterResult,
-    CommonAdapterBase, ExporterAdapter, HealthReport, LifecycleAdapter, LogRecordMappingContract,
-    MetricMappingContract, ProviderAdapter, ResourceMappingContract, SpanMappingContract,
-    TelemetryDelivery, TraceMappingContract,
-};
 use telemetry_adapter_contracts::mapping::{
-    Trace, OtelTrace, Span, OtelSpan, Metric, OtelMetric, LogRecord, OtelLogRecord, Resource,
-    OtelResource,
+    LogRecord, Metric, OtelLogRecord, OtelMetric, OtelResource, OtelSpan, OtelTrace, Resource,
+    Span, Trace,
+};
+use telemetry_adapter_contracts::{
+    Adapter, AdapterHealth, AdapterId, AdapterResult, CommonAdapterBase, ExporterAdapter,
+    HealthReport, LifecycleAdapter, LogRecordMappingContract, MetricMappingContract,
+    ProviderAdapter, ResourceMappingContract, SpanMappingContract, TelemetryDelivery,
+    TraceMappingContract,
 };
 
 /// Mock adapter for testing all base traits and both provider/exporter traits.

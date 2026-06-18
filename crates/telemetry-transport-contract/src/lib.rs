@@ -12,9 +12,9 @@
 
 pub mod payload;
 
-mod transport;
-mod error;
 mod batch;
+mod error;
+mod transport;
 
 // Re-export types from context-propagation crate
 pub use context_propagation::models::{
@@ -23,7 +23,7 @@ pub use context_propagation::models::{
 };
 pub use context_propagation::propagation_metadata::PropagationMetadata;
 
-pub use transport::*;
-pub use error::*;
 pub use batch::*;
+pub use error::*;
 pub use payload::*;
+pub use transport::*;

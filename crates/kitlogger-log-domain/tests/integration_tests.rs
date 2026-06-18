@@ -5,8 +5,8 @@ mod tests {
     use std::time::SystemTime;
 
     use kitlogger_log_domain::{
-        LogAttribute, LogAttributeValue, LogRecord, Severity, ValidationError,
-        CorrelationId, TraceId, SpanId,
+        CorrelationId, LogAttribute, LogAttributeValue, LogRecord, Severity, SpanId, TraceId,
+        ValidationError,
     };
 
     #[test]
@@ -44,9 +44,13 @@ mod tests {
         let attr = LogAttribute::new(
             "test_key".to_string(),
             LogAttributeValue::String("test_value".to_string()),
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(attr.name(), "test_key");
-        assert_eq!(attr.value(), &LogAttributeValue::String("test_value".to_string()));
+        assert_eq!(
+            attr.value(),
+            &LogAttributeValue::String("test_value".to_string())
+        );
     }
 
     #[test]
@@ -55,25 +59,29 @@ mod tests {
         assert!(LogAttribute::new(
             "".to_string(),
             LogAttributeValue::String("test".to_string()),
-        ).is_err());
+        )
+        .is_err());
 
         // Uppercase first letter
         assert!(LogAttribute::new(
             "Test".to_string(),
             LogAttributeValue::String("test".to_string()),
-        ).is_err());
+        )
+        .is_err());
 
         // Invalid character
         assert!(LogAttribute::new(
             "test-key".to_string(),
             LogAttributeValue::String("test".to_string()),
-        ).is_err());
+        )
+        .is_err());
 
         // Reserved name
         assert!(LogAttribute::new(
             "timestamp".to_string(),
             LogAttributeValue::String("test".to_string()),
-        ).is_err());
+        )
+        .is_err());
     }
 
     #[test]
@@ -102,8 +110,10 @@ mod tests {
             vec![LogAttribute::new(
                 "key".to_string(),
                 LogAttributeValue::String("value".to_string()),
-            ).unwrap()],
-        ).unwrap();
+            )
+            .unwrap()],
+        )
+        .unwrap();
 
         assert_eq!(record.severity(), &Severity::Info);
         assert_eq!(record.message(), "Test message");
@@ -113,12 +123,7 @@ mod tests {
     #[test]
     fn test_log_record_empty_message() {
         assert_eq!(
-            LogRecord::new(
-                SystemTime::now(),
-                Severity::Info,
-                "".to_string(),
-                vec![],
-            ).unwrap_err(),
+            LogRecord::new(SystemTime::now(), Severity::Info, "".to_string(), vec![],).unwrap_err(),
             ValidationError::EmptyMessage
         );
     }

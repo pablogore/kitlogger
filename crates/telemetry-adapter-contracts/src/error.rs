@@ -9,7 +9,10 @@ pub type AdapterResult<T> = Result<T, AdapterError>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AdapterError {
-    InvalidTransition { from: LifecycleState, to: LifecycleState },
+    InvalidTransition {
+        from: LifecycleState,
+        to: LifecycleState,
+    },
     AlreadyRegistered(AdapterId),
     Frozen,
     InitializationFailed(String),

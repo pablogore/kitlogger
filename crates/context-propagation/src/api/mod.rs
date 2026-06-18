@@ -17,6 +17,12 @@ pub struct ContextBuilder {
     correlation_id: Option<String>,
 }
 
+impl Default for ContextBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ContextBuilder {
     /// Creates a new context builder
     pub fn new() -> Self {
@@ -58,6 +64,12 @@ impl ContextBuilder {
 /// A builder for creating Resource objects
 pub struct ResourceBuilder {
     attributes: HashMap<String, AttributeValue>,
+}
+
+impl Default for ResourceBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ResourceBuilder {

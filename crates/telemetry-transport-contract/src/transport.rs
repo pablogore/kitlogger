@@ -16,17 +16,17 @@ pub enum DeliveryMode {
     ///
     /// The sender does not wait for acknowledgment or response.
     FireAndForget,
-    
+
     /// Send the telemetry and wait for a response.
     ///
     /// The sender waits for an acknowledgment or response from the receiver.
     RequestResponse,
-    
+
     /// Send telemetry in batches.
     ///
     /// Multiple telemetry items are sent together in a batch.
     Batch,
-    
+
     /// Send telemetry in a streaming fashion.
     ///
     /// Telemetry is sent as a continuous stream of data.

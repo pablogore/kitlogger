@@ -2,8 +2,8 @@
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-/// Opaque string identifier for distributed trace association.
-#[derive(Clone)]
+/// Opaque string identifier for trace correlation.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct TraceId(String);
 
 impl TraceId {
@@ -31,7 +31,7 @@ impl AsRef<str> for TraceId {
 }
 
 impl From<String> for TraceId {
-    fn from(id: String) -> Self {
-        TraceId(id)
+    fn from(s: String) -> Self {
+        TraceId(s)
     }
 }

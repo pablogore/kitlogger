@@ -47,7 +47,7 @@ impl Injector for MapCarrier {
     fn set(&mut self, key: &str, value: &str) {
         self.data
             .entry(key.to_string())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(value.to_string());
     }
 }

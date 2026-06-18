@@ -9,10 +9,10 @@
 pub struct PayloadEnvelope {
     /// Transport metadata associated with the payload
     pub transport_metadata: TransportMetadata,
-    
+
     /// Propagation metadata for context propagation
     pub propagation_metadata: PropagationMetadata,
-    
+
     /// The actual telemetry data batch
     pub payload: TelemetryBatch,
 }
@@ -22,10 +22,10 @@ pub struct PayloadEnvelope {
 pub struct TransportMetadata {
     /// The transport protocol used (e.g., "http", "grpc", "kafka")
     pub protocol: String,
-    
+
     /// The transport endpoint (e.g., URL, topic name)
     pub endpoint: String,
-    
+
     /// Additional transport-specific metadata
     pub attributes: std::collections::HashMap<String, String>,
 }
@@ -42,10 +42,10 @@ pub struct PropagationMetadata {
 pub struct TelemetryBatch {
     /// Collection of trace data
     pub traces: Vec<TraceData>,
-    
+
     /// Collection of metric data
     pub metrics: Vec<MetricData>,
-    
+
     /// Collection of log data
     pub logs: Vec<LogData>,
 }
@@ -55,10 +55,10 @@ pub struct TelemetryBatch {
 pub struct TraceData {
     /// Trace identifier
     pub trace_id: String,
-    
+
     /// Span identifier
     pub span_id: String,
-    
+
     /// Trace data content
     pub data: String,
 }
@@ -68,10 +68,10 @@ pub struct TraceData {
 pub struct MetricData {
     /// Metric identifier
     pub metric_id: String,
-    
+
     /// Metric value
     pub value: f64,
-    
+
     /// Metric timestamp
     pub timestamp: u64,
 }
@@ -81,10 +81,10 @@ pub struct MetricData {
 pub struct LogData {
     /// Log identifier
     pub log_id: String,
-    
+
     /// Log level
     pub level: String,
-    
+
     /// Log message
     pub message: String,
 }
@@ -94,7 +94,7 @@ pub struct LogData {
 pub struct BackpressureSignal {
     /// Optional retry-after hint in seconds
     pub retry_after: Option<u64>,
-    
+
     /// Additional backpressure attributes
     pub attributes: std::collections::HashMap<String, String>,
 }

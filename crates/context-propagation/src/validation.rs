@@ -188,6 +188,7 @@ pub mod validators {
 }
 
 /// A collection of validation functions that return a boolean
+#[allow(clippy::module_inception)]
 pub mod validation {
     use super::*;
 

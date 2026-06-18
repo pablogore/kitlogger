@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use async_trait::async_trait;
-use telemetry_types::{PayloadEnvelope, TelemetryBatch, TransportMetadata, PropagationMetadata};
+use telemetry_types::{PayloadEnvelope, PropagationMetadata, TelemetryBatch, TransportMetadata};
 
 use telemetry_adapter_contracts::{
     AdapterError, AdapterHealth, AdapterId, AdapterLifecycle, AdapterRegistry, AdapterResult,
@@ -216,11 +216,8 @@ async fn test_full_lifecycle_with_multiplexing() {
             logs: vec![],
         },
     };
-    let result = telemetry_adapter_contracts::registry::deliver_to_all(
-        &registry,
-        &[id1, id2],
-        envelope,
-    )
-    .await;
+    let result =
+        telemetry_adapter_contracts::registry::deliver_to_all(&registry, &[id1, id2], envelope)
+            .await;
     assert!(result.is_ok());
 }
