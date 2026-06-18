@@ -1,0 +1,13 @@
+language: Rust
+
+testing:
+  - cargo test
+
+runtime: none
+
+protocol:
+  - HTTP
+  - gRPC
+
+observability:
+  - OpenTelemetry
