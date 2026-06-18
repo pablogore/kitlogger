@@ -1,16 +1,16 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/002-core-telemetry-domain-model-as-04-telemetry-configuration-semantics/plan.md
+at specs/003-structured-logging-core-as-01-structured-log-domain-model/plan.md
 <!-- SPECKIT END -->
 
 <!-- ANCHORED SUMMARY -->
 # Anchored Summary
 
 ## Session Context
-- **ACTIVE_SPEC_ID**: `002-core-telemetry-domain-model-as-03-telemetry-adapter-contracts`
-- **Branch**: `main`
-- **Purpose**: Design phase for telemetry adapter contracts crate
+- **ACTIVE_SPEC_ID**: `003-structured-logging-core-as-01-structured-log-domain-model`
+- **Branch**: `develop`
+- **Purpose**: Plan phase for structured log domain model crate
 
 ## Status
 - **Architecture**: Complete — Adapter contracts owned by AS-03; concrete adapters are separate specs. Shared canonical types layer (telemetry-types) introduced per ADR-007, owned by parent capability.
