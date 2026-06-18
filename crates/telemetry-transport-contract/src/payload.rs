@@ -10,12 +10,18 @@ use serde::{Deserialize, Serialize};
 pub struct TransportMetadata {
     /// Timestamp of when the metadata was created.
     pub timestamp: std::time::SystemTime,
-    
+
     /// Content type of the payload.
     pub content_type: String,
-    
+
     /// Encoding hints for the payload.
     pub encoding: String,
+}
+
+impl Default for TransportMetadata {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TransportMetadata {
@@ -27,7 +33,7 @@ impl TransportMetadata {
             encoding: String::new(),
         }
     }
-    
+
     /// Creates new transport metadata with current timestamp.
     pub fn now() -> Self {
         TransportMetadata {
@@ -46,10 +52,10 @@ impl TransportMetadata {
 pub struct PayloadEnvelope {
     /// Metadata about the transport layer.
     pub transport_metadata: TransportMetadata,
-    
+
     /// Metadata for context propagation.
     pub propagation_metadata: PropagationMetadata,
-    
+
     /// The actual telemetry data payload.
     pub payload: TelemetryBatch,
 }

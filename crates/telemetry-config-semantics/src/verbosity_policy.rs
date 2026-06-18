@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// VerbosityLevel represents the verbosity level for telemetry signals.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

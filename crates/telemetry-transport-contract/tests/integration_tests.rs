@@ -1,9 +1,9 @@
 use std::time::Duration;
 
 use telemetry_transport_contract::{
-    BackpressureSignal, Context, DeliveryMode, InstrumentationScope, LogRecord, LogSeverity, Metric,
-    PayloadEnvelope, PropagationMetadata, Resource, Span, TelemetryBatch, TelemetryBatchError,
-    TransportMetadata, TransportError, TransportResult,
+    BackpressureSignal, Context, DeliveryMode, InstrumentationScope, LogRecord, LogSeverity,
+    Metric, PayloadEnvelope, PropagationMetadata, Resource, Span, TelemetryBatch,
+    TelemetryBatchError, TransportError, TransportMetadata, TransportResult,
 };
 
 #[test]

@@ -12,6 +12,12 @@ pub struct AdapterRegistry {
     frozen: bool,
 }
 
+impl Default for AdapterRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AdapterRegistry {
     pub fn new() -> Self {
         AdapterRegistry {
@@ -44,7 +50,7 @@ impl AdapterRegistry {
         self.adapters
             .read()
             .ok()
-            .map_or(false, |map| map.contains_key(id))
+            .is_some_and(|map| map.contains_key(id))
     }
 
     pub fn list(&self) -> Vec<AdapterId> {

@@ -11,19 +11,19 @@ use serde::{Deserialize, Serialize};
 pub enum TransportError {
     /// The operation timed out.
     Timeout,
-    
+
     /// The transport is currently unavailable.
     Unavailable,
-    
+
     /// The transport is experiencing backpressure.
     ///
     /// This variant contains a `BackpressureSignal` with information
     /// about when to retry the operation.
     Backpressure(BackpressureSignal),
-    
+
     /// The payload is too large for the transport.
     PayloadTooLarge,
-    
+
     /// The transport protocol is not supported.
     UnsupportedTransport,
 }

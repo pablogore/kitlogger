@@ -73,6 +73,12 @@ pub struct Resource {
     pub attributes: HashMap<String, AttributeValue>,
 }
 
+impl Default for Resource {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Resource {
     /// Creates a new resource with no attributes
     pub fn new() -> Self {

@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-
 #[cfg(test)]
 mod tests {
-    use telemetry_config_semantics::{TelemetryConfig, SamplingPolicy, SamplingPolicyType, ExporterConfig, CompressionType, ResourceConfig, VerbosityPolicy, VerbosityLevel, SchemaVersion};
+    use telemetry_config_semantics::{
+        CompressionType, ExporterConfig, ResourceConfig, SamplingPolicy, SamplingPolicyType,
+        SchemaVersion, TelemetryConfig, VerbosityLevel, VerbosityPolicy,
+    };
 
     #[test]
     fn test_telemetry_config_default() {
@@ -18,7 +18,10 @@ mod tests {
 
     #[test]
     fn test_telemetry_config_disabled() {
-        let config = TelemetryConfig { enabled: false, ..Default::default() };
+        let config = TelemetryConfig {
+            enabled: false,
+            ..Default::default()
+        };
         assert!(!config.enabled);
     }
 

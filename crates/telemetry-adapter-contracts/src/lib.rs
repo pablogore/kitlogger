@@ -25,4 +25,4 @@ pub use mapping::{
     LogRecordMappingContract, MetricMappingContract, ResourceMappingContract, SpanMappingContract,
     TraceMappingContract,
 };
-pub use registry::{AdapterRegistry, deliver_to_all};
+pub use registry::{deliver_to_all, AdapterRegistry};
