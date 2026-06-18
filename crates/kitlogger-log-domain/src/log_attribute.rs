@@ -3,6 +3,10 @@
 use crate::{LogAttributeValue, ValidationError};
 
 /// A named key-value pair of structured data.
+///
+/// Derive exclusions:
+/// - `Eq` not derived: contains `LogAttributeValue` which has `f64` (no `Eq`).
+/// - `Hash` not derived: contains `LogAttributeValue` which has `f64` (no `Hash`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct LogAttribute {
     name: String,

@@ -3,6 +3,8 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
+use crate::ValidationError;
+
 /// Canonical severity levels for structured logs.
 ///
 /// Implements `PartialOrd` for severity ordering.
@@ -36,7 +38,7 @@ impl Display for Severity {
 }
 
 impl FromStr for Severity {
-    type Err = ();
+    type Err = ValidationError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
@@ -46,7 +48,7 @@ impl FromStr for Severity {
             "warn" => Ok(Severity::Warn),
             "error" => Ok(Severity::Error),
             "fatal" => Ok(Severity::Fatal),
-            _ => Err(()),
+            _ => Err(ValidationError::InvalidSeverity),
         }
     }
 }

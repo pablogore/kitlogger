@@ -18,7 +18,7 @@
 
 ### D-2: Identifier types (CorrelationId, TraceId, SpanId)
 
-**Decision**: Use newtype wrappers over `String` with `Display`, `Deref<Target=str>`, and `From<String>` implementations.
+**Decision**: Use newtype wrappers over `String` with `Display`, `AsRef<str>`, and `From<String>` implementations.
 
 **Rationale**: Newtypes provide type safety while remaining zero-cost abstractions. String inner allows variable-length opaque identifiers.
 
@@ -70,7 +70,7 @@
 
 ### D-8: ValidationError type
 
-**Decision**: Define a `ValidationError` enum with variants covering all validation failure modes: `EmptyMessage`, `InvalidSeverity`, `InvalidAttributeName`, `InvalidAttribute`.
+**Decision**: Define a `ValidationError` enum with variants covering all validation failure modes: `EmptyMessage`, `InvalidSeverity`, `InvalidAttributeName(String)`, `InvalidAttributeValue(String)`.
 
 **Rationale**: A dedicated error type enables callers to handle specific validation failures. Using `thiserror` for derive is avoided (undeclared dependency); manual `Display` and `Error` implementations are used instead.
 

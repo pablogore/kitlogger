@@ -27,7 +27,10 @@ mod tests {
         assert_eq!("warn".parse::<Severity>().unwrap(), Severity::Warn);
         assert_eq!("error".parse::<Severity>().unwrap(), Severity::Error);
         assert_eq!("fatal".parse::<Severity>().unwrap(), Severity::Fatal);
-        assert!("invalid".parse::<Severity>().is_err());
+        assert_eq!(
+            "invalid".parse::<Severity>().unwrap_err(),
+            ValidationError::InvalidSeverity
+        );
     }
 
     #[test]

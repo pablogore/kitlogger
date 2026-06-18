@@ -19,10 +19,7 @@ impl LogRecord {
 
 **Preconditions**:
 - `message` must be non-empty → `ValidationError::EmptyMessage`
-- Each `LogAttribute.name` must match `[a-z][a-z0-9._]{0,63}` → `ValidationError::InvalidAttributeName`
-- Each `LogAttribute.name` must not be a reserved field name → `ValidationError::InvalidAttributeName`
-- Each `LogAttributeValue` must be flat (no nested objects) → `ValidationError::InvalidAttributeValue`
-- Array `LogAttributeValue`s must be homogeneous → `ValidationError::InvalidAttributeValue`
+- All `LogAttribute` instances passed in must have been validated at their own construction site
 
 **Postconditions**:
 - All fields are accessible via accessor methods

@@ -7,6 +7,10 @@ use crate::ValidationError;
 /// Strongly typed wrapper for attribute values.
 ///
 /// Supports flat scalar types only (no nested objects).
+///
+/// Derive exclusions:
+/// - `Eq` not derived: `Float(f64)` variant contains `f64` which does not implement `Eq`.
+/// - `Hash` not derived: `Float(f64)` variant contains `f64` which does not implement `Hash`.
 #[derive(Clone, Debug, PartialEq)]
 pub enum LogAttributeValue {
     /// UTF-8 string value

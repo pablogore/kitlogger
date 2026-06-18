@@ -22,7 +22,7 @@ pub enum Severity {
 
 ```rust
 impl Display for Severity;      // "Trace", "Debug", "Info", "Warn", "Error", "Fatal"
-impl FromStr for Severity;      // Err = (), case-insensitive
+impl FromStr for Severity;      // Err = ValidationError, case-insensitive
 ```
 
 ## Ordering

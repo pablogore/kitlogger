@@ -5,6 +5,10 @@ use std::time::SystemTime;
 use crate::{LogAttribute, ValidationError};
 
 /// Canonical log entry. Immutable after construction.
+///
+/// Derive exclusions:
+/// - `Eq` not derived: contains `LogAttribute` -> `LogAttributeValue` which has `f64` (no `Eq`).
+/// - `Hash` not derived: contains `LogAttribute` -> `LogAttributeValue` which has `f64` (no `Hash`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct LogRecord {
     timestamp: SystemTime,
@@ -19,8 +23,6 @@ impl LogRecord {
     /// # Errors
     ///
     /// Returns `ValidationError::EmptyMessage` if the message is empty.
-    /// Returns `ValidationError::InvalidAttributeName` if any attribute name is invalid.
-    /// Returns `ValidationError::InvalidAttributeValue` if any attribute value is invalid.
     pub fn new(
         timestamp: SystemTime,
         severity: crate::Severity,

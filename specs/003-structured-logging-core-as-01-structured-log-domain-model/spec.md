@@ -61,8 +61,8 @@ Define the canonical LogRecord entity with severity levels, attribute types, att
 7. CorrelationId, TraceId, and SpanId MUST be opaque string identifiers with no required internal structure.
 8. LogRecord MUST be immutable after creation — no public mutation methods.
 9. LogRecord construction MUST reject an empty message.
-10. LogRecord construction MUST reject an unrecognized severity level.
-11. LogRecord construction MUST reject an attribute with a name that violates naming constraints.
+10. Severity parsing MUST reject an unrecognized severity level.
+11. LogAttribute construction MUST reject an attribute with a name that violates naming constraints.
 
 ### Key Entities
 
@@ -82,7 +82,7 @@ A developer creates a LogRecord with severity Info, a message, and a set of type
 
 ### Scenario 2: Validation rejects invalid records
 
-Attempting to create a LogRecord with an empty message, an unrecognized severity level, or an attribute with a name violating the naming pattern is rejected at construction time.
+Attempting to create a LogRecord with an empty message is rejected. Attempting to parse an unrecognized severity level is rejected. Attempting to create a LogAttribute with a name violating the naming pattern is rejected.
 
 ### Scenario 3: LogRecord is immutable after creation
 
@@ -92,7 +92,6 @@ Once constructed, a LogRecord has no mutation methods. All fields are set at con
 
 - LogRecord creation with valid inputs succeeds
 - LogRecord creation with empty message fails
-- LogRecord creation with invalid severity fails
 - LogRecord creation with invalid attribute name fails
 - No mutation methods exist on LogRecord
 
@@ -105,8 +104,8 @@ Once constructed, a LogRecord has no mutation methods. All fields are set at con
 3. Structured attributes support at least 6 value types (string, integer, float, boolean, timestamp, array).
 4. Immutability is enforced — no public mutation methods on LogRecord, LogAttribute, or LogAttributeValue.
 5. An empty message is rejected at LogRecord construction time.
-6. An unrecognized severity level is rejected at LogRecord construction time.
-7. Attribute names violating the naming pattern `[a-z][a-z0-9._]{0,63}` or conflicting with reserved LogRecord fields are rejected at LogRecord construction time.
+6. An unrecognized severity level is rejected at Severity parsing time.
+7. Attribute names violating the naming pattern `[a-z][a-z0-9._]{0,63}` or conflicting with reserved LogRecord fields are rejected at LogAttribute construction time.
 
 ## Assumptions
 

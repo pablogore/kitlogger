@@ -17,7 +17,7 @@ Canonical log entry. Immutable after construction.
 | `timestamp` | `SystemTime` | Must be present | UTC-referenced point-in-time |
 | `severity` | `Severity` | Must be canonical level | Log severity classification |
 | `message` | `String` | Must be non-empty | Log message text |
-| `attributes` | `Vec<LogAttribute>` | Each attribute name must be valid | Structured key-value data |
+| `attributes` | `Vec<LogAttribute>` | Trusts pre-validated LogAttribute instances | Structured key-value data |
 
 **Constraints**:
 - No public mutation methods
@@ -98,12 +98,12 @@ Same interface pattern as `CorrelationId`.
 
 ### ValidationError
 
-Enumeration of all LogRecord construction failure modes.
+Enumeration of all domain validation failure modes.
 
 | Variant | Description |
 |---------|-------------|
 | `EmptyMessage` | Message string is empty |
-| `InvalidSeverity` | Severity level not recognized (applicable when parsing from string) |
+| `InvalidSeverity` | Severity level not recognized (applicable via `Severity::from_str` parsing) |
 | `InvalidAttributeName(String)` | Attribute name violates naming constraints |
 | `InvalidAttributeValue(String)` | Attribute value violates type constraints |
 
@@ -134,10 +134,11 @@ All validation occurs at construction time. After construction, all fields are r
 
 ## Validation Rules
 
-| Rule | Condition | Error |
-|------|-----------|-------|
-| Message non-empty | `message.is_empty()` | `ValidationError::EmptyMessage` |
-| Attribute name pattern | `!name_matches_pattern(name)` | `ValidationError::InvalidAttributeName(name)` |
-| Attribute name reserved | `reserved_fields.contains(name)` | `ValidationError::InvalidAttributeName(name)` |
-| Attribute value flat | nested object detected | `ValidationError::InvalidAttributeValue` |
-| Array homogeneous | mixed element types | `ValidationError::InvalidAttributeValue` |
+| Rule | Source | Condition | Error |
+|------|--------|-----------|-------|
+| Message non-empty | `LogRecord::new` | `message.is_empty()` | `ValidationError::EmptyMessage` |
+| Attribute name pattern | `LogAttribute::new` | `!name_matches_pattern(name)` | `ValidationError::InvalidAttributeName(name)` |
+| Attribute name reserved | `LogAttribute::new` | `reserved_fields.contains(name)` | `ValidationError::InvalidAttributeName(name)` |
+| Attribute value flat | `LogAttributeValue` constructors | nested object detected | `ValidationError::InvalidAttributeValue` |
+| Array homogeneous | `LogAttributeValue::array` | mixed element types | `ValidationError::InvalidAttributeValue` |
+| Invalid severity | `Severity::from_str` | unrecognized severity string | `ValidationError::InvalidSeverity` |
