@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 members = [
     "crates/context-propagation",
     "crates/telemetry-adapter-contracts",
@@ -9,6 +10,3 @@ members = [
     "crates/console-exporter",
     "crates/kitlogger",
 ]
-
-[workspace.metadata]
-resolver = "2"

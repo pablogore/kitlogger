@@ -14,6 +14,12 @@ pub struct KITLogger {
     id: AdapterId,
 }
 
+impl Default for KITLogger {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl KITLogger {
     pub fn new() -> Self {
         let exporter = Arc::new(ConsoleExporterImpl::with_flush_strategy(Box::new(
