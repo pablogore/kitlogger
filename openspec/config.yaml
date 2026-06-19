@@ -1,0 +1,30 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Rust edition 2021, Cargo workspace with 6 crates
+  Architecture: Clean/Hexagonal, crate-per-domain, telemetry focused
+  Testing: cargo test (unit + integration), cargo clippy, cargo fmt
+  Style: Conventional commits, no AI attribution, SDD with openspec
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    - Follow existing code patterns
+    tdd: true
+    test_command: "cargo test"
+  verify:
+    test_command: "cargo test"
+    build_command: "cargo build"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas

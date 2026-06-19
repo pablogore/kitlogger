@@ -1,0 +1,8 @@
+[package]
+name = "console-exporter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kitlogger-log-domain = { path = "../kitlogger-log-domain" }
+thiserror = "1.0"

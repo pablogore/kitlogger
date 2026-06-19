@@ -1,57 +1,10 @@
-<!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
-at specs/003-structured-logging-core-as-01-structured-log-domain-model/plan.md
-<!-- SPECKIT END -->
+# Active Change
 
-<!-- ANCHORED SUMMARY -->
-# Anchored Summary
+**Change**: `005-console-exporter`
+**Phase**: Spec complete — implementation not started
+**Engram**: `sdd/005-console-exporter/*`
 
-## Session Context
-- **ACTIVE_SPEC_ID**: `003-structured-logging-core-as-01-structured-log-domain-model`
-- **Branch**: `develop`
-- **Purpose**: Plan phase for structured log domain model crate
-
-## Status
-- **Architecture**: Complete — Adapter contracts owned by AS-03; concrete adapters are separate specs. Shared canonical types layer (telemetry-types) introduced per ADR-007, owned by parent capability.
-- **Plan**: Complete — research.md (25 decisions), data-model.md (15 entities), contracts/adapter-api.md, quickstart.md (6 scenarios), plan.md regenerated, tasks.md (25 tasks across 6 phases)
-- **Implementation**: Complete — 24 unit tests = **24 passing**
-- **Requirement Classification**: Pending
-- **Traceability**: Pending
-- **Governance**: Frozen artifacts immutable after approval; all Session 2026-06-16 and 2026-06-17 clarifications integrated. ADR-007 approved.
-- **ADR-007**: Shared canonical types layer (telemetry-types) owns PayloadEnvelope, TelemetryBatch, TelemetryBatchError, TransportMetadata, BackpressureSignal. AS-02 and AS-03 depend on telemetry-types instead of each other.
-
-## Implemented Entities (Design)
-- `spec.md` — 3 clarification sessions (2026-06-14, 2026-06-15, 2026-06-16), 11 SCs, Key Entities, Ownership Boundary, Assumptions
-- `contracts/adapter-api.md` — CommonAdapterBase, LifecycleAdapter, TelemetryDelivery, ProviderAdapter, ExporterAdapter, Adapter supertrait, AdapterRegistry (Arc-based), AdapterLifecycle transition matrix, HealthReport, AdapterResult/AdapterError, mapping contracts, multiplexing contract
-- `data-model.md` — 15 entities with fields, relationships, transition matrix
-- `research.md` — 25 architecture decisions (AD-1 through AD-25), including object safety, Arc registry, LifecycleAdapter, TelemetryDelivery, HealthReport, Stopped vs Shutdown semantics
-- `tasks.md` — 25 tasks across 6 phases (Setup, Foundational, US1-MVP, US2-Registry, US3-Lifecycle, Polish)
-- `tech-stack.yaml` — Added async-trait macro declaration
-
-## Key Architecture Decisions (AS-03)
-- LifecycleAdapter trait (flush, shutdown) separated from CommonAdapterBase (identity, health)
-- TelemetryDelivery trait for multiplexing operations; uses `&self` for Arc compatibility
-- All adapter traits MUST be object-safe for `dyn Trait` registry usage
-- Registry stores `Arc<dyn Adapter + Send + Sync>`; `get()` returns `Arc<dyn Adapter>`
-- Registered→Shutdown and Initialized→Shutdown allowed for startup failure scenarios
-- Stopped retains resources; Shutdown releases resources and is terminal
-- HealthReport struct (AdapterHealth + String reason + SystemTime timestamp)
-- Manual Error/Display impls (no thiserror — undeclared dependency)
-- async-trait for all async traits (consistent with AS-02)
-- Registry supports both ProviderAdapter and ExporterAdapter through common Adapter supertrait
-- All adapter methods use `&self` receiver; concrete adapters own synchronization via interior mutability
-- Registry storage: `RwLock<HashMap<AdapterId, Arc<dyn Adapter>>>` (canonical form)
-- LifecycleAdapter remains object-safe; all lifecycle operations callable through Arc<dyn Adapter>
-
-## Generated Artifacts (AS-03)
-- `research.md` — 25 research decisions resolved (4 sessions: 10 + 10 + 5 ADs)
-- `data-model.md` — 15 entities defined with full relationship diagram
-- `contracts/adapter-api.md` — 7 traits, Registry API, transition matrix, mapping contracts
-- `quickstart.md` — 6 validation scenarios (Arc-based registry, startup failure transitions, HealthReport)
-- `plan.md` — Technical Context, Constitution Check, project structure
-- `tasks.md` — 25 tasks across 6 phases (Setup→Foundational→US1→US2→US3→Polish)
-- `tech-stack.yaml` — async-trait added, all technologies validated<!-- /ANCHORED SUMMARY -->
+Run `/sdd-status 005-console-exporter` to see full artifact state.
 
 # Architecture Governance (Mandatory)
 

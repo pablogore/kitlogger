@@ -6,4 +6,9 @@ members = [
     "crates/telemetry-types",
     "crates/telemetry-config-semantics",
     "crates/kitlogger-log-domain",
+    "crates/console-exporter",
+    "crates/kitlogger",
 ]
+
+[workspace.metadata]
+resolver = "2"

@@ -38,6 +38,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
+name = "console-exporter"
+version = "0.1.0"
+dependencies = [
+ "kitlogger-log-domain",
+ "thiserror",
+]
+
+[[package]]
 name = "context-propagation"
 version = "0.1.0"
 dependencies = [
@@ -150,6 +158,17 @@ dependencies = [
  "cfg-if",
  "futures-util",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "kitlogger"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "console-exporter",
+ "kitlogger-log-domain",
+ "telemetry-adapter-contracts",
+ "telemetry-types",
 ]
 
 [[package]]
@@ -344,6 +363,26 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "thiserror"
+version = "1.0.69"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "1.0.69"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
