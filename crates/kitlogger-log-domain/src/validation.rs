@@ -13,6 +13,8 @@ pub enum ValidationError {
     InvalidAttributeName(String),
     /// Attribute value violates type constraints
     InvalidAttributeValue(String),
+    /// Enrichment error (e.g., duplicate attribute name)
+    EnrichmentError(String),
 }
 
 impl Display for ValidationError {
@@ -25,6 +27,9 @@ impl Display for ValidationError {
             }
             ValidationError::InvalidAttributeValue(msg) => {
                 write!(f, "Invalid attribute value: {}", msg)
+            }
+            ValidationError::EnrichmentError(msg) => {
+                write!(f, "Enrichment error: {}", msg)
             }
         }
     }
