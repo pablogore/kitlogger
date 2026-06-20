@@ -77,7 +77,13 @@ impl LifecycleStateMachine {
 
     /// Checks if the exporter is initialized.
     pub fn is_initialized(&self) -> bool {
-        matches!(self.state, LifecycleState::Running | LifecycleState::Flushing | LifecycleState::Shutdown | LifecycleState::Error)
+        matches!(
+            self.state,
+            LifecycleState::Running
+                | LifecycleState::Flushing
+                | LifecycleState::Shutdown
+                | LifecycleState::Error
+        )
     }
 
     /// Checks if the exporter is running.
@@ -87,7 +93,10 @@ impl LifecycleStateMachine {
 
     /// Checks if the exporter is shutting down.
     pub fn is_shutting_down(&self) -> bool {
-        matches!(self.state, LifecycleState::Flushing | LifecycleState::Shutdown)
+        matches!(
+            self.state,
+            LifecycleState::Flushing | LifecycleState::Shutdown
+        )
     }
 }
 

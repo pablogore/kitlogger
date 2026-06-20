@@ -7,8 +7,8 @@ mod tests {
     use std::time::SystemTime;
 
     use kitlogger_log_domain::{
-        CorrelationId, LogAttribute, LogAttributeValue, LogContext, LogRecord, Logger, LoggerFactory,
-        Severity, SpanId, TraceId, ValidationError,
+        CorrelationId, LogAttribute, LogAttributeValue, LogContext, LogRecord, Logger,
+        LoggerFactory, Severity, SpanId, TraceId, ValidationError,
     };
 
     #[test]
@@ -256,7 +256,12 @@ mod tests {
 
         // Use concrete helper to inspect merged context attrs directly.
         let logger = factory.create_recording_logger("auth", Some(extra));
-        let attr_names: Vec<&str> = logger.context.attributes().iter().map(|a| a.name()).collect();
+        let attr_names: Vec<&str> = logger
+            .context
+            .attributes()
+            .iter()
+            .map(|a| a.name())
+            .collect();
         assert!(
             attr_names.contains(&"service"),
             "factory service attr missing: {:?}",

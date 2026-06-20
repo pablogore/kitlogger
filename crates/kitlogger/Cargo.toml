@@ -9,3 +9,4 @@ console-exporter = { path = "../console-exporter" }
 telemetry-adapter-contracts = { path = "../telemetry-adapter-contracts" }
 telemetry-types = { path = "../telemetry-types" }
 kitlogger-log-domain = { path = "../kitlogger-log-domain" }
+kitlogger-formatter = { path = "../kitlogger-formatter" }

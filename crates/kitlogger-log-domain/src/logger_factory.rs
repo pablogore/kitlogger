@@ -204,7 +204,12 @@ mod tests {
         // Use the concrete helper to inspect merged context attrs without unsafe downcast.
         let logger = factory.create_recording_logger("auth", None);
 
-        let attr_names: Vec<&str> = logger.context.attributes().iter().map(|a| a.name()).collect();
+        let attr_names: Vec<&str> = logger
+            .context
+            .attributes()
+            .iter()
+            .map(|a| a.name())
+            .collect();
         assert!(
             attr_names.contains(&"service"),
             "factory service attr missing from logger context: {:?}",

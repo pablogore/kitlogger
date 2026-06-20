@@ -9,4 +9,5 @@ members = [
     "crates/kitlogger-log-domain",
     "crates/console-exporter",
     "crates/kitlogger",
+    "crates/kitlogger-formatter",
 ]

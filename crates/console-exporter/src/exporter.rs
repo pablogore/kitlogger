@@ -56,9 +56,10 @@ impl ConsoleExporterImpl {
 
     /// Initializes the console exporter.
     pub fn init(&self) -> Result<(), ExportError> {
-        let mut lifecycle = self.lifecycle.lock().map_err(|_| {
-            ExportError::Lifecycle("Failed to acquire lifecycle lock".to_string())
-        })?;
+        let mut lifecycle = self
+            .lifecycle
+            .lock()
+            .map_err(|_| ExportError::Lifecycle("Failed to acquire lifecycle lock".to_string()))?;
         lifecycle.transition_to(crate::lifecycle::LifecycleState::Running)?;
         Ok(())
     }
@@ -70,7 +71,11 @@ impl ConsoleExporterImpl {
     }
 
     /// Sets custom writers for stdout and stderr.
-    pub fn set_writers(&self, stdout: Box<dyn std::io::Write + Send>, stderr: Box<dyn std::io::Write + Send>) {
+    pub fn set_writers(
+        &self,
+        stdout: Box<dyn std::io::Write + Send>,
+        stderr: Box<dyn std::io::Write + Send>,
+    ) {
         let mut router = self.router.lock().unwrap();
         router.set_writers(stdout, stderr);
     }
@@ -79,9 +84,10 @@ impl ConsoleExporterImpl {
 impl ConsoleExporter for ConsoleExporterImpl {
     fn export(&self, msg: &str, severity: Severity) -> Result<(), ExportError> {
         // Check if we're initialized
-        let lifecycle = self.lifecycle.lock().map_err(|_| {
-            ExportError::Lifecycle("Failed to acquire lifecycle lock".to_string())
-        })?;
+        let lifecycle = self
+            .lifecycle
+            .lock()
+            .map_err(|_| ExportError::Lifecycle("Failed to acquire lifecycle lock".to_string()))?;
         if !lifecycle.is_running() {
             return Err(ExportError::Lifecycle(
                 "Exporter is not running".to_string(),
@@ -89,13 +95,16 @@ impl ConsoleExporter for ConsoleExporterImpl {
         }
 
         // Write the message
-        let mut router = self.router.lock().map_err(|_| {
-            ExportError::Lifecycle("Failed to acquire router lock".to_string())
-        })?;
+        let mut router = self
+            .router
+            .lock()
+            .map_err(|_| ExportError::Lifecycle("Failed to acquire router lock".to_string()))?;
         router.write(msg, severity)?;
 
         // Increment write count and check if we should flush
-        let write_count = self.write_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let write_count = self
+            .write_count
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         if self.flush_strategy.should_flush(write_count) {
             self.flush()?;
         }
@@ -111,9 +120,10 @@ impl ConsoleExporter for ConsoleExporterImpl {
 
     fn shutdown(&self) -> Result<(), ExportError> {
         // Transition to flushing state
-        let mut lifecycle = self.lifecycle.lock().map_err(|_| {
-            ExportError::Lifecycle("Failed to acquire lifecycle lock".to_string())
-        })?;
+        let mut lifecycle = self
+            .lifecycle
+            .lock()
+            .map_err(|_| ExportError::Lifecycle("Failed to acquire lifecycle lock".to_string()))?;
         lifecycle.transition_to(crate::lifecycle::LifecycleState::Flushing)?;
 
         // If flush strategy requires flushing on shutdown, do it

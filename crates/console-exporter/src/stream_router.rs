@@ -50,7 +50,11 @@ impl Default for StreamRouter {
 impl StreamRouter {
     /// Creates a new StreamRouter with default mappings and stdout/stderr writers.
     pub fn new() -> Self {
-        Self::with_writers(LevelStreamMapping::default(), Box::new(io::stdout()), Box::new(io::stderr()))
+        Self::with_writers(
+            LevelStreamMapping::default(),
+            Box::new(io::stdout()),
+            Box::new(io::stderr()),
+        )
     }
 
     /// Creates a new StreamRouter with custom mapping and writers.
@@ -162,7 +166,9 @@ mod tests {
         (router, stdout_writer, stderr_writer)
     }
 
-    fn make_router_with_mapping(mapping: LevelStreamMapping) -> (StreamRouter, TestWriter, TestWriter) {
+    fn make_router_with_mapping(
+        mapping: LevelStreamMapping,
+    ) -> (StreamRouter, TestWriter, TestWriter) {
         let stdout_writer = TestWriter::new();
         let stderr_writer = TestWriter::new();
         let router = StreamRouter::with_writers(
@@ -232,21 +238,39 @@ mod tests {
         let (mut router, stdout, stderr) = make_router();
 
         router.write("debug msg", Severity::Debug).unwrap();
-        assert!(stdout.contents().contains("debug msg"), "Debug should go to stdout");
-        assert!(stderr.contents().is_empty(), "Debug should NOT go to stderr");
+        assert!(
+            stdout.contents().contains("debug msg"),
+            "Debug should go to stdout"
+        );
+        assert!(
+            stderr.contents().is_empty(),
+            "Debug should NOT go to stderr"
+        );
 
         stdout.clear();
         stderr.clear();
 
         router.write("error msg", Severity::Error).unwrap();
-        assert!(stderr.contents().contains("error msg"), "Error should go to stderr");
-        assert!(stdout.contents().is_empty(), "Error should NOT go to stdout");
+        assert!(
+            stderr.contents().contains("error msg"),
+            "Error should go to stderr"
+        );
+        assert!(
+            stdout.contents().is_empty(),
+            "Error should NOT go to stdout"
+        );
 
         stderr.clear();
 
         router.write("fatal msg", Severity::Fatal).unwrap();
-        assert!(stderr.contents().contains("fatal msg"), "Fatal should go to stderr");
-        assert!(stdout.contents().is_empty(), "Fatal should NOT go to stdout");
+        assert!(
+            stderr.contents().contains("fatal msg"),
+            "Fatal should go to stderr"
+        );
+        assert!(
+            stdout.contents().is_empty(),
+            "Fatal should NOT go to stdout"
+        );
     }
 
     #[test]
@@ -388,7 +412,10 @@ mod tests {
         router.set_mapping(new_mapping);
 
         router.write("second", Severity::Info).unwrap();
-        assert!(stderr.contents().contains("second"), "After set_mapping, info should go to stderr");
+        assert!(
+            stderr.contents().contains("second"),
+            "After set_mapping, info should go to stderr"
+        );
     }
 
     #[test]
@@ -412,8 +439,14 @@ mod tests {
 
         router.write("after", Severity::Info).unwrap();
         // Old writer should NOT have the new content
-        assert!(!stdout1.contents().contains("after"), "Old writer should not receive new writes");
+        assert!(
+            !stdout1.contents().contains("after"),
+            "Old writer should not receive new writes"
+        );
         // New writer should have the content
-        assert!(stdout2.contents().contains("after"), "New writer should receive writes");
+        assert!(
+            stdout2.contents().contains("after"),
+            "New writer should receive writes"
+        );
     }
 }

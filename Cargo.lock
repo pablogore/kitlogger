@@ -166,9 +166,19 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "console-exporter",
+ "kitlogger-formatter",
  "kitlogger-log-domain",
  "telemetry-adapter-contracts",
  "telemetry-types",
+]
+
+[[package]]
+name = "kitlogger-formatter"
+version = "0.1.0"
+dependencies = [
+ "kitlogger-log-domain",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

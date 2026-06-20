@@ -6,8 +6,8 @@
 mod tests {
     use std::io::Write;
 
-    use crate::{ConsoleExporter, ConsoleExporterImpl, OnShutdownFlush};
     use crate::stream_router::LevelStreamMapping;
+    use crate::{ConsoleExporter, ConsoleExporterImpl, OnShutdownFlush};
     use kitlogger_log_domain::Severity;
 
     /// A test writer that records output in an observable Vec<u8> buffer.
@@ -175,7 +175,10 @@ mod tests {
         struct FailingWriter;
         impl Write for FailingWriter {
             fn write(&mut self, _buf: &[u8]) -> std::io::Result<usize> {
-                Err(std::io::Error::new(std::io::ErrorKind::BrokenPipe, "broken pipe"))
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::BrokenPipe,
+                    "broken pipe",
+                ))
             }
             fn flush(&mut self) -> std::io::Result<()> {
                 Ok(())
