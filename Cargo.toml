@@ -10,4 +10,5 @@ members = [
     "crates/console-exporter",
     "crates/kitlogger",
     "crates/kitlogger-formatter",
+    "crates/kitlogger-macros",
 ]
