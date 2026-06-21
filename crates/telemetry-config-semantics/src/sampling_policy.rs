@@ -1,3 +1,4 @@
+use crate::ConfigError;
 use serde::{Deserialize, Serialize};
 
 /// SamplingPolicyType represents the type of sampling policy to use.
@@ -26,5 +27,15 @@ impl Default for SamplingPolicy {
             policy_type: SamplingPolicyType::AlwaysOn,
             sampling_rate: 1.0,
         }
+    }
+}
+
+impl SamplingPolicy {
+    /// Validates that `sampling_rate` is within the inclusive range `[0.0, 1.0]`.
+    pub fn validate(&self) -> Result<(), ConfigError> {
+        if !(0.0..=1.0).contains(&self.sampling_rate) {
+            return Err(ConfigError::InvalidSamplingRate(self.sampling_rate));
+        }
+        Ok(())
     }
 }

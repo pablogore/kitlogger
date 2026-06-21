@@ -8,12 +8,14 @@ use telemetry_adapter_contracts::{
     AdapterError, AdapterHealth, AdapterId, AdapterResult, CommonAdapterBase, ExporterAdapter,
     HealthReport, LifecycleAdapter, TelemetryDelivery,
 };
+use telemetry_config_semantics::{EffectiveTelemetryState, TelemetryConfig};
 use telemetry_types::PayloadEnvelope;
 
 pub struct KITLogger {
     exporter: Arc<ConsoleExporterImpl>,
     formatter: Box<dyn RecordFormatter>,
     id: AdapterId,
+    effective_state: EffectiveTelemetryState,
 }
 
 impl Default for KITLogger {
@@ -33,6 +35,7 @@ impl KITLogger {
             exporter,
             formatter: formatter_from_config(LogFormat::Json),
             id: AdapterId::new("kitlogger").expect("hardcoded id should never be empty"),
+            effective_state: EffectiveTelemetryState::Enabled,
         }
     }
 
@@ -45,6 +48,24 @@ impl KITLogger {
             exporter,
             formatter: formatter_from_config(format),
             id: AdapterId::new("kitlogger").expect("hardcoded id should never be empty"),
+            effective_state: EffectiveTelemetryState::Enabled,
+        }
+    }
+
+    /// Creates a `KITLogger` with config-driven effective state.
+    ///
+    /// Evaluates `config.effective_state()` at construction time and stores it.
+    /// Does not alter the runtime logging behavior introduced by `new()` or `with_format()`.
+    pub fn with_config(config: TelemetryConfig) -> Self {
+        let effective_state = config.effective_state();
+        let exporter = Arc::new(ConsoleExporterImpl::with_flush_strategy(Box::new(
+            OnShutdownFlush,
+        )));
+        Self {
+            exporter,
+            formatter: formatter_from_config(LogFormat::Json),
+            id: AdapterId::new("kitlogger").expect("hardcoded id should never be empty"),
+            effective_state,
         }
     }
 
@@ -57,7 +78,13 @@ impl KITLogger {
             exporter,
             formatter: formatter_from_config(format),
             id: AdapterId::new("kitlogger").expect("hardcoded id should never be empty"),
+            effective_state: EffectiveTelemetryState::Enabled,
         }
+    }
+
+    /// Returns the effective telemetry state stored at construction time.
+    pub fn effective_state(&self) -> EffectiveTelemetryState {
+        self.effective_state.clone()
     }
 
     /// Initializes the underlying console exporter.

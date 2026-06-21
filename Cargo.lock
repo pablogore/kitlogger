@@ -169,6 +169,7 @@ dependencies = [
  "kitlogger-formatter",
  "kitlogger-log-domain",
  "telemetry-adapter-contracts",
+ "telemetry-config-semantics",
  "telemetry-types",
 ]
 
@@ -359,6 +360,7 @@ name = "telemetry-config-semantics"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
 ]
 
 [[package]]

@@ -8,5 +8,6 @@ async-trait = "0.1"
 console-exporter = { path = "../console-exporter" }
 telemetry-adapter-contracts = { path = "../telemetry-adapter-contracts" }
 telemetry-types = { path = "../telemetry-types" }
+telemetry-config-semantics = { path = "../telemetry-config-semantics" }
 kitlogger-log-domain = { path = "../kitlogger-log-domain" }
 kitlogger-formatter = { path = "../kitlogger-formatter" }
