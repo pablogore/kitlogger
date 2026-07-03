@@ -16,6 +16,16 @@ mod batch;
 mod error;
 mod transport;
 
+mod buffering;
+mod event;
+mod formatter;
+mod logger;
+mod output;
+mod provider;
+mod redaction;
+mod rotation;
+mod sampling;
+
 // Re-export types from context-propagation crate
 pub use context_propagation::models::{
     AttributeValue, Context, InstrumentationScope, LogRecord, LogSeverity, Metric, Resource, Span,
@@ -27,3 +37,13 @@ pub use batch::*;
 pub use error::*;
 pub use payload::*;
 pub use transport::*;
+
+pub use buffering::*;
+pub use event::*;
+pub use formatter::*;
+pub use logger::*;
+pub use output::*;
+pub use provider::*;
+pub use redaction::*;
+pub use rotation::*;
+pub use sampling::*;

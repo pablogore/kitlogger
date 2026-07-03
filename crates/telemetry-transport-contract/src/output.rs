@@ -77,18 +77,18 @@ impl Output for FileOutput {
         let line_bytes = line.as_bytes();
         let line_len = line_bytes.len() as u64;
 
-        if let Some(ref rotation) = self.rotation
-            && rotation.enabled
-        {
-            let mut current_size = self.current_size.lock().unwrap();
-            let max_size = (rotation.max_size_mb as u64) * 1024 * 1024;
-            if *current_size + line_len > max_size {
-                drop(file);
-                self.rotate()?;
-                file = self.file.lock().unwrap();
-                *current_size = 0;
+        if let Some(ref rotation) = self.rotation {
+            if rotation.enabled {
+                let mut current_size = self.current_size.lock().unwrap();
+                let max_size = (rotation.max_size_mb as u64) * 1024 * 1024;
+                if *current_size + line_len > max_size {
+                    drop(file);
+                    self.rotate()?;
+                    file = self.file.lock().unwrap();
+                    *current_size = 0;
+                }
+                *current_size += line_len;
             }
-            *current_size += line_len;
         }
 
         file.write_all(line_bytes)?;

@@ -1,8 +1,13 @@
 schema: spec-driven
 
 context: |
-  Tech stack: Rust edition 2021, Cargo workspace with 6 crates
+  Tech stack: Rust edition 2021, Cargo workspace with 10 crates
   Architecture: Clean/Hexagonal, crate-per-domain, telemetry focused
+  Configuration: telemetry-transport-contract depends on kit-config (path dep,
+    default-features = false, features = ["logging"]) for LoggingConfig and
+    the Validation contract, per kit-config's KIT-001 architecture (kit-config
+    owns the LoggingConfig domain type; kitlogger consumes it, never defines
+    its own competing logging config shape).
   Testing: cargo test (unit + integration), cargo clippy, cargo fmt
   Style: Conventional commits, no AI attribution, SDD with openspec
 
