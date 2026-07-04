@@ -3,11 +3,16 @@ schema: spec-driven
 context: |
   Tech stack: Rust edition 2021, Cargo workspace with 10 crates
   Architecture: Clean/Hexagonal, crate-per-domain, telemetry focused
-  Configuration: telemetry-transport-contract depends on kit-config (path dep,
+  Configuration: kitlogger depends directly on kit-config (path dep,
     default-features = false, features = ["logging"]) for LoggingConfig and
-    the Validation contract, per kit-config's KIT-001 architecture (kit-config
-    owns the LoggingConfig domain type; kitlogger consumes it, never defines
-    its own competing logging config shape).
+    the Validation contract, per kit-config's KIT-001 architecture. LoggingConfig
+    is owned by the Logging domain; kit-config materializes and validates it
+    (it does not own the model). kitlogger consumes it and never defines its
+    own competing logging config shape. Per ADR-008/ADR-010
+    (change 012-logging-pipeline-consolidation), telemetry-transport-contract
+    is an orphaned, disconnected crate being dismantled — it is not part of
+    the live pipeline and must not be treated as the kit-config integration
+    point in future specs.
   Testing: cargo test (unit + integration), cargo clippy, cargo fmt
   Style: Conventional commits, no AI attribution, SDD with openspec
 
