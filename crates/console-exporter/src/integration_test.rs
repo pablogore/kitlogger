@@ -230,6 +230,49 @@ mod tests {
         );
     }
 
+    // ===== Spec: Output Adapter Contracts (output-adapter-contracts) =====
+
+    /// Spec scenario: A conforming output is registrable and dispatchable
+    /// through the same Output Port `file-exporter` implements.
+    #[test]
+    fn console_exporter_conforms_to_output_port() {
+        use output_adapter_contracts::{Output, OutputError, OutputId, Registry};
+
+        let (exporter, stdout, _stderr) = make_exporter();
+
+        struct FakeOutput {
+            received: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
+        }
+        impl Output for FakeOutput {
+            fn dispatch(&self, formatted: &str, _severity: Severity) -> Result<(), OutputError> {
+                self.received.lock().unwrap().push(formatted.to_string());
+                Ok(())
+            }
+        }
+
+        let fake_received = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let mut registry = Registry::new();
+        registry
+            .register(OutputId::new("console"), Box::new(exporter))
+            .unwrap();
+        registry
+            .register(
+                OutputId::new("fake"),
+                Box::new(FakeOutput {
+                    received: fake_received.clone(),
+                }),
+            )
+            .unwrap();
+
+        registry.dispatch("registered via the Port", Severity::Info);
+
+        assert!(stdout.contents().contains("registered via the Port"));
+        assert_eq!(
+            fake_received.lock().unwrap().as_slice(),
+            ["registered via the Port"]
+        );
+    }
+
     /// Spec scenario: Empty string edge case (already covered above, adding variant)
     #[test]
     fn multiple_severities_to_correct_streams() {

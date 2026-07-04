@@ -81,6 +81,22 @@ impl ConsoleExporterImpl {
     }
 }
 
+/// Conforms `ConsoleExporterImpl` to the generic Output Port defined by
+/// `output-adapter-contracts`, in addition to its existing `ConsoleExporter`
+/// trait. Both traits route through the same `export` method below —
+/// exactly one write path underlies both, per design.md's Q1/Q6 and the
+/// risk noted in `proposal.md` (no second, divergent console-write path).
+impl output_adapter_contracts::Output for ConsoleExporterImpl {
+    fn dispatch(
+        &self,
+        formatted: &str,
+        severity: Severity,
+    ) -> Result<(), output_adapter_contracts::OutputError> {
+        self.export(formatted, severity)
+            .map_err(|e| output_adapter_contracts::OutputError::new(e.to_string()))
+    }
+}
+
 impl ConsoleExporter for ConsoleExporterImpl {
     fn export(&self, msg: &str, severity: Severity) -> Result<(), ExportError> {
         // Check if we're initialized

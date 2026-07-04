@@ -111,6 +111,7 @@ name = "console-exporter"
 version = "0.1.0"
 dependencies = [
  "kitlogger-log-domain",
+ "output-adapter-contracts",
  "thiserror 1.0.69",
 ]
 
