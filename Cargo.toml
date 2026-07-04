@@ -15,4 +15,5 @@ members = [
     "crates/kitlogger-redaction",
     "crates/kitlogger-sampling",
     "crates/output-adapter-contracts",
+    "crates/file-exporter",
 ]
