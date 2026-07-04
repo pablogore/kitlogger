@@ -27,16 +27,16 @@ Chain strategy: stacked-to-main
 
 ## Phase 1: `kitlogger-redaction`
 
-- [ ] 1.1 Add `"crates/kitlogger-redaction"` to workspace `members` in root `Cargo.toml`.
-- [ ] 1.2 Create `crates/kitlogger-redaction/Cargo.toml` — deps: `kit-config` (path, sibling repo, matching the pattern already used elsewhere in the workspace since Phase 2), `kitlogger-log-domain` (path).
-- [ ] 1.3 **RED** — Write failing test `redacts_matching_field_case_insensitive` asserting an attribute named e.g. `Password` (mixed case) is replaced when `config.fields` contains `"password"`. Satisfies FR-001.
-- [ ] 1.4 **RED** — Write failing test `leaves_non_matching_fields_untouched`. Satisfies FR-001.
-- [ ] 1.5 **GREEN** — Implement `Redactor` holding `kit_config::RedactionConfig`, with the case-insensitive substring matching logic. Run `cargo test -p kitlogger-redaction` — 1.3 and 1.4 pass.
-- [ ] 1.6 **RED** — Write failing test `does_not_mutate_input_record` asserting the original `LogRecord` passed in is unchanged after the redaction call. Satisfies FR-002.
-- [ ] 1.7 **GREEN** — Ensure the redaction function returns a new `LogRecord` rather than mutating in place. Run — 1.6 passes.
-- [ ] 1.8 **RED** — Write failing test `disabled_config_returns_record_unchanged` with `config.enabled = false`. Satisfies FR-003.
-- [ ] 1.9 **GREEN** — Add the enabled-check short-circuit. Run — 1.8 passes.
-- [ ] 1.10 Run `cargo clippy -p kitlogger-redaction -- -D warnings` and `cargo fmt --package kitlogger-redaction -- --check`.
+- [x] 1.1 Add `"crates/kitlogger-redaction"` to workspace `members` in root `Cargo.toml`.
+- [x] 1.2 Create `crates/kitlogger-redaction/Cargo.toml` — deps: `kit-config` (path, sibling repo, matching the pattern already used elsewhere in the workspace since Phase 2), `kitlogger-log-domain` (path).
+- [x] 1.3 **RED** — Write failing test `redacts_matching_field_case_insensitive` asserting an attribute named e.g. `Password` (mixed case) is replaced when `config.fields` contains `"password"`. Satisfies FR-001. (Deviation: `LogAttribute` names are validated lowercase-only per `^[a-z][a-z0-9._]{0,63}$`, so a mixed-case attribute name cannot be constructed. Case-insensitivity is instead exercised via a mixed-case *configured field* — `fields: ["Password"]` — matching a valid lowercase attribute name `password`. Same FR-001 contract, compliant with the domain model.)
+- [x] 1.4 **RED** — Write failing test `leaves_non_matching_fields_untouched`. Satisfies FR-001.
+- [x] 1.5 **GREEN** — Implement `Redactor` holding `kit_config::RedactionConfig`, with the case-insensitive substring matching logic. Run `cargo test -p kitlogger-redaction` — 1.3 and 1.4 pass.
+- [x] 1.6 **RED** — Write failing test `does_not_mutate_input_record` asserting the original `LogRecord` passed in is unchanged after the redaction call. Satisfies FR-002. (Note: `redact` takes `&LogRecord`, so mutation is structurally impossible via Rust's ownership model — the test passed on first run with no additional production code, serving as a regression guard for the contract rather than forcing new logic.)
+- [x] 1.7 **GREEN** — Ensure the redaction function returns a new `LogRecord` rather than mutating in place. Run — 1.6 passes.
+- [x] 1.8 **RED** — Write failing test `disabled_config_returns_record_unchanged` with `config.enabled = false`. Satisfies FR-003. (Note: passed on first run — the `enabled` short-circuit was already implemented as part of `is_sensitive` in 1.5's GREEN step, since FR-001/FR-003 were implemented together for a coherent minimal `Redactor`.)
+- [x] 1.9 **GREEN** — Add the enabled-check short-circuit. Run — 1.8 passes.
+- [x] 1.10 Run `cargo clippy -p kitlogger-redaction -- -D warnings` and `cargo fmt --package kitlogger-redaction -- --check`.
 
 ---
 
