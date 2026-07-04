@@ -43,28 +43,28 @@ Chained PRs recommended: Yes
 
 ## Phase 2: `file-exporter`
 
-- [ ] 2.1 Add `"crates/file-exporter"` to workspace `members`.
-- [ ] 2.2 Create `crates/file-exporter/Cargo.toml` — deps: `kit-config` (path, for `RotationConfig`), `kitlogger-log-domain` (path, for `Severity`), `output-adapter-contracts` (path, to implement the Port).
-- [ ] 2.3 **RED** — Write failing test `dispatched_record_appended_to_file`. Satisfies FR-001.
-- [ ] 2.4 **GREEN** — Implement the file writer. Run — 2.3 passes.
-- [ ] 2.5 **RED** — Write failing test `rotation_triggers_at_size_boundary`, porting the orphaned `RotationManager`'s existing validated test cases where applicable. Satisfies FR-002.
-- [ ] 2.6 **GREEN** — Port `RotationManager`'s numbered-backup-chain algorithm (the surviving one — the divergent inline single-backup version in the orphaned `FileOutput::rotate()` is not ported). Run — 2.5 passes.
-- [ ] 2.7 **RED** — Write failing test `backups_beyond_max_are_discarded`. Satisfies FR-003.
-- [ ] 2.8 **GREEN** — Implement backup-count bounding. Run — 2.7 passes.
-- [ ] 2.9 **RED** — Write failing test `disabled_rotation_grows_file_unbounded`. Satisfies FR-004.
-- [ ] 2.10 **GREEN** — Implement the enabled-check short-circuit. Run — 2.9 passes.
-- [ ] 2.11 **RED** — Write failing test `file_exporter_conforms_to_output_port`, registering it into an `output-adapter-contracts` registry alongside a fake output. Satisfies FR-005.
-- [ ] 2.12 **GREEN** — Implement the Port for `file-exporter`. Run — 2.11 passes.
-- [ ] 2.13 Confirm the orphaned crate's rotation test coverage (`telemetry-transport-contract`'s existing rotation tests) is subsumed by 2.5–2.10, not silently dropped.
-- [ ] 2.14 Run `cargo clippy -p file-exporter -- -D warnings` and `cargo fmt --package file-exporter -- --check`.
+- [x] 2.1 Add `"crates/file-exporter"` to workspace `members`.
+- [x] 2.2 Create `crates/file-exporter/Cargo.toml` — deps: `kit-config` (path, for `RotationConfig`), `kitlogger-log-domain` (path, for `Severity`), `output-adapter-contracts` (path, to implement the Port).
+- [x] 2.3 **RED** — Write failing test `dispatched_record_appended_to_file`. Satisfies FR-001.
+- [x] 2.4 **GREEN** — Implement the file writer. Run — 2.3 passes.
+- [x] 2.5 **RED** — Write failing test `rotation_triggers_at_size_boundary`, porting the orphaned `RotationManager`'s existing validated test cases where applicable. Satisfies FR-002.
+- [x] 2.6 **GREEN** — Port `RotationManager`'s numbered-backup-chain algorithm (the surviving one — the divergent inline single-backup version in the orphaned `FileOutput::rotate()` is not ported). Run — 2.5 passes.
+- [x] 2.7 **RED** — Write failing test `backups_beyond_max_are_discarded`. Satisfies FR-003.
+- [x] 2.8 **GREEN** — Implement backup-count bounding. Run — 2.7 passes.
+- [x] 2.9 **RED** — Write failing test `disabled_rotation_grows_file_unbounded`. Satisfies FR-004.
+- [x] 2.10 **GREEN** — Implement the enabled-check short-circuit. Run — 2.9 passes.
+- [x] 2.11 **RED** — Write failing test `file_exporter_conforms_to_output_port`, registering it into an `output-adapter-contracts` registry alongside a fake output. Satisfies FR-005.
+- [x] 2.12 **GREEN** — Implement the Port for `file-exporter`. Run — 2.11 passes.
+- [x] 2.13 Confirm the orphaned crate's rotation test coverage (`telemetry-transport-contract`'s existing rotation tests) is subsumed by 2.5–2.10, not silently dropped.
+- [x] 2.14 Run `cargo clippy -p file-exporter -- -D warnings` and `cargo fmt --package file-exporter -- --check`.
 
 ## Phase 3: `console-exporter` Output Port Implementation
 
-- [ ] 3.1 Add `output-adapter-contracts` (path) as a dependency of `console-exporter`.
-- [ ] 3.2 **RED** — Write failing test `console_exporter_conforms_to_output_port`, registering it into an `output-adapter-contracts` registry alongside a fake output.
-- [ ] 3.3 **GREEN** — Implement the Port for `console-exporter`, reconciling it with the existing `ConsoleExporter` trait so exactly one write path underlies both (per the risk noted in `proposal.md` — no second, divergent console-write path).
-- [ ] 3.4 Run `console-exporter`'s full existing test suite — confirm zero behavior change.
-- [ ] 3.5 Run `cargo clippy -p console-exporter -- -D warnings` and `cargo fmt --package console-exporter -- --check`.
+- [x] 3.1 Add `output-adapter-contracts` (path) as a dependency of `console-exporter`.
+- [x] 3.2 **RED** — Write failing test `console_exporter_conforms_to_output_port`, registering it into an `output-adapter-contracts` registry alongside a fake output.
+- [x] 3.3 **GREEN** — Implement the Port for `console-exporter`, reconciling it with the existing `ConsoleExporter` trait so exactly one write path underlies both (per the risk noted in `proposal.md` — no second, divergent console-write path).
+- [x] 3.4 Run `console-exporter`'s full existing test suite — confirm zero behavior change.
+- [x] 3.5 Run `cargo clippy -p console-exporter -- -D warnings` and `cargo fmt --package console-exporter -- --check`.
 
 ## Phase 4: `kitlogger` Internal Modules — `Buffer` and Format Selection
 
@@ -88,7 +88,7 @@ Chained PRs recommended: Yes
 
 ## Phase 5: Verification
 
-- [ ] 5.1 Run `cargo test --workspace` — all tests pass; no regressions elsewhere.
-- [ ] 5.2 Confirm `output-adapter-contracts` has zero dependents outside `console-exporter`, `file-exporter`, and their own tests (not yet consumed by `kitlogger`).
-- [ ] 5.3 Confirm `telemetry-adapter-contracts` gained no new dependents from this change.
-- [ ] 5.4 Confirm no two crates define a competing Output Port, rotation algorithm, buffering mechanism, or `LogFormat`-mapping function (ADR-010 compliance check for this change's scope).
+- [x] 5.1 Run `cargo test --workspace` — all tests pass; no regressions elsewhere.
+- [x] 5.2 Confirm `output-adapter-contracts` has zero dependents outside `console-exporter`, `file-exporter`, and their own tests (not yet consumed by `kitlogger`).
+- [x] 5.3 Confirm `telemetry-adapter-contracts` gained no new dependents from this change.
+- [x] 5.4 Confirm no two crates define a competing Output Port, rotation algorithm, buffering mechanism, or `LogFormat`-mapping function (ADR-010 compliance check for this change's scope). The orphaned `telemetry-transport-contract` still defines its own `Output`/`RotationManager` — that crate is unremoved, pre-existing, and already tracked for removal in Phase 18; it is not new duplication introduced by this change.

@@ -1,9 +1,12 @@
 [package]
-name = "console-exporter"
+name = "file-exporter"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+kit-config = { path = "../../../kit-config/crates/kit-config", default-features = false, features = ["logging"] }
 kitlogger-log-domain = { path = "../kitlogger-log-domain" }
 output-adapter-contracts = { path = "../output-adapter-contracts" }
-thiserror = "1.0"
+
+[dev-dependencies]
+tempfile = "3"
