@@ -574,6 +574,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "kitlogger-redaction"
+version = "0.1.0"
+dependencies = [
+ "kit-config",
+ "kitlogger-log-domain",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

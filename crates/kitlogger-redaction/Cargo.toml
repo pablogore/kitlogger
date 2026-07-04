@@ -1,0 +1,8 @@
+[package]
+name = "kitlogger-redaction"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kitlogger-log-domain = { path = "../kitlogger-log-domain" }
+kit-config = { path = "../../../kit-config/crates/kit-config", default-features = false, features = ["logging"] }
