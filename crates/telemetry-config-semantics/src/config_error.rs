@@ -1,21 +1,16 @@
 /// ConfigError represents errors that can occur during telemetry configuration validation.
-/// No external dependencies — implements Display and Error manually.
+///
+/// Empty by construction: `TelemetryConfig::validate()` currently has nothing left to
+/// validate (its former sampling-rate check was removed in the Logging Pipeline
+/// Consolidation's Phase 1 — see `telemetry_config.rs`). An uninhabited enum makes the
+/// "this can never fail" guarantee explicit at the type level rather than carrying a
+/// variant nothing can construct. Add a variant here only when a real invariant needs one.
 #[derive(Debug, Clone, PartialEq)]
-pub enum ConfigError {
-    /// The sampling rate is outside the valid inclusive range [0.0, 1.0].
-    InvalidSamplingRate(f64),
-}
+pub enum ConfigError {}
 
 impl std::fmt::Display for ConfigError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ConfigError::InvalidSamplingRate(rate) => {
-                write!(
-                    f,
-                    "invalid sampling rate: {rate}; expected a value in the inclusive range [0.0, 1.0]"
-                )
-            }
-        }
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {}
     }
 }
 
