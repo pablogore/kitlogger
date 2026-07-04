@@ -13,6 +13,13 @@ use crate::rotation::RotationManager;
 
 /// Writes dispatched records to a file, rotating per `RotationConfig` when
 /// the configured size boundary would otherwise be exceeded.
+///
+/// `FileExporter` assumes exclusive ownership of the target log file: it
+/// tracks the file's size in-memory (`current_size`) rather than re-reading
+/// `metadata()` on every write, and that tracked size is only ever correct
+/// if nothing else writes to the file concurrently. External writers are
+/// unsupported — if another process or thread modifies the file, rotation
+/// decisions will no longer reflect the file's actual size on disk.
 pub struct FileExporter {
     path: PathBuf,
     file: Mutex<std::fs::File>,
@@ -138,6 +145,10 @@ mod tests {
         let path = dir.path().join("app.log");
 
         // A tiny max_size so every dispatched record triggers rotation.
+        // max_size_mb = 0 is only valid here because the test constructs
+        // `RotationConfig` directly; in production this value would be
+        // rejected by kit-config's own validation before reaching this
+        // crate — it is not a supported value of the domain.
         let exporter = FileExporter::new(&path, rotation_config(true, 0, 2)).unwrap();
 
         // max_size_mb = 0 means any non-empty write exceeds the boundary,
@@ -161,7 +172,10 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("app.log");
         // max_size_mb = 0 would trigger rotation on every write if enabled;
-        // with rotation disabled, no rotation must occur regardless.
+        // with rotation disabled, no rotation must occur regardless. As in
+        // `backups_beyond_max_are_discarded` above, this value is only
+        // valid because the test builds `RotationConfig` directly — it is
+        // not a value production would ever see past kit-config validation.
         let exporter = FileExporter::new(&path, rotation_config(false, 0, 5)).unwrap();
 
         for i in 0..50 {

@@ -1,8 +1,8 @@
 //! File rotation: a numbered-backup-chain algorithm ported from the
 //! orphaned `telemetry_transport_contract::rotation::RotationManager` — the
-//! surviving, validated algorithm (NOT `output::FileOutput::rotate()`'s
-//! divergent, less-complete inline single-backup version). See design.md
-//! Q3.
+//! canonical rotation algorithm retained from the legacy implementation
+//! (NOT `output::FileOutput::rotate()`'s divergent, less-complete inline
+//! single-backup version). See design.md Q3.
 
 use std::fs;
 use std::io;
