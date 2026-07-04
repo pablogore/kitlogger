@@ -368,7 +368,7 @@ mod tests {
     #[test]
     fn into_attribute_value_str() {
         assert_eq!(
-            (&"prod").into_attribute_value(),
+            "prod".into_attribute_value(),
             LogAttributeValue::String("prod".to_string())
         );
     }
