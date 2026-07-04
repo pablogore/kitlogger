@@ -474,6 +474,7 @@ name = "kitlogger"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "chrono",
  "console-exporter",
  "kit-config",
  "kitlogger-formatter",
