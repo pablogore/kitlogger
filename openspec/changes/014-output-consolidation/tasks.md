@@ -28,18 +28,18 @@ Chained PRs recommended: Yes
 
 ## Phase 1: `output-adapter-contracts`
 
-- [ ] 1.1 Add `"crates/output-adapter-contracts"` to workspace `members`.
-- [ ] 1.2 Create `crates/output-adapter-contracts/Cargo.toml` — deps: `kitlogger-log-domain` (path, for `Severity` only).
-- [ ] 1.3 **RED** — Write failing test `conforming_output_receives_dispatch` asserting a fake output implementing the Port receives a formatted record + severity when dispatched to directly. Satisfies FR-001.
-- [ ] 1.4 **GREEN** — Define the Output Port. Run `cargo test -p output-adapter-contracts` — 1.3 passes.
-- [ ] 1.5 **RED** — Write failing test `duplicate_registration_rejected`. Satisfies FR-002.
-- [ ] 1.6 **GREEN** — Implement the registry's `register` with duplicate-identifier rejection. Run — 1.5 passes.
-- [ ] 1.7 **RED** — Write failing test `dispatch_reaches_all_registered_outputs` (3 fake outputs). Satisfies FR-003.
-- [ ] 1.8 **GREEN** — Implement dispatch-to-all. Run — 1.7 passes.
-- [ ] 1.9 **RED** — Write failing tests `partial_failure_does_not_block_others` and `total_failure_is_distinguishable`. Satisfies FR-004.
-- [ ] 1.10 **GREEN** — Implement failure aggregation distinguishing partial vs. total failure. Run — 1.9 passes.
-- [ ] 1.11 Confirm (by inspecting `Cargo.toml`) that `output-adapter-contracts` has no dependency on `telemetry-adapter-contracts` or `telemetry-types`. Satisfies FR-005.
-- [ ] 1.12 Run `cargo clippy -p output-adapter-contracts -- -D warnings` and `cargo fmt --package output-adapter-contracts -- --check`.
+- [x] 1.1 Add `"crates/output-adapter-contracts"` to workspace `members`.
+- [x] 1.2 Create `crates/output-adapter-contracts/Cargo.toml` — deps: `kitlogger-log-domain` (path, for `Severity` only).
+- [x] 1.3 **RED** — Write failing test `conforming_output_receives_dispatch` asserting a fake output implementing the Port receives a formatted record + severity when dispatched to directly. Satisfies FR-001.
+- [x] 1.4 **GREEN** — Define the Output Port. Run `cargo test -p output-adapter-contracts` — 1.3 passes.
+- [x] 1.5 **RED** — Write failing test `duplicate_registration_rejected`. Satisfies FR-002.
+- [x] 1.6 **GREEN** — Implement the registry's `register` with duplicate-identifier rejection. Run — 1.5 passes.
+- [x] 1.7 **RED** — Write failing test `dispatch_reaches_all_registered_outputs` (3 fake outputs). Satisfies FR-003.
+- [x] 1.8 **GREEN** — Implement dispatch-to-all. Run — 1.7 passes.
+- [x] 1.9 **RED** — Write failing tests `partial_failure_does_not_block_others` and `total_failure_is_distinguishable`. Satisfies FR-004.
+- [x] 1.10 **GREEN** — Implement failure aggregation distinguishing partial vs. total failure. Run — 1.9 passes.
+- [x] 1.11 Confirm (by inspecting `Cargo.toml`) that `output-adapter-contracts` has no dependency on `telemetry-adapter-contracts` or `telemetry-types`. Satisfies FR-005.
+- [x] 1.12 Run `cargo clippy -p output-adapter-contracts -- -D warnings` and `cargo fmt --package output-adapter-contracts -- --check`.
 
 ## Phase 2: `file-exporter`
 
