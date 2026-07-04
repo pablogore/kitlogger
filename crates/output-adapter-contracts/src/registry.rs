@@ -11,6 +11,11 @@ use crate::output::{Output, OutputError};
 /// "Identity Ownership" section) — no per-implementation output ID exists,
 /// and this is not a redefinition of `telemetry-adapter-contracts::AdapterId`
 /// for this different context.
+///
+/// `OutputId` is opaque: it promises identity only, not validation or a
+/// specific format. An empty string is a valid, if unhelpful, id — enforcing
+/// non-emptiness (or any other shape constraint) is the host's decision, not
+/// this crate's.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OutputId(String);
 
@@ -90,6 +95,9 @@ impl Registry {
     /// Dispatches `formatted`/`severity` to every registered output
     /// (FR-003), aggregating per-output failures without letting one
     /// failure block delivery to the others (FR-004).
+    ///
+    /// Dispatching to an empty registry is considered successful — there is
+    /// no output to fail, so `failures` is trivially empty.
     pub fn dispatch(&self, formatted: &str, severity: Severity) -> DispatchOutcome {
         let mut failures = Vec::new();
         for (id, output) in &self.outputs {

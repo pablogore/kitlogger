@@ -35,11 +35,9 @@ impl std::error::Error for OutputError {}
 
 /// The Output Port every log destination implements.
 ///
-/// `severity` accompanies the already-formatted payload because output
-/// destinations may route or prioritize records independently of
-/// formatting — e.g. `console-exporter` splits stdout/stderr by severity
-/// today, and a future output could sample, alert, or apply backpressure
-/// differently per severity, none of which requires re-parsing the
+/// `severity` accompanies the already-formatted payload because
+/// implementations may route independently by severity — sampling,
+/// alerting, or backpressure decisions that don't require re-parsing the
 /// formatted string (see design.md Q1).
 pub trait Output: Send + Sync {
     /// Delivers an already-formatted record and its severity to this
