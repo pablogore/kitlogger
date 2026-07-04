@@ -11,4 +11,5 @@ members = [
     "crates/kitlogger",
     "crates/kitlogger-formatter",
     "crates/kitlogger-macros",
+    "crates/security-jwt",
 ]
