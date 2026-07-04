@@ -86,10 +86,10 @@ Every new capability re-implements *behavior* already validated in the orphaned 
 
 ## Success Criteria
 
-- [ ] `output-adapter-contracts` exists with an Output Port and a registry mechanism; depends only on `kitlogger-log-domain` (for `Severity`).
-- [ ] `file-exporter` exists, implements the Port, and owns rotation internally — no standalone `Rotation` crate.
-- [ ] `console-exporter` implements the same Port `file-exporter` does.
-- [ ] `kitlogger` gains `Buffer` and the `LogFormat` mapping as internal modules, called from nowhere yet.
-- [ ] `formatter-contract`'s existing, accepted dependency-boundary requirement is unchanged and unviolated (`kit_config` does not appear in `kitlogger-formatter`'s dependencies).
-- [ ] `telemetry_transport_contract::{output, rotation, buffering}` have no unique, unmigrated logic left after this change (they may still exist as source until Phase 8 deletes the crate, but nothing in them is still the "only" implementation of anything).
-- [ ] No two canonical models remain for the same concept within the scope of this change (ADR-010).
+- [x] `output-adapter-contracts` exists with an Output Port and a registry mechanism; depends only on `kitlogger-log-domain` (for `Severity`).
+- [x] `file-exporter` exists, implements the Port, and owns rotation internally — no standalone `Rotation` crate.
+- [x] `console-exporter` implements the same Port `file-exporter` does.
+- [x] `kitlogger` gains `Buffer` and the `LogFormat` mapping as internal modules, called from nowhere yet.
+- [x] `formatter-contract`'s existing, accepted dependency-boundary requirement is unchanged and unviolated (`kit_config` does not appear in `kitlogger-formatter`'s dependencies).
+- [x] `telemetry_transport_contract::{output, rotation, buffering}` have no unique, unmigrated logic left after this change (they may still exist as source until Phase 8 deletes the crate, but nothing in them is still the "only" implementation of anything).
+- [x] No two canonical models remain for the same concept within the scope of this change (ADR-010).
