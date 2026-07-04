@@ -1,4 +1,4 @@
-use crate::{ConfigError, EffectiveTelemetryState};
+use crate::ConfigError;
 use serde::{Deserialize, Serialize};
 
 fn default_true() -> bool {
@@ -6,9 +6,20 @@ fn default_true() -> bool {
 }
 
 /// TelemetryConfig represents the top-level telemetry configuration.
+///
+/// Scope (post Phase 1 of the Logging Pipeline Consolidation, ADR-008 §4): this
+/// type is the source of plugin-enablement flags for a future Plugin layer
+/// (Migration Plan Phase 10). It does not model, and MUST NOT be used to derive,
+/// "is logging enabled" — that concept is owned exclusively by the Logging
+/// domain's `kit_config::LoggingConfig`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TelemetryConfig {
-    /// Whether telemetry is enabled overall.
+    /// Whether the plugin layer's telemetry subsystem (tracing, metrics, and
+    /// propagation collectively) is enabled. This is the plugin layer's master
+    /// switch (Migration Plan Phase 10) — it MUST NOT be read as, or used to
+    /// derive, "is logging enabled"; that concept is owned exclusively by the
+    /// Logging domain's `kit_config::LoggingConfig.enabled` (materialized and
+    /// validated by `kit-config`).
     /// Accepts the legacy `"enabled"` key via serde alias for backward compatibility.
     #[serde(alias = "enabled")]
     pub telemetry_enabled: bool,
@@ -18,14 +29,9 @@ pub struct TelemetryConfig {
     /// Whether metrics collection is enabled.
     #[serde(default = "default_true")]
     pub metrics_enabled: bool,
-    /// Whether correlation ID propagation is enabled.
-    #[serde(default = "default_true")]
-    pub correlation_enabled: bool,
     /// Whether context propagation (e.g. W3C TraceContext) is enabled.
     #[serde(default = "default_true")]
     pub propagation_enabled: bool,
-    /// The sampling policy configuration.
-    pub sampling: Option<crate::SamplingPolicy>,
     /// The exporter configurations.
     pub exporters: Option<Vec<crate::ExporterConfig>>,
     /// The resource configuration.
@@ -42,9 +48,7 @@ impl Default for TelemetryConfig {
             telemetry_enabled: true,
             tracing_enabled: true,
             metrics_enabled: true,
-            correlation_enabled: true,
             propagation_enabled: true,
-            sampling: Some(crate::SamplingPolicy::default()),
             exporters: Some(vec![crate::ExporterConfig::default()]),
             resources: Some(crate::ResourceConfig::default()),
             verbosity: Some(crate::VerbosityPolicy::default()),
@@ -54,42 +58,16 @@ impl Default for TelemetryConfig {
 }
 
 impl TelemetryConfig {
-    /// Computes the effective telemetry state based on configuration flags and validation.
+    /// Validates the configuration.
     ///
-    /// Evaluation order (Fallback is checked FIRST per FR-007):
-    /// 1. If sampling is present and invalid → `Fallback`
-    /// 2. If `telemetry_enabled` is false → `Disabled`
-    /// 3. If all four capability flags are true → `Enabled`
-    /// 4. Otherwise → `Partial`
-    pub fn effective_state(&self) -> EffectiveTelemetryState {
-        // Fallback first: invalid sampling always surfaces regardless of other flags.
-        if let Some(ref s) = self.sampling {
-            if s.validate().is_err() {
-                return EffectiveTelemetryState::Fallback;
-            }
-        }
-
-        if !self.telemetry_enabled {
-            return EffectiveTelemetryState::Disabled;
-        }
-
-        let all_capabilities = self.tracing_enabled
-            && self.metrics_enabled
-            && self.correlation_enabled
-            && self.propagation_enabled;
-
-        if all_capabilities {
-            EffectiveTelemetryState::Enabled
-        } else {
-            EffectiveTelemetryState::Partial
-        }
-    }
-
-    /// Validates the configuration, returning an error if any field is out of range.
+    /// FR-008 (trace-ratio sampling validation) was removed in the Logging
+    /// Pipeline Consolidation's Phase 1 (ADR-008 §4, ADR-010): `sampling_rate`
+    /// duplicated a concept `kit_config::LoggingConfig.sampling` already owns.
+    /// With that check gone, `TelemetryConfig` has no remaining fields that
+    /// require validation, so this always returns `Ok(())`. The method is kept
+    /// as a stable extension point for future plugin-layer fields (Migration
+    /// Plan Phase 10) that may introduce their own invariants.
     pub fn validate(&self) -> Result<(), ConfigError> {
-        if let Some(ref s) = self.sampling {
-            s.validate()?;
-        }
         Ok(())
     }
 }
