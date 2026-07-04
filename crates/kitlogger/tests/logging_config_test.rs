@@ -38,14 +38,12 @@ fn rejects_invalid_logging_config() {
     );
 }
 
-/// FR-003: `LoggingConfig.enabled = false` does not change emission behavior yet
-/// — gating on `enabled` is a separate, future capability (Migration Plan Phase 5).
-/// Both an `enabled = true` and an `enabled = false` config (otherwise identical
-/// and valid) must construct successfully, and `log`/`log_record` must return the
-/// same `Ok`/`Err` outcome on both — `from_logging_config` must never branch on
-/// `.enabled`. This does not assert the emitted output is byte-identical; today
-/// both paths always succeed unconditionally, so that stronger guarantee has
-/// nothing to distinguish it from this one until an actual gate exists to test.
+/// FR-003: this phase intentionally does not introduce emission gating. The
+/// purpose of this test is to verify that `LoggingConfig.enabled` is not
+/// consulted during construction or logging behavior until the dedicated
+/// gating capability is implemented in a later migration phase — `log`/
+/// `log_record` must return the same `Ok`/`Err` outcome regardless of
+/// `.enabled`, and `from_logging_config` must never branch on it.
 #[test]
 fn enabled_false_does_not_change_emission_yet() {
     let enabled_config = LoggingConfig::default();
