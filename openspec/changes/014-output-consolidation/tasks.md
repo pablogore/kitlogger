@@ -60,11 +60,11 @@ Chained PRs recommended: Yes
 
 ## Phase 3: `console-exporter` Output Port Implementation
 
-- [ ] 3.1 Add `output-adapter-contracts` (path) as a dependency of `console-exporter`.
-- [ ] 3.2 **RED** — Write failing test `console_exporter_conforms_to_output_port`, registering it into an `output-adapter-contracts` registry alongside a fake output.
-- [ ] 3.3 **GREEN** — Implement the Port for `console-exporter`, reconciling it with the existing `ConsoleExporter` trait so exactly one write path underlies both (per the risk noted in `proposal.md` — no second, divergent console-write path).
-- [ ] 3.4 Run `console-exporter`'s full existing test suite — confirm zero behavior change.
-- [ ] 3.5 Run `cargo clippy -p console-exporter -- -D warnings` and `cargo fmt --package console-exporter -- --check`.
+- [x] 3.1 Add `output-adapter-contracts` (path) as a dependency of `console-exporter`.
+- [x] 3.2 **RED** — Write failing test `console_exporter_conforms_to_output_port`, registering it into an `output-adapter-contracts` registry alongside a fake output.
+- [x] 3.3 **GREEN** — Implement the Port for `console-exporter`, reconciling it with the existing `ConsoleExporter` trait so exactly one write path underlies both (per the risk noted in `proposal.md` — no second, divergent console-write path).
+- [x] 3.4 Run `console-exporter`'s full existing test suite — confirm zero behavior change.
+- [x] 3.5 Run `cargo clippy -p console-exporter -- -D warnings` and `cargo fmt --package console-exporter -- --check`.
 
 ## Phase 4: `kitlogger` Internal Modules — `Buffer` and Format Selection
 
