@@ -96,6 +96,16 @@ impl From<JwtError> for AuthenticationError {
                 // jsonwebtoken adds defaults to the safer "signature could
                 // not be verified" outcome rather than leaking parser
                 // detail through an unmatched-variant panic.
+                //
+                // Maintainability: this match intentionally mirrors
+                // `jsonwebtoken`'s `ErrorKind` taxonomy as of 10.4.0. Because
+                // `ErrorKind` is `#[non_exhaustive]`, jsonwebtoken can add
+                // variants in a *minor* release, not just a major one — a
+                // new parsing-related kind (e.g. ASN.1/PEM/JWK errors) would
+                // silently fall into this catch-all as `InvalidSignature`
+                // instead of `MalformedToken` until this match is revisited.
+                // Re-check this arm against jsonwebtoken's changelog on every
+                // version bump, not just major ones.
                 _ => AuthenticationError::InvalidSignature,
             },
             // An algorithm the caller does not trust is treated the same as
