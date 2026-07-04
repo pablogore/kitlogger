@@ -51,3 +51,21 @@ Missing any link → STOP → Traceability Gap Report → no implementation.
 - Scope expansion beyond approved architecture
 
 Result: GOVERNANCE FAILURE — reject the change.
+
+## Stacked-PR Merge Order (Mandatory)
+
+Before merging any PR, check whether it is itself the base branch of another
+open PR: `gh pr list --search "base:<this-PR's-branch-name>"`. If one or more
+open PRs target it, merge those children into the parent branch **first**,
+then merge the parent into its own base — never the other way around.
+
+GitHub does not retroactively propagate a branch's later commits into a base
+it already merged into. Merging a parent before its children land means the
+children's content silently never reaches the parent's base, even though
+GitHub reports them as `MERGED`. This bit change 014 (Output Consolidation):
+PR #35 merged before its children #36/#37, stranding their commits until a
+closing PR (#40) recovered them. See issue #41 for the incident.
+
+When opening a chain of stacked PRs, state the merge order explicitly in
+each PR's description (e.g. "Merge after #36 and #37" on the parent PR) so
+it's visible in review, not just inferred from branch names.
