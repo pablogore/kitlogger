@@ -14,4 +14,5 @@ members = [
     "crates/security-jwt",
     "crates/kitlogger-redaction",
     "crates/kitlogger-sampling",
+    "crates/output-adapter-contracts",
 ]
