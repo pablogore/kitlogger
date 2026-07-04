@@ -20,6 +20,12 @@ use crate::rotation::RotationManager;
 /// if nothing else writes to the file concurrently. External writers are
 /// unsupported — if another process or thread modifies the file, rotation
 /// decisions will no longer reflect the file's actual size on disk.
+///
+/// `current_size` and `file` are independent mutexes. `write_line` acquires
+/// them in the order `current_size` -> `file`, and holds `current_size` for
+/// the whole rotate-then-write sequence so no other writer can interleave a
+/// write between rotation and the size reset. Any future method that needs
+/// both MUST acquire them in this same order to avoid a deadlock.
 pub struct FileExporter {
     path: PathBuf,
     file: Mutex<std::fs::File>,

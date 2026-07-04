@@ -237,6 +237,15 @@ mod tests {
     }
 
     #[test]
+    fn empty_registry_dispatch_is_success() {
+        let registry = Registry::new();
+
+        let outcome = registry.dispatch("no outputs registered", Severity::Info);
+
+        assert!(matches!(outcome, DispatchOutcome::AllSucceeded));
+    }
+
+    #[test]
     fn total_failure_is_distinguishable() {
         let mut registry = Registry::new();
         for i in 0..3 {
