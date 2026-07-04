@@ -68,23 +68,23 @@ Chained PRs recommended: Yes
 
 ## Phase 4: `kitlogger` Internal Modules — `Buffer` and Format Selection
 
-- [ ] 4.1 **RED** — Write failing test `batch_size_triggers_flush` for the new internal `Buffer` module. Satisfies FR-001 (`kitlogger-buffering`).
-- [ ] 4.2 **GREEN** — Implement size-based flush. Run — 4.1 passes.
-- [ ] 4.3 **RED** — Write failing test `flush_interval_triggers_flush_before_batch_size`, using `kitlogger_log_domain::FakeClock` (or equivalent) — no real sleeps. Satisfies FR-002 and FR-006.
-- [ ] 4.4 **GREEN** — Implement time-based flush sourcing time exclusively through the injected clock. Run — 4.3 passes.
-- [ ] 4.5 **RED** — Write failing test `disabled_buffering_passes_through_immediately`. Satisfies FR-003.
-- [ ] 4.6 **GREEN** — Implement the enabled-check short-circuit. Run — 4.5 passes.
-- [ ] 4.7 **RED** — Write failing test `flushed_batch_preserves_insertion_order`. Satisfies FR-004.
-- [ ] 4.8 **GREEN** — Ensure ordering is preserved by construction. Run — 4.7 passes.
-- [ ] 4.9 Confirm buffered content type is pre-format (`LogRecord`, not `String`) by inspection. Satisfies FR-005.
-- [ ] 4.10 Grep the new `Buffer` module for direct `Instant::now()`/`SystemTime::now()` calls outside the clock abstraction — zero matches. Satisfies FR-006.
-- [ ] 4.11 **RED** — Write failing test `every_log_format_variant_maps`, exhaustive over `kit_config::LogFormat`'s four variants, asserting the mapping table in `design.md` (`Json→Json`, `Text→Text`, `Pretty→HumanReadable`, `Compact→Logfmt`). Satisfies `kitlogger-format-selection` FR-001.
-- [ ] 4.12 **GREEN** — Implement the mapping function as a new internal `kitlogger` module. Run — 4.11 passes.
-- [ ] 4.13 **RED** — Write failing test `mapping_is_deterministic` (repeated calls, same result). Satisfies FR-002.
-- [ ] 4.14 **GREEN** — Confirm by construction (pure function, no internal state). Run — 4.13 passes.
-- [ ] 4.15 Diff `crates/kitlogger-formatter/Cargo.toml` before/after this change — confirm zero change. Satisfies FR-003.
-- [ ] 4.16 Confirm neither new `kitlogger` module (`Buffer`, format-selection) is called from `KITLogger::log`/`log_record`/any constructor yet — both exist standalone, exercised only by their own unit tests.
-- [ ] 4.17 Run `cargo clippy -p kitlogger -- -D warnings` and `cargo fmt --package kitlogger -- --check`.
+- [x] 4.1 **RED** — Write failing test `batch_size_triggers_flush` for the new internal `Buffer` module. Satisfies FR-001 (`kitlogger-buffering`).
+- [x] 4.2 **GREEN** — Implement size-based flush. Run — 4.1 passes.
+- [x] 4.3 **RED** — Write failing test `flush_interval_triggers_flush_before_batch_size`, using `kitlogger_log_domain::FakeClock` (or equivalent) — no real sleeps. Satisfies FR-002 and FR-006.
+- [x] 4.4 **GREEN** — Implement time-based flush sourcing time exclusively through the injected clock. Run — 4.3 passes.
+- [x] 4.5 **RED** — Write failing test `disabled_buffering_passes_through_immediately`. Satisfies FR-003.
+- [x] 4.6 **GREEN** — Implement the enabled-check short-circuit. Run — 4.5 passes.
+- [x] 4.7 **RED** — Write failing test `flushed_batch_preserves_insertion_order`. Satisfies FR-004.
+- [x] 4.8 **GREEN** — Ensure ordering is preserved by construction. Run — 4.7 passes.
+- [x] 4.9 Confirm buffered content type is pre-format (`LogRecord`, not `String`) by inspection. Satisfies FR-005.
+- [x] 4.10 Grep the new `Buffer` module for direct `Instant::now()`/`SystemTime::now()` calls outside the clock abstraction — zero matches. Satisfies FR-006.
+- [x] 4.11 **RED** — Write failing test `every_log_format_variant_maps`, exhaustive over `kit_config::LogFormat`'s four variants, asserting the mapping table in `design.md` (`Json→Json`, `Text→Text`, `Pretty→HumanReadable`, `Compact→Logfmt`). Satisfies `kitlogger-format-selection` FR-001.
+- [x] 4.12 **GREEN** — Implement the mapping function as a new internal `kitlogger` module. Run — 4.11 passes.
+- [x] 4.13 **RED** — Write failing test `mapping_is_deterministic` (repeated calls, same result). Satisfies FR-002.
+- [x] 4.14 **GREEN** — Confirm by construction (pure function, no internal state). Run — 4.13 passes.
+- [x] 4.15 Diff `crates/kitlogger-formatter/Cargo.toml` before/after this change — confirm zero change. Satisfies FR-003.
+- [x] 4.16 Confirm neither new `kitlogger` module (`Buffer`, format-selection) is called from `KITLogger::log`/`log_record`/any constructor yet — both exist standalone, exercised only by their own unit tests.
+- [x] 4.17 Run `cargo clippy -p kitlogger -- -D warnings` and `cargo fmt --package kitlogger -- --check`.
 
 ## Phase 5: Verification
 
