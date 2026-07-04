@@ -240,26 +240,26 @@ mod tests {
 
         let (exporter, stdout, _stderr) = make_exporter();
 
-        struct FakeOutput {
+        struct RecordingOutput {
             received: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
         }
-        impl Output for FakeOutput {
+        impl Output for RecordingOutput {
             fn dispatch(&self, formatted: &str, _severity: Severity) -> Result<(), OutputError> {
                 self.received.lock().unwrap().push(formatted.to_string());
                 Ok(())
             }
         }
 
-        let fake_received = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let recorded = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
         let mut registry = Registry::new();
         registry
             .register(OutputId::new("console"), Box::new(exporter))
             .unwrap();
         registry
             .register(
-                OutputId::new("fake"),
-                Box::new(FakeOutput {
-                    received: fake_received.clone(),
+                OutputId::new("recording"),
+                Box::new(RecordingOutput {
+                    received: recorded.clone(),
                 }),
             )
             .unwrap();
@@ -268,7 +268,7 @@ mod tests {
 
         assert!(stdout.contents().contains("registered via the Port"));
         assert_eq!(
-            fake_received.lock().unwrap().as_slice(),
+            recorded.lock().unwrap().as_slice(),
             ["registered via the Port"]
         );
     }

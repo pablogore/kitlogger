@@ -83,9 +83,8 @@ impl ConsoleExporterImpl {
 
 /// Conforms `ConsoleExporterImpl` to the generic Output Port defined by
 /// `output-adapter-contracts`, in addition to its existing `ConsoleExporter`
-/// trait. Both traits route through the same `export` method below —
-/// exactly one write path underlies both, per design.md's Q1/Q6 and the
-/// risk noted in `proposal.md` (no second, divergent console-write path).
+/// trait. Both traits intentionally delegate to the same `export` method
+/// below, so console output behavior remains defined in a single place.
 impl output_adapter_contracts::Output for ConsoleExporterImpl {
     fn dispatch(
         &self,
