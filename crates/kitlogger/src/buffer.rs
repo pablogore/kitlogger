@@ -16,6 +16,11 @@ use kitlogger_log_domain::{Clock, LogRecord};
 
 /// Batches pre-format records per `BufferingConfig`, flushing on whichever
 /// of size or elapsed time is reached first.
+///
+/// `records` and `window_start` are independent mutexes. Every method that
+/// needs both MUST acquire them in the order `records` -> `window_start` —
+/// `add` and `try_flush` both do. Acquiring them in the opposite order in a
+/// future method would deadlock against either of these.
 pub struct Buffer {
     config: BufferingConfig,
     clock: std::sync::Arc<dyn Clock>,
@@ -109,7 +114,8 @@ mod tests {
         .unwrap()
     }
 
-    /// Test-only, programmatically advanceable `Clock`. The canonical
+    /// This type exists solely to simulate the passage of time
+    /// deterministically in unit tests. The canonical
     /// `kitlogger_log_domain::FakeClock` is immutable after construction
     /// and therefore cannot exercise interval-elapsed scenarios. This
     /// implements the SAME canonical `Clock` trait (no competing
