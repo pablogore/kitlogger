@@ -12,3 +12,4 @@ telemetry-config-semantics = { path = "../telemetry-config-semantics" }
 kitlogger-log-domain = { path = "../kitlogger-log-domain" }
 kitlogger-formatter = { path = "../kitlogger-formatter" }
 kit-config = { path = "../../../kit-config/crates/kit-config", default-features = false, features = ["logging"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }

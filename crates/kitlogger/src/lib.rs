@@ -11,6 +11,9 @@ use telemetry_adapter_contracts::{
 };
 use telemetry_types::PayloadEnvelope;
 
+pub mod buffer;
+pub mod format_selection;
+
 pub struct KITLogger {
     exporter: Arc<ConsoleExporterImpl>,
     formatter: Box<dyn RecordFormatter>,
