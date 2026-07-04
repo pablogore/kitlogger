@@ -7,7 +7,7 @@ use chrono::{DateTime, Duration, Utc};
 use kit_config::{SamplingConfig, SamplingStrategy};
 use kitlogger_log_domain::Clock;
 
-/// Width of the `RateLimit` strategy's sliding window.
+/// Width of the `RateLimit` strategy's window.
 const RATE_LIMIT_WINDOW: Duration = Duration::seconds(1);
 
 /// Decides whether a given emission should proceed, per a
@@ -23,10 +23,20 @@ pub struct Sampler {
 
 impl Sampler {
     /// Creates a new `Sampler` from the given `SamplingConfig`, sourcing
-    /// time through `clock` (used by the `RateLimit` strategy's sliding
-    /// window). `clock` is `Arc`-shared (rather than owned outright) so
-    /// tests can hold a reference to the same clock instance and advance it
+    /// time through `clock` (used by the `RateLimit` strategy's window).
+    /// `clock` is `Arc`-shared (rather than owned outright) so tests can
+    /// hold a reference to the same clock instance and advance it
     /// externally while the `Sampler` observes the change.
+    ///
+    /// `config` is assumed to have already passed `kit-config`'s own
+    /// validation (e.g. `SamplingStrategy::EveryNth` requiring `n > 0`).
+    /// `Sampler` does not re-validate it — duplicating that validation here
+    /// would create a second place those rules could drift from `kit-config`'s
+    /// own. Constructing a `Sampler` directly from an unvalidated,
+    /// arbitrary `SamplingConfig` (e.g. `n == 0`) is a caller error; the
+    /// resulting behavior is whatever the underlying arithmetic produces; the
+    /// integration point that consumes this crate is responsible for using
+    /// an already-validated `LoggingConfig`.
     pub fn new(config: SamplingConfig, clock: Arc<dyn Clock>) -> Self {
         let window_start = clock.now();
         Sampler {
@@ -60,6 +70,12 @@ impl Sampler {
     fn sample_rate_limit(&self) -> bool {
         // Time is sourced exclusively through `self.clock` (never
         // `Instant::now()`/`SystemTime::now()` directly), satisfying FR-007.
+        //
+        // This is a fixed one-second window reset by elapsed time, not a
+        // sliding window: once `RATE_LIMIT_WINDOW` has elapsed since
+        // `window_start`, the count resets to zero rather than decaying
+        // continuously. FR-004's scenarios (see this crate's spec) only
+        // require this bound, not classic sliding-window semantics.
         let now = self.clock.now();
         let mut window_start = self.rate_limit_window_start.lock().unwrap();
 
@@ -131,11 +147,11 @@ mod tests {
         );
     }
 
-    /// Test-only, programmatically advanceable `Clock`. `kitlogger_log_domain::FakeClock`
-    /// is fixed at construction with no way to move it forward, so it cannot
-    /// exercise the `RateLimit` window-boundary scenarios below. This
-    /// implements the SAME canonical `Clock` trait (no competing abstraction,
-    /// per ADR-010) — it just adds test-only mutability via a `Mutex`.
+    /// Test-only, programmatically advanceable `Clock`. The canonical
+    /// `kitlogger_log_domain::FakeClock` is immutable after construction and
+    /// therefore cannot exercise window-reset scenarios. This implements the
+    /// SAME canonical `Clock` trait (no competing abstraction, per ADR-010)
+    /// — it just adds test-only mutability via a `Mutex`.
     struct AdvanceableClock(std::sync::Mutex<chrono::DateTime<chrono::Utc>>);
 
     impl AdvanceableClock {
