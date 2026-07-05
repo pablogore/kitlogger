@@ -354,38 +354,70 @@ impl KITLogger {
         } else {
             context
         };
-        let mut failures = Vec::new();
+        let mut failures: Vec<(AdapterId, String)> = Vec::new();
+        let mut any_success = false;
         for record in batch {
             match self.formatter.format(record, context) {
-                Ok(formatted) => {
-                    if let Err(e) = self.dispatch(&formatted, *record.severity()) {
-                        failures.push(e.to_string());
-                    }
-                }
-                Err(e) => failures.push(e.to_string()),
+                Ok(formatted) => match self.dispatch(&formatted, *record.severity()) {
+                    Ok(()) => any_success = true,
+                    Err(mut per_output_failures) => failures.append(&mut per_output_failures),
+                },
+                Err(e) => failures.push((Self::formatter_adapter_id(), e.to_string())),
             }
         }
         if failures.is_empty() {
             Ok(())
+        } else if any_success {
+            // FR-004-equivalent at the pipeline level: some, but not all, of
+            // this flush's records were fully formatted and dispatched.
+            Err(AdapterError::PartialDelivery(failures))
         } else {
-            Err(AdapterError::InitializationFailed(failures.join("; ")))
+            Err(AdapterError::DeliveryFailed(failures))
         }
+    }
+
+    /// A stand-in `AdapterId` naming the formatter as the failure's source,
+    /// for failures that never reach dispatch at all (used only in the
+    /// `failures` list built above — never registered anywhere).
+    fn formatter_adapter_id() -> AdapterId {
+        AdapterId::new("formatter").expect("literal is non-empty")
     }
 
     /// FR-010: the one place a formatted record reaches an output — always
     /// through `self.registry`, `KITLogger`'s sole dispatch mechanism.
-    fn dispatch(&self, formatted: &str, severity: Severity) -> Result<(), AdapterError> {
+    ///
+    /// Returns the raw per-output failure pairs rather than a classified
+    /// `AdapterError`: `format_and_dispatch`, this method's only caller,
+    /// aggregates failures across an entire batch and classifies partial
+    /// vs. total failure at the batch level, not per single-record dispatch
+    /// — collapsing that classification here would be redone (and
+    /// potentially contradicted) one level up anyway.
+    fn dispatch(
+        &self,
+        formatted: &str,
+        severity: Severity,
+    ) -> Result<(), Vec<(AdapterId, String)>> {
         match self.registry.dispatch(formatted, severity) {
             DispatchOutcome::AllSucceeded => Ok(()),
             DispatchOutcome::PartialFailure(failures) | DispatchOutcome::AllFailed(failures) => {
-                let reasons = failures
-                    .iter()
-                    .map(|(id, err)| format!("{id}: {err}"))
-                    .collect::<Vec<_>>()
-                    .join("; ");
-                Err(AdapterError::InitializationFailed(reasons))
+                Err(failures
+                    .into_iter()
+                    .map(|(id, err)| (Self::output_adapter_id(&id), err.to_string()))
+                    .collect())
             }
         }
+    }
+
+    /// Converts an `output_adapter_contracts::OutputId` into an `AdapterId`
+    /// naming the same output, for `AdapterError::{PartialDelivery,
+    /// DeliveryFailed}`'s `(AdapterId, String)` pairs. `OutputId` is opaque
+    /// and permits an empty string (see its own docs); `AdapterId` does
+    /// not, so the (currently unreachable, since every `OutputId` this
+    /// crate constructs is a non-empty literal) empty case falls back to a
+    /// placeholder rather than panicking.
+    fn output_adapter_id(id: &OutputId) -> AdapterId {
+        AdapterId::new(id.to_string())
+            .unwrap_or_else(|_| AdapterId::new("<unknown output>").expect("literal is non-empty"))
     }
 
     /// Returns the `OutputId`s currently registered into this `KITLogger`'s
@@ -596,13 +628,82 @@ mod tests {
         let result = logger.log_record(&record_of("three"), None);
 
         assert!(
-            result.is_err(),
-            "dispatch to a permanently-failing output must return Err"
+            matches!(result, Err(AdapterError::DeliveryFailed(_))),
+            "a batch where every record failed must report DeliveryFailed, \
+             not the generic InitializationFailed. Got: {result:?}"
         );
         assert_eq!(
             attempts.load(std::sync::atomic::Ordering::SeqCst),
             3,
             "all 3 records in the batch must be attempted even though each fails"
+        );
+    }
+
+    /// Regression test for issue #46: a dispatch failure must be
+    /// distinguishable from an initialization failure, and a batch where
+    /// some (not all) records fully succeed must report `PartialDelivery`,
+    /// not `DeliveryFailed`.
+    #[test]
+    fn batch_with_some_dispatch_failures_reports_partial_delivery() {
+        struct FlakyOutput;
+        impl Output for FlakyOutput {
+            fn dispatch(&self, formatted: &str, _severity: Severity) -> Result<(), OutputError> {
+                if formatted.contains("bad") {
+                    Err(OutputError::new("simulated failure"))
+                } else {
+                    Ok(())
+                }
+            }
+        }
+
+        let mut registry = Registry::new();
+        registry
+            .register(OutputId::new("flaky"), Box::new(FlakyOutput))
+            .unwrap();
+
+        let exporter = Arc::new(ConsoleExporterImpl::with_flush_strategy(Box::new(
+            OnShutdownFlush,
+        )));
+        exporter.init().unwrap();
+
+        let config = LoggingConfig {
+            buffering: BufferingConfig {
+                enabled: true,
+                batch_size: 2,
+                flush_interval_ms: 60_000,
+            },
+            ..LoggingConfig::default()
+        };
+        let clock: Arc<dyn Clock> = Arc::new(UtcClock);
+        let logger = KITLogger {
+            registry,
+            output_ids: vec![OutputId::new("flaky")],
+            ..KITLogger::build_with_clock(
+                config,
+                exporter,
+                formatter_from_config(LogFormat::Json),
+                clock,
+            )
+        };
+
+        let record_of = |msg: &str| {
+            LogRecord::new(
+                SystemTime::now(),
+                Severity::Info,
+                msg.to_string(),
+                Vec::new(),
+            )
+            .unwrap()
+        };
+
+        logger.log_record(&record_of("good"), None).unwrap();
+        let result = logger.log_record(&record_of("bad"), None);
+
+        assert!(
+            matches!(result, Err(AdapterError::PartialDelivery(_))),
+            "a batch with at least one fully successful record and at least \
+             one failure must report PartialDelivery, not DeliveryFailed or \
+             InitializationFailed. Got: {result:?}"
         );
     }
 
