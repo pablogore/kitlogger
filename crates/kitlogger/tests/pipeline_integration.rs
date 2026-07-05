@@ -65,6 +65,16 @@ fn make_logger_with_capture(format: LogFormat) -> (KITLogger, TestWriter, TestWr
     (logger, stdout, stderr)
 }
 
+/// Asserts `out` contains every substring in `expected`, printing `out` on failure.
+fn assert_output_contains(out: &str, expected: &[&str]) {
+    for substr in expected {
+        assert!(
+            out.contains(substr),
+            "expected output to contain {substr:?}. Got: {out:?}"
+        );
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Spec: log_record routes LogRecord → formatter → exporter
 // ---------------------------------------------------------------------------
@@ -81,14 +91,9 @@ fn log_record_json_format_produces_json_output() {
         .log_record(&record, None)
         .expect("log_record should succeed");
 
-    let out = stdout.contents();
-    assert!(
-        out.contains(r#""level":"INFO""#),
-        "JSON output should contain level field. Got: {out:?}"
-    );
-    assert!(
-        out.contains(r#""msg":"login ok""#),
-        "JSON output should contain msg field. Got: {out:?}"
+    assert_output_contains(
+        &stdout.contents(),
+        &[r#""level":"INFO""#, r#""msg":"login ok""#],
     );
 }
 
@@ -166,14 +171,70 @@ fn log_record_logfmt_format_produces_kv_pairs() {
         .log_record(&record, None)
         .expect("log_record should succeed");
 
-    let out = stderr.contents();
-    assert!(
-        out.contains("level=WARN"),
-        "Logfmt output should contain level=WARN. Got: {out:?}"
+    assert_output_contains(&stderr.contents(), &["level=WARN", r#"msg="slow query""#]);
+}
+
+// ---------------------------------------------------------------------------
+// Spec: log() shares log_record's formatter pipeline (KITLOGGER-001 closure)
+// ---------------------------------------------------------------------------
+
+/// Scenario: JSON format via `log()` — produces the same JSON shape as `log_record`.
+#[test]
+fn log_json_format_produces_json_output() {
+    let (logger, stdout, _stderr) = make_logger_with_capture(LogFormat::Json);
+
+    logger
+        .log(Severity::Info, "login ok")
+        .expect("log should succeed");
+
+    assert_output_contains(
+        &stdout.contents(),
+        &[r#""level":"INFO""#, r#""msg":"login ok""#],
     );
+}
+
+/// Scenario: Text format via `log()` — `log()` always passes `context: None`,
+/// so no logger name appears (unlike `log_record_text_format_with_logger_context`).
+#[test]
+fn log_text_format_produces_text_output() {
+    let (logger, stdout, _stderr) = make_logger_with_capture(LogFormat::Text);
+
+    logger
+        .log(Severity::Info, "login ok")
+        .expect("log should succeed");
+
+    assert_output_contains(&stdout.contents(), &["[INFO] login ok"]);
+}
+
+/// Scenario: HumanReadable format via `log()` — `log()` has no way to attach
+/// attributes, so only level and message are asserted (no `service=api` here).
+#[test]
+fn log_human_readable_format_basic() {
+    let (logger, stdout, _stderr) = make_logger_with_capture(LogFormat::HumanReadable);
+
+    logger
+        .log(Severity::Info, "login ok")
+        .expect("log should succeed");
+
+    assert_output_contains(&stdout.contents(), &["INFO", "login ok"]);
+}
+
+/// Scenario: Logfmt format via `log()` — produces key=value pairs.
+/// Note: Warn severity routes to stderr by default mapping.
+#[test]
+fn log_logfmt_format_produces_kv_pairs() {
+    let (logger, _stdout, stderr) = make_logger_with_capture(LogFormat::Logfmt);
+
+    logger
+        .log(Severity::Warn, "slow query")
+        .expect("log should succeed");
+
+    let out = stderr.contents();
+    assert_output_contains(&out, &["level=WARN", r#"msg="slow query""#]);
     assert!(
-        out.contains(r#"msg="slow query""#),
-        "Logfmt output should contain msg field. Got: {out:?}"
+        !out.contains("[WARN]"),
+        "Logfmt output must not contain the Text formatter's [WARN] prefix — \
+         a regression here would mean log() silently fell back to a different formatter. Got: {out:?}"
     );
 }
 
@@ -189,11 +250,19 @@ fn log_record_error_severity_goes_to_stderr() {
         .log_record(&record, None)
         .expect("log_record should succeed");
 
-    let out = stderr.contents();
-    assert!(
-        out.contains("db failure"),
-        "Error severity should route to stderr. Got: {out:?}"
-    );
+    assert_output_contains(&stderr.contents(), &["db failure"]);
+}
+
+/// Scenario: Error severity via `log()` is routed to stderr, same as `log_record`.
+#[test]
+fn log_error_severity_goes_to_stderr() {
+    let (logger, _stdout, stderr) = make_logger_with_capture(LogFormat::Text);
+
+    logger
+        .log(Severity::Error, "db failure")
+        .expect("log should succeed");
+
+    assert_output_contains(&stderr.contents(), &["db failure"]);
 }
 
 /// Scenario: `log()` back-compat method still works.
