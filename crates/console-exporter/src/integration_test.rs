@@ -253,12 +253,12 @@ mod tests {
         let recorded = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
         let mut registry = Registry::new();
         registry
-            .register(OutputId::new("console"), Box::new(exporter))
+            .register(OutputId::new("console"), std::sync::Arc::new(exporter))
             .unwrap();
         registry
             .register(
                 OutputId::new("recording"),
-                Box::new(RecordingOutput {
+                std::sync::Arc::new(RecordingOutput {
                     received: recorded.clone(),
                 }),
             )

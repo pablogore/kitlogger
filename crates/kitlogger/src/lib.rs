@@ -5,7 +5,7 @@ use kitlogger_formatter::{formatter_from_config, LogFormat, RecordFormatter};
 use kitlogger_log_domain::{Clock, LogContext, LogRecord, Severity, UtcClock};
 use kitlogger_redaction::Redactor;
 use kitlogger_sampling::Sampler;
-use output_adapter_contracts::{DispatchOutcome, Output, OutputError, OutputId, Registry};
+use output_adapter_contracts::{DispatchOutcome, OutputId, Registry};
 use std::sync::Arc;
 use std::time::SystemTime;
 use telemetry_adapter_contracts::{
@@ -38,27 +38,6 @@ fn level_floor(level: LogLevel) -> Severity {
         LogLevel::Info => Severity::Info,
         LogLevel::Warn => Severity::Warn,
         LogLevel::Error => Severity::Error,
-    }
-}
-
-/// Thin, `kitlogger`-local translation from `ConsoleExporterImpl` to the
-/// generic `output_adapter_contracts::Output` Port the dispatch registry
-/// requires.
-///
-/// `ConsoleExporterImpl` already implements `Output` directly (see
-/// console-exporter's `exporter.rs`) — this wrapper exists only because
-/// `Registry::register` takes ownership of a `Box<dyn Output>`, while
-/// `KITLogger` also needs to keep calling `init`/`flush`/`shutdown` on the
-/// SAME exporter instance directly. Sharing it via `Arc` (rather than
-/// registering a second, separately owned `ConsoleExporterImpl`) is what
-/// keeps this a single dispatch mechanism (FR-010) instead of two.
-struct ConsoleOutputAdapter(Arc<ConsoleExporterImpl>);
-
-impl Output for ConsoleOutputAdapter {
-    fn dispatch(&self, formatted: &str, severity: Severity) -> Result<(), OutputError> {
-        self.0
-            .export(formatted, severity)
-            .map_err(|e| OutputError::new(e.to_string()))
     }
 }
 
@@ -128,10 +107,7 @@ impl KITLogger {
         let mut registry = Registry::new();
         let console_id = OutputId::new("console");
         registry
-            .register(
-                console_id.clone(),
-                Box::new(ConsoleOutputAdapter(exporter.clone())),
-            )
+            .register(console_id.clone(), exporter.clone())
             .expect("a freshly built registry has no prior registration under 'console'");
 
         Self {
@@ -176,10 +152,7 @@ impl KITLogger {
         let mut registry = Registry::new();
         let console_id = OutputId::new("console");
         registry
-            .register(
-                console_id.clone(),
-                Box::new(ConsoleOutputAdapter(exporter.clone())),
-            )
+            .register(console_id.clone(), exporter.clone())
             .expect("a freshly built registry has no prior registration under 'console'");
 
         Self {
@@ -534,6 +507,7 @@ mod tests {
     use super::*;
     use chrono::{DateTime, Duration as ChronoDuration, Utc};
     use kit_config::BufferingConfig;
+    use output_adapter_contracts::{Output, OutputError};
     use std::sync::Mutex as StdMutex;
 
     /// Test-only, programmatically advanceable `Clock` — same rationale as
@@ -584,7 +558,7 @@ mod tests {
         registry
             .register(
                 OutputId::new("failing"),
-                Box::new(CountingFailingOutput(attempts.clone())),
+                Arc::new(CountingFailingOutput(attempts.clone())),
             )
             .unwrap();
 
@@ -658,7 +632,7 @@ mod tests {
 
         let mut registry = Registry::new();
         registry
-            .register(OutputId::new("flaky"), Box::new(FlakyOutput))
+            .register(OutputId::new("flaky"), Arc::new(FlakyOutput))
             .unwrap();
 
         let exporter = Arc::new(ConsoleExporterImpl::with_flush_strategy(Box::new(
