@@ -46,7 +46,8 @@ The `telemetry-types` crate has been implemented with the following structure:
 - `TransportMetadata` - transport protocol, endpoint, and additional attributes
 - `PropagationMetadata` - context propagation headers
 - `TelemetryBatch` - contains traces, metrics, and logs
-- `TelemetryBatchError` - error type for batch validation
 - `BackpressureSignal` - flow control signal with optional retry-after hint
 
 All types are serializable using serde and are designed to be used across different capabilities in the telemetry system.
+
+**Correction (2026-07-05, during change 017 scoping)**: this section previously also listed `TelemetryBatchError` — "error type for batch validation" — as implemented here. It was not; `telemetry-types` has never defined an error type. This is a factual correction to what was actually built, not a change to the Decision above: `telemetry-types` remains the intended owner of these five concepts, and no error type is being added now, since nothing that currently depends on this crate needs one (see change 017's `design.md` for why adding one speculatively was considered and declined).
