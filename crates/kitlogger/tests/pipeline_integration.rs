@@ -203,11 +203,7 @@ fn log_text_format_produces_text_output() {
         .log(Severity::Info, "login ok")
         .expect("log should succeed");
 
-    let out = stdout.contents();
-    assert!(
-        out.contains("[INFO] login ok"),
-        "Text output should match [INFO] login ok. Got: {out:?}"
-    );
+    assert_output_contains(&stdout.contents(), &["[INFO] login ok"]);
 }
 
 /// Scenario: HumanReadable format via `log()` — `log()` has no way to attach
@@ -220,15 +216,7 @@ fn log_human_readable_format_basic() {
         .log(Severity::Info, "login ok")
         .expect("log should succeed");
 
-    let out = stdout.contents();
-    assert!(
-        out.contains("INFO"),
-        "HumanReadable output should contain INFO. Got: {out:?}"
-    );
-    assert!(
-        out.contains("login ok"),
-        "HumanReadable output should contain message. Got: {out:?}"
-    );
+    assert_output_contains(&stdout.contents(), &["INFO", "login ok"]);
 }
 
 /// Scenario: Logfmt format via `log()` — produces key=value pairs.
@@ -241,7 +229,13 @@ fn log_logfmt_format_produces_kv_pairs() {
         .log(Severity::Warn, "slow query")
         .expect("log should succeed");
 
-    assert_output_contains(&stderr.contents(), &["level=WARN", r#"msg="slow query""#]);
+    let out = stderr.contents();
+    assert_output_contains(&out, &["level=WARN", r#"msg="slow query""#]);
+    assert!(
+        !out.contains("[WARN]"),
+        "Logfmt output must not contain the Text formatter's [WARN] prefix — \
+         a regression here would mean log() silently fell back to a different formatter. Got: {out:?}"
+    );
 }
 
 /// Scenario: Error severity is routed to stderr.
