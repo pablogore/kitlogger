@@ -1,8 +1,7 @@
-use crate::payload::PayloadEnvelope;
 use crate::TransportError;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use telemetry_types::PayloadEnvelope;
 
 /// Delivery mode for telemetry transport operations.
 ///
@@ -33,19 +32,6 @@ pub enum DeliveryMode {
     Streaming,
 }
 
-/// Signal indicating that a transport operation is experiencing backpressure.
-///
-/// This structure provides information about backpressure conditions,
-/// including a hint about when to retry the operation.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct BackpressureSignal {
-    /// Optional duration to wait before retrying the operation.
-    ///
-    /// If present, this indicates how long the sender should wait
-    /// before attempting to send again.
-    pub retry_after: Option<Duration>,
-}
-
 /// Result type for transport operations.
 pub type TransportResult<T> = Result<T, TransportError>;
 
@@ -70,13 +56,5 @@ mod tests {
         let serialized = serde_json::to_string(&mode).unwrap();
         let deserialized: DeliveryMode = serde_json::from_str(&serialized).unwrap();
         assert_eq!(mode, deserialized);
-    }
-
-    #[test]
-    fn test_backpressure_signal() {
-        let signal = BackpressureSignal {
-            retry_after: Some(std::time::Duration::from_secs(5)),
-        };
-        assert_eq!(signal.retry_after, Some(std::time::Duration::from_secs(5)));
     }
 }
