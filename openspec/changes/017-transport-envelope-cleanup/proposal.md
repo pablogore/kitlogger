@@ -1,5 +1,21 @@
 # Proposal: Transport/Envelope Cleanup (Migration Plan Phase 7)
 
+## BLOCKED — premise verification failed (do not implement as written)
+
+Implementation was attempted and stopped before any code was touched. This proposal's core claim — that `TelemetryBatch`, `PayloadEnvelope`, `TransportMetadata`, and `BackpressureSignal` are "exact duplicates" of `telemetry_types`'s canonical versions, safe to delete-and-repoint with "no data lost by switching" — does not hold. Verified against actual source:
+
+| Type | Local (`telemetry-transport-contract`) | Canonical (`telemetry_types`) | Divergence |
+|---|---|---|---|
+| `TransportMetadata` | `{timestamp: SystemTime, content_type: String, encoding: String}` | `{protocol: String, endpoint: String, attributes: HashMap<String,String>}` | Entirely different fields — not the same concept despite the shared name |
+| `TelemetryBatch` | `{resource: Resource, traces: Vec<Span>, metrics: Vec<Metric>, logs: Vec<LogRecord>}` (rich `context_propagation` domain types) + rejects an all-empty batch | `{traces: Vec<TraceData>, metrics: Vec<MetricData>, logs: Vec<LogData>}` (string/f64/u64-only placeholder types) | Missing `resource`; element types are placeholders, not the real domain types; no validation |
+| `TelemetryBatchError` | `enum { EmptyBatch }` | Does not exist in `telemetry_types` at all | ADR-007's own "Implementation" section claims it was implemented there — it wasn't |
+| `PayloadEnvelope.propagation_metadata` | `context_propagation::propagation_metadata::PropagationMetadata` | `telemetry_types`'s own internal `PropagationMetadata` (`{headers: HashMap<String,String>}`) | Different type, same field name |
+| `BackpressureSignal` | `{retry_after: Option<Duration>}`, derives `Eq` | `{retry_after: Option<u64>, attributes: HashMap<String,String>}`, no `Eq` | Different `retry_after` representation, missing field, different derives |
+
+None of the four types are field-for-field identical. `ADR-007` itself has drifted from the actual `telemetry_types` implementation (it documents a `TelemetryBatchError` that was never written). Deleting the local versions and repointing call sites to the "canonical" ones would silently narrow/change the data shape — theoretical rather than operational risk today, since `telemetry-transport-contract` has zero external workspace dependents, but the proposal's premise as written is factually wrong and must not be implemented until re-scoped.
+
+**Status: paused, not implemented.** See issue tracking this finding for the resolution options considered. Do not run `sdd-apply` on this proposal until it is corrected.
+
 ## Intent
 
 `telemetry-transport-contract`'s transport/envelope half (`batch.rs`, `payload.rs`, and part of `transport.rs`/`error.rs`) duplicates types already canonical in `telemetry_types` per ADR-007 — `TelemetryBatch`, `PayloadEnvelope`, `TransportMetadata`, and `BackpressureSignal` all exist twice. ADR-008 scheduled this cleanup as Phase 7: independent of Phases 1–6, no dependency either direction, safe to execute in parallel with any of them. This proposal deletes the literal duplicates and hands off the genuinely non-duplicate remainder (`Transport` trait, `DeliveryMode`, `TransportResult`, and `TransportError`'s non-`Backpressure` variants) to `telemetry-adapter-contracts`'s own future roadmap, per ADR-008's explicit distinction between "delete" and "transfer as input, not executed here."
