@@ -12,6 +12,7 @@ pub mod id;
 pub mod lifecycle;
 pub mod mapping;
 pub mod registry;
+pub mod transport;
 
 pub use adapter::{
     Adapter, CommonAdapterBase, ExporterAdapter, LifecycleAdapter, ProviderAdapter,
@@ -26,3 +27,4 @@ pub use mapping::{
     TraceMappingContract,
 };
 pub use registry::{deliver_to_all, AdapterRegistry};
+pub use transport::{DeliveryMode, Transport, TransportError, TransportResult};

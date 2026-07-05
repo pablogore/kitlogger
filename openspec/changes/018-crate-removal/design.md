@@ -65,7 +65,7 @@ This is the target graph ADR-008's original migration plan described, fully real
 
 ## Migration Strategy
 
-1. Delete the eight absorbed-and-verified modules first — no dependency on the `Transport` relocation.
+1. Delete the three remaining absorbed-and-verified modules first (`sampling.rs`, `redaction.rs`, `rotation.rs` — the other five originally scoped here were already deleted by change 016) — no dependency on the `Transport` relocation.
 2. Relocate `Transport`/`DeliveryMode`/`TransportResult`/`TransportError` into `telemetry-adapter-contracts` — independent of step 1.
 3. Write the `exporter-registry` supersession delta — independent of steps 1–2, purely a spec-record change.
 4. Only once steps 1–2 leave `telemetry-transport-contract` with zero remaining source files: delete the crate directory, its `Cargo.toml`, and its workspace member entry.

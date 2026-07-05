@@ -3,7 +3,6 @@ resolver = "2"
 members = [
     "crates/context-propagation",
     "crates/telemetry-adapter-contracts",
-    "crates/telemetry-transport-contract",
     "crates/telemetry-types",
     "crates/telemetry-config-semantics",
     "crates/kitlogger-log-domain",

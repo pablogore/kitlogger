@@ -4,7 +4,7 @@
 
 This is the join point ADR-008 always intended: `telemetry-transport-contract` is removed once every module it owns has been absorbed, transferred, or deleted. Three things needed resolving before that could happen cleanly, none of them anticipated in full when Phases 3–7 were originally scoped:
 
-1. **Orphaned source was never deleted.** Changes 013, 014, and 015 each absorbed a module's *behavior* into a new canonical home, but none of their `tasks.md` included deleting the original source (`formatter.rs`, `output.rs`, `sampling.rs`, `redaction.rs`, `rotation.rs`, `buffering.rs`, `provider.rs`, `logger.rs`). All eight still exist on disk.
+1. **Some orphaned source was never deleted.** Changes 013 and 015 each absorbed a module's *behavior* into a new canonical home, but neither's `tasks.md` included deleting the original source (`sampling.rs`, `redaction.rs`, `rotation.rs`). Change 016 already deleted the other five originally-scoped-here modules (`formatter.rs`, `output.rs`, `buffering.rs`, `provider.rs`, `logger.rs`) — re-verified against the current tree before writing this revision; this proposal originally listed all eight as still present, which was stale by the time this phase was reached. All three remaining still exist on disk.
 2. **Phase 7's handoff was never executed.** Change 017 explicitly left `Transport`, `DeliveryMode`, `TransportResult`, and `TransportError` as "input to `telemetry-adapter-contracts`'s own future roadmap, not executed here." Nobody has picked it up since. Per explicit decision, this phase executes it rather than letting the crate's deletion silently drop it.
 3. **A stale, unimplemented, competing spec was found.** `openspec/specs/exporter-registry/spec.md` describes a single-exporter-selection-by-name registry with a default fallback — a different model from `output-adapter-contracts`'s dispatch-to-all (ADR-008 §6). It was never mentioned in its originating change's (005-console-exporter) own proposal or design, no `ExporterRegistry` type was ever implemented, and that change's own verify-report already flagged it as "out of scope... consider documenting this explicitly." Per explicit decision, this phase formally declares it superseded.
 
@@ -21,7 +21,7 @@ This is the join point ADR-008 always intended: `telemetry-transport-contract` i
 
 ### In Scope
 
-- Delete the eight orphaned modules whose behavior was already absorbed in Phases 3–5: `formatter.rs`, `output.rs`, `sampling.rs`, `redaction.rs`, `rotation.rs`, `buffering.rs`, `provider.rs`, `logger.rs`.
+- Delete the three orphaned modules whose behavior was already absorbed in Phases 3/5 and that change 016 didn't already remove: `sampling.rs`, `redaction.rs`, `rotation.rs`. (`formatter.rs`, `output.rs`, `buffering.rs`, `provider.rs`, `logger.rs` no longer exist — deleted by change 016.)
 - Move `transport.rs`'s `Transport`/`DeliveryMode`/`TransportResult` and `error.rs`'s remaining `TransportError` (post change-017: `Timeout`, `Unavailable`, `Backpressure(telemetry_types::BackpressureSignal)`, `PayloadTooLarge`, `UnsupportedTransport`) into a new `transport` module of `telemetry-adapter-contracts`, unchanged in shape.
 - Formally declare `exporter-registry` superseded by `output-adapter-contracts` — a `## REMOVED Requirements` delta marking every one of its requirements, with reason, not a silent deletion of the historical spec file.
 - Delete `crates/telemetry-transport-contract/` entirely: source, `Cargo.toml`, and its workspace member entry.
