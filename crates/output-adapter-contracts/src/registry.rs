@@ -76,6 +76,19 @@ pub enum DispatchOutcome {
 /// hold onto a clone of the same `Arc` instead of wrapping it in a second,
 /// forwarding-only `Output` implementation just to hand the registry sole
 /// ownership.
+///
+/// Backed by a `Vec`, not a `HashMap`, by deliberate decision (not merely
+/// because nothing needed changing yet): `dispatch` iterates in insertion
+/// order, and that guarantee is free to keep even though nothing currently
+/// depends on it. A `HashMap` would express "index by identity, no
+/// incidental order" slightly more directly, but iterates in an arbitrary,
+/// unstable order — if a future requirement ever needs dispatch order to be
+/// meaningful (deterministic tests, a "highest-priority output first"
+/// feature, etc.), `Vec` already satisfies it with no migration; `HashMap`
+/// would have to be migrated back. The reverse migration (drop an ordering
+/// guarantee nothing was relying on) is free; this one is not — so `Vec` is
+/// the correct default under this uncertainty, not a placeholder pending a
+/// decision.
 #[derive(Default)]
 pub struct Registry {
     outputs: Vec<(OutputId, Arc<dyn Output>)>,
