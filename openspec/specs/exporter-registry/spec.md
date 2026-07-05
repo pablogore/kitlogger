@@ -1,49 +1,19 @@
 # Exporter Registry Specification
 
+## Status: Superseded (change 018, Migration Plan Phase 8)
+
+Every requirement this capability once specified is removed. It was never implemented (`rg -rn "ExporterRegistry" crates` — zero matches, confirmed at supersession time), was never mentioned in its originating change's (`005-console-exporter`) own `proposal.md`/`design.md`, and that change's own `verify-report.md` already flagged it as out of scope.
+
+Its model — select one exporter by string name, with a default fallback — predates and conflicts with ADR-008 §6's actual committed architecture: multiple outputs (console AND file) registered and dispatched to *simultaneously*, not one selected exporter at a time. `output-adapter-contracts` (change 014) implements the model actually adopted. This file is kept, empty of active requirements, as a record that this capability was proposed and superseded rather than silently erased — see `openspec/changes/archive/2026-07-05-018-crate-removal/` for the full removal delta and reasoning.
+
 ## Purpose
 
-Pluggable registry that selects, configures, and manages exporter implementations. Decouples the logging pipeline from specific exporters — new exporters can be added by registering them with the registry without modifying pipeline code.
+Historical only. Superseded by `output-adapter-contracts`'s dispatch-to-all model.
 
 ## Requirements
 
-### Requirement: Exporter Selection by Name
+None. All requirements below were removed by change 018:
 
-The system MUST support selecting an exporter implementation by string name (e.g., `"console"`, `"file"`). Selecting an unknown name MUST return an error.
-
-#### Scenario: Select registered exporter
-
-- GIVEN a `"console"` exporter is registered with the registry
-- WHEN a caller requests the exporter by name `"console"`
-- THEN the registry MUST return the console exporter instance
-
-#### Scenario: Select unregistered exporter
-
-- GIVEN no exporter named `"custom"` is registered
-- WHEN a caller requests the exporter by name `"custom"`
-- THEN the registry MUST return an error indicating the exporter was not found
-
-### Requirement: Exporter Registration
-
-The system MUST support registering new exporter implementations without modifying pipeline code. Registration SHALL accept a name string and an exporter instance. Registering a duplicate name MAY return an error or overwrite the existing entry.
-
-#### Scenario: Register new exporter
-
-- GIVEN a new exporter implementation named `"yaml"`
-- WHEN it is registered with the registry
-- THEN subsequent requests for `"yaml"` MUST return the registered instance
-
-#### Scenario: Duplicate registration
-
-- GIVEN an exporter named `"console"` is already registered
-- WHEN a second exporter with name `"console"` is registered
-- THEN the registry SHOULD return an error or document its overwrite policy
-
-### Requirement: Default Exporter
-
-The system SHOULD provide a configurable default exporter used when no explicit exporter is selected.
-
-#### Scenario: Default exporter fallback
-
-- GIVEN no explicit exporter is configured
-- WHEN the registry is queried for the active exporter
-- THEN the default exporter MUST be returned
+- **Exporter Selection by Name** — superseded by `output-adapter-contracts::FR-003` (Dispatch to All Registered Outputs), which dispatches to every registered output simultaneously rather than selecting one by name.
+- **Exporter Registration** — superseded by `output-adapter-contracts::FR-002` (Unique Registration), which registers by unique identifier for simultaneous multi-output dispatch, not name-based single selection.
+- **Default Exporter** — no counterpart in the surviving model. `kitlogger` registers a fixed set of outputs at construction (`kitlogger-emission-pipeline::FR-009`), not a runtime-selectable one with a fallback.
