@@ -1,8 +1,7 @@
-use crate::payload::PayloadEnvelope;
 use crate::TransportError;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use telemetry_types::PayloadEnvelope;
 
 /// Delivery mode for telemetry transport operations.
 ///
@@ -33,19 +32,6 @@ pub enum DeliveryMode {
     Streaming,
 }
 
-/// Signal indicating that a transport operation is experiencing backpressure.
-///
-/// This structure provides information about backpressure conditions,
-/// including a hint about when to retry the operation.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct BackpressureSignal {
-    /// Optional duration to wait before retrying the operation.
-    ///
-    /// If present, this indicates how long the sender should wait
-    /// before attempting to send again.
-    pub retry_after: Option<Duration>,
-}
-
 /// Result type for transport operations.
 pub type TransportResult<T> = Result<T, TransportError>;
 
@@ -72,11 +58,47 @@ mod tests {
         assert_eq!(mode, deserialized);
     }
 
-    #[test]
-    fn test_backpressure_signal() {
-        let signal = BackpressureSignal {
-            retry_after: Some(std::time::Duration::from_secs(5)),
+    /// Regression test for the `telemetry_types::PayloadEnvelope` repoint:
+    /// `Transport` must still be implementable, and `send()` must still be
+    /// callable, with the canonical envelope type in place of the crate's
+    /// former local one.
+    struct MockTransport;
+
+    #[async_trait]
+    impl Transport for MockTransport {
+        async fn send(&self, _envelope: PayloadEnvelope) -> TransportResult<DeliveryMode> {
+            Ok(DeliveryMode::FireAndForget)
+        }
+    }
+
+    #[tokio::test]
+    async fn transport_trait_is_implementable_with_the_canonical_envelope_type() {
+        use telemetry_types::{PropagationMetadata, TelemetryBatch, TransportMetadata};
+
+        let envelope = PayloadEnvelope {
+            transport_metadata: TransportMetadata {
+                protocol: "memory".to_string(),
+                endpoint: "test".to_string(),
+                attributes: Default::default(),
+            },
+            propagation_metadata: PropagationMetadata {
+                headers: Default::default(),
+            },
+            payload: TelemetryBatch {
+                traces: vec![],
+                metrics: vec![],
+                logs: vec![],
+            },
         };
-        assert_eq!(signal.retry_after, Some(std::time::Duration::from_secs(5)));
+
+        let result = MockTransport.send(envelope).await;
+
+        // `TransportError` no longer derives `PartialEq` (its `Backpressure`
+        // variant's `telemetry_types::BackpressureSignal` doesn't implement
+        // it) — match instead of `assert_eq!` on the whole `Result`.
+        match result {
+            Ok(mode) => assert_eq!(mode, DeliveryMode::FireAndForget),
+            Err(e) => panic!("expected Ok(FireAndForget), got Err({e})"),
+        }
     }
 }

@@ -1070,12 +1070,12 @@ name = "telemetry-transport-contract"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "context-propagation",
  "fastrand",
  "kit-config",
  "serde",
  "serde_json",
  "serde_test",
+ "telemetry-types",
  "tokio",
  "uuid",
 ]

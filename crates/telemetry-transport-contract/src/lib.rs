@@ -7,12 +7,11 @@
 //!
 //! * `transport` - Defines the transport contract and related types
 //! * `error` - Defines the transport error types
-//! * `batch` - Defines the telemetry batch structure
-//! * `payload` - Defines the payload envelope structure
+//!
+//! `TelemetryBatch`/`PayloadEnvelope`/`TransportMetadata`/`BackpressureSignal`
+//! are not defined here — per ADR-007/ADR-010, `telemetry_types` is their
+//! canonical owner. This crate consumes them, it does not redefine them.
 
-pub mod payload;
-
-mod batch;
 mod error;
 mod transport;
 
@@ -20,16 +19,7 @@ mod redaction;
 mod rotation;
 mod sampling;
 
-// Re-export types from context-propagation crate
-pub use context_propagation::models::{
-    AttributeValue, Context, InstrumentationScope, LogRecord, LogSeverity, Metric, Resource, Span,
-    SpanStatus,
-};
-pub use context_propagation::propagation_metadata::PropagationMetadata;
-
-pub use batch::*;
 pub use error::*;
-pub use payload::*;
 pub use transport::*;
 
 pub use redaction::*;
