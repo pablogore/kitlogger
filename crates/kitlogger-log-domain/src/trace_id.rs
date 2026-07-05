@@ -3,6 +3,12 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Opaque string identifier for trace correlation.
+///
+/// For wire-level, W3C Trace Context-compliant trace identifiers, see
+/// `context_propagation::trace_context::TraceId` — that type is intentionally
+/// a separate, richer concept for cross-process interop, not a duplicate of
+/// this one (ADR-009 Amendment): this type exists only to tag a log line,
+/// opaque and format-free by design.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct TraceId(String);
 

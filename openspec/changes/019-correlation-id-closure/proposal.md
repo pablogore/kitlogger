@@ -6,7 +6,7 @@ ADR-009 originally decided `kitlogger_log_domain::{CorrelationId, TraceId, SpanI
 
 Scoping this phase required reading the rest of `context-propagation` first (`correlation.rs`, `trace_context.rs`) — something the original ADR-009 analysis never did. That reading found a full W3C Trace Context implementation: byte-array `TraceId`/`SpanId` with hex `Display`/`FromStr`, `TraceFlags`, vendor `TraceState`, complete `traceparent`-string validation, and a UUID-v7-based `CorrelationIdentifier` with timestamp extraction — none of which has any counterpart in `kitlogger-log-domain`'s simple, unvalidated `String` newtypes.
 
-**ADR-009 is amended** (see the ADR itself, `openspec/changes/012-logging-pipeline-consolidation/ADR-009-correlation-id-unification.md`, "Amendment" section) rather than executed as originally written. This proposal is the closure of that amended decision: confirming no code changes are required, and formally closing Migration Plan Phase 9.
+**ADR-009 is amended** (see the ADR itself, `openspec/changes/archive/2026-07-04-012-logging-pipeline-consolidation/ADR-009-correlation-id-unification.md` — change 012 has since been archived; this proposal originally referenced its pre-archive path, corrected here, "Amendment" section) rather than executed as originally written. This proposal is the closure of that amended decision: confirming no code changes are required, and formally closing Migration Plan Phase 9.
 
 ## Corrected Understanding
 
@@ -52,7 +52,7 @@ This is a documentation and record-closure change, not a design or implementatio
 | `crates/kitlogger-log-domain/src/correlation_id.rs` | Modified | One-line doc comment cross-reference added, no behavior change |
 | `crates/kitlogger-log-domain/src/trace_id.rs` | Modified | Same |
 | `crates/kitlogger-log-domain/src/span_id.rs` | Modified | Same |
-| `openspec/changes/012-logging-pipeline-consolidation/ADR-009-correlation-id-unification.md` | Amended | Already done — see the ADR's own "Amendment" section |
+| `openspec/changes/archive/2026-07-04-012-logging-pipeline-consolidation/ADR-009-correlation-id-unification.md` | Amended | Already done — see the ADR's own "Amendment" section |
 
 ## Risks
 
@@ -72,8 +72,8 @@ Trivial — this change touches three doc comments and one ADR document. Reverti
 
 ## Success Criteria
 
-- [ ] ADR-009's Amendment section accurately reflects the corrected finding (already done).
-- [ ] No shared crate exists or was created for correlation/trace/span identifiers.
-- [ ] `kitlogger-log-domain`'s three identifier files carry a cross-reference to `context-propagation`'s richer types.
-- [ ] Neither `kitlogger-log-domain` nor `context-propagation` depends on the other.
-- [ ] This is recorded as the closure of Migration Plan Phase 9 — the last open item from ADR-008/ADR-009's original migration plan (excluding Phase 10, explicitly out of scope for the entire initiative).
+- [x] ADR-009's Amendment section accurately reflects the corrected finding (already done).
+- [x] No shared crate exists or was created for correlation/trace/span identifiers.
+- [x] `kitlogger-log-domain`'s three identifier files carry a cross-reference to `context-propagation`'s richer types.
+- [x] Neither `kitlogger-log-domain` nor `context-propagation` depends on the other.
+- [x] This is recorded as the closure of Migration Plan Phase 9 — the last open item from ADR-008/ADR-009's original migration plan (excluding Phase 10, explicitly out of scope for the entire initiative).
