@@ -1,6 +1,6 @@
 # Tasks: Transport/Envelope Cleanup
 
-No `design.md` for this change — every deletion and repoint follows mechanically from ADR-007's already-accepted canonical types (see `proposal.md`'s "Approach"). No new `spec.md` — no capability introduced or modified.
+`design.md` now exists for this change — added after implementation was attempted and the original "exact duplicate, mechanical repoint" premise was found false. See `design.md` for the Canonical Concept vs. Concrete Representation distinction that resolves this without changing the implementation scope below. No new `spec.md` — no capability introduced or modified.
 
 ## Review Workload Forecast
 
@@ -13,7 +13,7 @@ No `design.md` for this change — every deletion and repoint follows mechanical
 
 ## Phase 1: Verification Before Deleting
 
-- [ ] 1.1 Confirm `telemetry_types::{TelemetryBatch, TelemetryBatchError, PayloadEnvelope, TransportMetadata, BackpressureSignal}` field-for-field match `telemetry-transport-contract`'s local versions closely enough that no data is lost by switching (already verified during the original audit; re-confirm before deleting).
+- [ ] 1.1 Confirm `telemetry_types::{TelemetryBatch, PayloadEnvelope, TransportMetadata, BackpressureSignal}` represent the same concept as `telemetry-transport-contract`'s local versions per ADR-010 (they do NOT field-for-field match — see `design.md` — this task confirms conceptual ownership, not shape equivalence, and confirms `telemetry_types` has no `TelemetryBatchError` counterpart to repoint to at all).
 - [ ] 1.2 Confirm no crate other than `telemetry-transport-contract` depends on `context-propagation` (already verified during the original audit — `context-propagation` is a leaf crate with `telemetry-transport-contract` as its only in-workspace consumer; re-confirm before removing the dependency).
 
 ## Phase 2: Delete and Repoint
@@ -25,7 +25,7 @@ No `design.md` for this change — every deletion and repoint follows mechanical
 - [ ] 2.5 In `lib.rs`: remove the `pub mod payload;`/`mod batch;` declarations and their `pub use batch::*;`/`pub use payload::*;` re-exports; remove the `pub use context_propagation::models::{...}` and `pub use context_propagation::propagation_metadata::PropagationMetadata;` re-exports.
 - [ ] 2.6 In `Cargo.toml`: remove the `context-propagation` dependency; add `telemetry-types = { path = "../telemetry-types" }`.
 - [ ] 2.7 Delete `tests/batch_test.rs` and `tests/payload_test.rs` (or whichever existing test files exercise the deleted modules) — not migrated, per `proposal.md`'s Risks.
-- [ ] 2.8 Run `cargo check -p telemetry-transport-contract` — confirm it compiles with only `transport`, `error`, `formatter`, `output`, `sampling`, `redaction`, `rotation`, `buffering`, `provider`, `logger` remaining.
+- [ ] 2.8 Run `cargo check -p telemetry-transport-contract` — confirm it compiles with only `transport`, `error`, `redaction`, `rotation`, `sampling` remaining (`formatter`, `output`, `buffering`, `provider`, `logger` no longer exist, deleted by change 016).
 
 ## Phase 3: Verification
 
