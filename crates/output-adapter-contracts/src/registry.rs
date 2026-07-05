@@ -1,6 +1,8 @@
 //! Registry: registers outputs under a unique identifier and dispatches a
 //! formatted record to all of them, aggregating per-output failures.
 
+use std::sync::Arc;
+
 use kitlogger_log_domain::Severity;
 
 use crate::output::{Output, OutputError};
@@ -66,9 +68,15 @@ pub enum DispatchOutcome {
 
 /// Registers outputs under a unique [`OutputId`] and dispatches a formatted
 /// record to every currently registered output.
+///
+/// Stores each output behind an [`Arc`], not a `Box`: a caller that needs to
+/// keep calling its own methods (e.g. `init`/`flush`/`shutdown`) on the same
+/// output instance after registering it can hold onto a clone of the same
+/// `Arc` instead of wrapping it in a second, forwarding-only `Output`
+/// implementation just to hand the registry sole ownership.
 #[derive(Default)]
 pub struct Registry {
-    outputs: Vec<(OutputId, Box<dyn Output>)>,
+    outputs: Vec<(OutputId, Arc<dyn Output>)>,
 }
 
 impl Registry {
@@ -83,7 +91,7 @@ impl Registry {
     pub fn register(
         &mut self,
         id: OutputId,
-        output: Box<dyn Output>,
+        output: Arc<dyn Output>,
     ) -> Result<(), RegistrationError> {
         if self.outputs.iter().any(|(existing, _)| existing == &id) {
             return Err(RegistrationError::DuplicateId(id));
@@ -119,7 +127,7 @@ impl Registry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::{Arc, Mutex};
+    use std::sync::Mutex;
 
     struct RecordingOutput {
         received: Arc<Mutex<Vec<String>>>,
@@ -147,7 +155,7 @@ mod tests {
         registry
             .register(
                 OutputId::new("primary"),
-                Box::new(RecordingOutput {
+                Arc::new(RecordingOutput {
                     received: first_received.clone(),
                 }),
             )
@@ -156,7 +164,7 @@ mod tests {
         let second_received = Arc::new(Mutex::new(Vec::new()));
         let result = registry.register(
             OutputId::new("primary"),
-            Box::new(RecordingOutput {
+            Arc::new(RecordingOutput {
                 received: second_received.clone(),
             }),
         );
@@ -181,7 +189,7 @@ mod tests {
             registry
                 .register(
                     OutputId::new(format!("output-{i}")),
-                    Box::new(RecordingOutput {
+                    Arc::new(RecordingOutput {
                         received: received.clone(),
                     }),
                 )
@@ -205,18 +213,18 @@ mod tests {
         registry
             .register(
                 OutputId::new("first"),
-                Box::new(RecordingOutput {
+                Arc::new(RecordingOutput {
                     received: first_received.clone(),
                 }),
             )
             .unwrap();
         registry
-            .register(OutputId::new("failing"), Box::new(FailingOutput))
+            .register(OutputId::new("failing"), Arc::new(FailingOutput))
             .unwrap();
         registry
             .register(
                 OutputId::new("third"),
-                Box::new(RecordingOutput {
+                Arc::new(RecordingOutput {
                     received: third_received.clone(),
                 }),
             )
@@ -252,7 +260,7 @@ mod tests {
             registry
                 .register(
                     OutputId::new(format!("failing-{i}")),
-                    Box::new(FailingOutput),
+                    Arc::new(FailingOutput),
                 )
                 .unwrap();
         }

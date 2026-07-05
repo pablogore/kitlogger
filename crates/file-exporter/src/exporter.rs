@@ -91,6 +91,7 @@ mod tests {
     use super::*;
     use output_adapter_contracts::{OutputId, Registry};
     use std::fs;
+    use std::sync::Arc;
 
     fn rotation_config(enabled: bool, max_size_mb: u32, max_backups: u32) -> RotationConfig {
         RotationConfig {
@@ -212,10 +213,10 @@ mod tests {
 
         let mut registry = Registry::new();
         registry
-            .register(OutputId::new("file"), Box::new(exporter))
+            .register(OutputId::new("file"), Arc::new(exporter))
             .unwrap();
         registry
-            .register(OutputId::new("fake"), Box::new(FakeOutput))
+            .register(OutputId::new("fake"), Arc::new(FakeOutput))
             .unwrap();
 
         registry.dispatch("registered via the Port", Severity::Info);
