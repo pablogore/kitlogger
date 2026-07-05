@@ -1,5 +1,12 @@
 //! Integration tests for `KITLogger`'s construction from `kit_config::LoggingConfig`
-//! (capability `kitlogger-config-integration`, FR-001/FR-002/FR-003).
+//! (capability `kitlogger-config-integration`, FR-001/FR-002).
+//!
+//! FR-003 ("No Behavioral Change from LoggingConfig Fields") is formally
+//! superseded by `kitlogger-emission-pipeline` (change
+//! `015-orchestration-fold`, see its proposal.md "Modified Capabilities"):
+//! `LoggingConfig`'s behavioral fields — starting with `.enabled` — now
+//! drive real pipeline behavior. See `emission_pipeline_test.rs` for the
+//! capability that replaces FR-003's restriction.
 
 use kit_config::{LoggingConfig, SamplingConfig, SamplingStrategy};
 use kitlogger::KITLogger;
@@ -38,14 +45,18 @@ fn rejects_invalid_logging_config() {
     );
 }
 
-/// FR-003: this phase intentionally does not introduce emission gating. The
-/// purpose of this test is to verify that `LoggingConfig.enabled` is not
-/// consulted during construction or logging behavior until the dedicated
-/// gating capability is implemented in a later migration phase — `log`/
-/// `log_record` must return the same `Ok`/`Err` outcome regardless of
-/// `.enabled`, and `from_logging_config` must never branch on it.
+/// FR-003 superseded: `LoggingConfig.enabled` now gates the pipeline
+/// (`kitlogger-emission-pipeline` FR-001). Both `from_logging_config`-built
+/// loggers here share an un-initialized default `ConsoleExporterImpl` — a
+/// disabled logger's calls short-circuit before ever touching that exporter
+/// and always succeed, while an enabled logger's calls reach the exporter
+/// and fail because it was never `init()`-ed. This asymmetry is the
+/// intended, documented replacement for FR-003, not a bug: see
+/// `emission_pipeline_test.rs::disabled_config_performs_no_processing` for
+/// the capability-level test (using an initialized, capturing exporter) that
+/// this regression check complements.
 #[test]
-fn enabled_false_does_not_change_emission_yet() {
+fn enabled_false_now_short_circuits_before_dispatch() {
     let enabled_config = LoggingConfig::default();
     let disabled_config = LoggingConfig {
         enabled: false,
@@ -65,14 +76,21 @@ fn enabled_false_does_not_change_emission_yet() {
     )
     .expect("valid record");
 
-    assert_eq!(
-        logger_enabled.log_record(&record, None).is_ok(),
+    assert!(
         logger_disabled.log_record(&record, None).is_ok(),
-        "log_record behavior must be identical regardless of LoggingConfig.enabled"
+        "a disabled logger's log_record must short-circuit to Ok(()) without dispatching"
     );
-    assert_eq!(
-        logger_enabled.log(Severity::Info, "hello").is_ok(),
+    assert!(
+        logger_enabled.log_record(&record, None).is_err(),
+        "an enabled logger's log_record must reach the (un-initialized) exporter and fail"
+    );
+
+    assert!(
         logger_disabled.log(Severity::Info, "hello").is_ok(),
-        "log behavior must be identical regardless of LoggingConfig.enabled"
+        "a disabled logger's log must short-circuit to Ok(()) without dispatching"
+    );
+    assert!(
+        logger_enabled.log(Severity::Info, "hello").is_err(),
+        "an enabled logger's log must reach the (un-initialized) exporter and fail"
     );
 }

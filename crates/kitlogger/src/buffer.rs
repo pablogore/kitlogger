@@ -4,9 +4,8 @@
 //! Per ADR-008 §5 (filter -> sample -> redact -> buffer -> format ->
 //! dispatch), this buffer holds raw, pre-format `LogRecord`s — it has no
 //! knowledge of formatting or output destinations. Internal to `kitlogger`
-//! (not its own crate — see design.md Q4). Not yet wired into `KITLogger`'s
-//! emission path; that is Phase 5 (Orchestration Fold), a separate future
-//! change.
+//! (not its own crate — see design.md Q4). Wired into `KITLogger`'s
+//! emission path as of the Orchestration Fold change.
 
 use std::sync::Mutex;
 
@@ -86,6 +85,18 @@ impl Buffer {
         }
 
         None
+    }
+
+    /// Unconditionally returns every record currently held, regardless of
+    /// `BufferingConfig.batch_size` or `flush_interval_ms` (FR-006's
+    /// force-drain requirement, used by `KITLogger::flush`/`shutdown`).
+    /// Returns an empty `Vec` when nothing is held.
+    pub fn drain(&self) -> Vec<LogRecord> {
+        let mut records = self.records.lock().unwrap();
+        let mut window_start = self.window_start.lock().unwrap();
+
+        *window_start = None;
+        std::mem::take(&mut records)
     }
 }
 
@@ -184,6 +195,31 @@ mod tests {
             .expect("disabled buffering must pass through immediately");
         assert_eq!(flushed.len(), 1);
         assert_eq!(flushed[0].message(), "solo");
+    }
+
+    #[test]
+    fn drain_returns_all_held_records_regardless_of_flush_condition() {
+        // batch_size and flush_interval_ms are both far from being met —
+        // neither `add` nor `try_flush` would flush these on their own.
+        let clock = Arc::new(AdvanceableClock::new(epoch()));
+        let buffer = Buffer::new(config(true, 100, 60_000), clock);
+
+        assert!(buffer.add(record("one")).is_none());
+        assert!(buffer.add(record("two")).is_none());
+        assert!(buffer.try_flush().is_none());
+
+        let drained = buffer.drain();
+
+        let messages: Vec<&str> = drained.iter().map(|r| r.message()).collect();
+        assert_eq!(messages, ["one", "two"]);
+    }
+
+    #[test]
+    fn drain_on_an_empty_buffer_returns_an_empty_vec() {
+        let clock = Arc::new(AdvanceableClock::new(epoch()));
+        let buffer = Buffer::new(config(true, 100, 60_000), clock);
+
+        assert!(buffer.drain().is_empty());
     }
 
     #[test]

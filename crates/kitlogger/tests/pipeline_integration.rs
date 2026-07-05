@@ -197,10 +197,14 @@ fn log_record_error_severity_goes_to_stderr() {
 }
 
 /// Scenario: `log()` back-compat method still works.
+///
+/// Since change 015-orchestration-fold, `log()` delegates into
+/// `log_record`'s full pipeline (it is no longer a raw, formatter-free
+/// passthrough) — this test only asserts the message still reaches the
+/// output, not that it is unformatted.
 #[test]
 fn log_compat_method_still_works() {
     let (logger, stdout, _stderr) = make_logger_with_capture(LogFormat::Text);
-    // log() uses raw passthrough — no formatter involved
     logger
         .log(Severity::Info, "raw passthrough")
         .expect("log should succeed");
