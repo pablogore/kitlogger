@@ -288,46 +288,11 @@ fn disabled_buffering_is_synchronous() {
     );
 }
 
-/// Regression test: a batch already removed from the buffer must not lose
-/// records after the first dispatch failure. Every record in the batch is
-/// pulled out of the buffer via `mem::take` before any of them is
-/// formatted/dispatched, so a record that isn't attempted here is lost with
-/// no trace — neither still buffered nor dispatched. Forces every dispatch
-/// in a 3-record batch to fail (by shutting the exporter down first) and
-/// asserts all 3 were still attempted, not just the first.
-#[test]
-fn batch_dispatch_failure_still_attempts_every_record() {
-    let config = LoggingConfig {
-        buffering: BufferingConfig {
-            enabled: true,
-            batch_size: 3,
-            flush_interval_ms: 60_000,
-        },
-        ..LoggingConfig::default()
-    };
-    let (logger, _stdout, _stderr) = make_logger(config);
-
-    // Puts the underlying exporter into a state where every dispatch fails.
-    logger
-        .shutdown()
-        .expect("shutdown on an empty buffer must not error");
-
-    logger
-        .log_record(&record(Severity::Info, "one"), None)
-        .expect("below batch_size must not error");
-    logger
-        .log_record(&record(Severity::Info, "two"), None)
-        .expect("below batch_size must not error");
-    let result = logger.log_record(&record(Severity::Info, "three"), None);
-
-    let err = result.expect_err("dispatch to a shut-down exporter must fail");
-    let failure_count = err.to_string().matches("console:").count();
-    assert_eq!(
-        failure_count, 3,
-        "all 3 records in the batch must be attempted even though each fails; \
-         only {failure_count} attempt(s) were made. Error: {err}"
-    );
-}
+// Note: the regression test for "a batch dispatch failure must not drop
+// remaining records" lives in `src/lib.rs`'s own `#[cfg(test)] mod tests`,
+// not here — it needs a directly-constructed `KITLogger` with a counting
+// fake `Output` registered in place of `console-exporter`, which requires
+// access to private fields this black-box integration test doesn't have.
 
 // ---------------------------------------------------------------------------
 // FR-006: Flush Drains the Pipeline

@@ -83,6 +83,15 @@ pub struct KITLogger {
     /// inspection (see `registered_output_ids`) — `Registry` itself does
     /// not expose enumeration, and this crate must not modify that
     /// already-frozen capability (see proposal.md's "Out of Scope").
+    ///
+    /// INVARIANT: this must always list exactly the `OutputId`s registered
+    /// into `registry`, in the same order — the two are updated together in
+    /// `build`. There is currently only one call site (`build`) that
+    /// registers anything, so this holds trivially; if a future change adds
+    /// a second call site that registers into `registry` (e.g. optionally
+    /// registering `file-exporter`), that call site MUST push the same
+    /// `OutputId` here, or `registered_output_ids()` will silently lie
+    /// about what's actually registered.
     output_ids: Vec<OutputId>,
 }
 
@@ -96,20 +105,58 @@ impl KITLogger {
     /// Shared construction path: every public constructor below funnels
     /// through here so `Sampler`/`Redactor` (and, from Phase 3/4 onward,
     /// `Buffer`/the dispatch registry) are always built consistently from
-    /// `config`, regardless of which constructor a caller used.
+    /// `config`, regardless of which constructor a caller used. Always uses
+    /// `UtcClock` — production code has no path to construct a `KITLogger`
+    /// with any other clock (see `build_with_clock`, below, for why that's
+    /// deliberate).
     fn build(
         config: LoggingConfig,
         exporter: Arc<ConsoleExporterImpl>,
         formatter: Box<dyn RecordFormatter>,
     ) -> Self {
-        Self::build_with_clock(config, exporter, formatter, Arc::new(UtcClock))
+        let clock: Arc<dyn Clock> = Arc::new(UtcClock);
+        let enabled = config.enabled;
+        let level = config.level;
+        let buffering_enabled = config.buffering.enabled;
+        let sampler = Sampler::new(config.sampling, clock.clone());
+        let redactor = Redactor::new(config.redact);
+        let buffer = buffer::Buffer::new(config.buffering, clock);
+
+        // FR-009: register a console output by default; explicitly do NOT
+        // register a file-based one (see the module-level comment on
+        // `file-exporter`'s dependency edge above).
+        let mut registry = Registry::new();
+        let console_id = OutputId::new("console");
+        registry
+            .register(
+                console_id.clone(),
+                Box::new(ConsoleOutputAdapter(exporter.clone())),
+            )
+            .expect("a freshly built registry has no prior registration under 'console'");
+
+        Self {
+            exporter,
+            formatter,
+            id: AdapterId::new("kitlogger").expect("hardcoded id should never be empty"),
+            enabled,
+            level,
+            buffering_enabled,
+            sampler,
+            redactor,
+            buffer,
+            registry,
+            output_ids: vec![console_id],
+        }
     }
 
-    /// `build`'s actual implementation, parameterized over `clock` so tests
-    /// can exercise time-driven behavior (e.g. `Buffer`'s time-based flush)
-    /// deterministically, without a real sleep. Every public constructor
-    /// goes through `build`, which always supplies `UtcClock` — this exists
-    /// only for `#[cfg(test)]` use within this crate.
+    /// `build`'s clock-parameterized core. Only compiled under
+    /// `#[cfg(test)]` so it cannot become a second, production-reachable
+    /// construction path that bypasses `UtcClock` — `build` (above) is
+    /// non-test code's only route to this logic, and always supplies
+    /// `UtcClock` inline. Tests reach this directly to exercise time-driven
+    /// behavior (e.g. `Buffer`'s time-based flush) deterministically,
+    /// without a real sleep.
+    #[cfg(test)]
     fn build_with_clock(
         config: LoggingConfig,
         exporter: Arc<ConsoleExporterImpl>,
@@ -479,6 +526,84 @@ mod tests {
         fn now(&self) -> DateTime<Utc> {
             *self.0.lock().unwrap()
         }
+    }
+
+    /// A fake `Output` that always fails, counting how many times it was
+    /// actually invoked.
+    struct CountingFailingOutput(Arc<std::sync::atomic::AtomicUsize>);
+
+    impl Output for CountingFailingOutput {
+        fn dispatch(&self, _formatted: &str, _severity: Severity) -> Result<(), OutputError> {
+            self.0.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            Err(OutputError::new("simulated failure"))
+        }
+    }
+
+    /// Regression test for the batch-abort-on-first-error bug: a batch is
+    /// already removed from `Buffer` (via `mem::take`) before any of its
+    /// records are formatted/dispatched, so a record `format_and_dispatch`
+    /// doesn't attempt is lost with no trace. Registers a counting fake
+    /// `Output` directly (bypassing `console-exporter` entirely) so the
+    /// assertion is a call count, not a string match on an error's wording.
+    #[test]
+    fn batch_dispatch_failure_still_attempts_every_record() {
+        let attempts = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let mut registry = Registry::new();
+        registry
+            .register(
+                OutputId::new("failing"),
+                Box::new(CountingFailingOutput(attempts.clone())),
+            )
+            .unwrap();
+
+        let exporter = Arc::new(ConsoleExporterImpl::with_flush_strategy(Box::new(
+            OnShutdownFlush,
+        )));
+        exporter.init().unwrap();
+
+        let config = LoggingConfig {
+            buffering: BufferingConfig {
+                enabled: true,
+                batch_size: 3,
+                flush_interval_ms: 60_000,
+            },
+            ..LoggingConfig::default()
+        };
+        let clock: Arc<dyn Clock> = Arc::new(UtcClock);
+        let logger = KITLogger {
+            registry,
+            output_ids: vec![OutputId::new("failing")],
+            ..KITLogger::build_with_clock(
+                config,
+                exporter,
+                formatter_from_config(LogFormat::Json),
+                clock,
+            )
+        };
+
+        let record_of = |msg: &str| {
+            LogRecord::new(
+                SystemTime::now(),
+                Severity::Info,
+                msg.to_string(),
+                Vec::new(),
+            )
+            .unwrap()
+        };
+
+        logger.log_record(&record_of("one"), None).unwrap();
+        logger.log_record(&record_of("two"), None).unwrap();
+        let result = logger.log_record(&record_of("three"), None);
+
+        assert!(
+            result.is_err(),
+            "dispatch to a permanently-failing output must return Err"
+        );
+        assert_eq!(
+            attempts.load(std::sync::atomic::Ordering::SeqCst),
+            3,
+            "all 3 records in the batch must be attempted even though each fails"
+        );
     }
 
     struct VecWriter(Arc<StdMutex<Vec<u8>>>);
