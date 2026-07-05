@@ -4,9 +4,8 @@
 //! Per ADR-008 §5 (filter -> sample -> redact -> buffer -> format ->
 //! dispatch), this buffer holds raw, pre-format `LogRecord`s — it has no
 //! knowledge of formatting or output destinations. Internal to `kitlogger`
-//! (not its own crate — see design.md Q4). Not yet wired into `KITLogger`'s
-//! emission path; that is Phase 5 (Orchestration Fold), a separate future
-//! change.
+//! (not its own crate — see design.md Q4). Wired into `KITLogger`'s
+//! emission path as of the Orchestration Fold change.
 
 use std::sync::Mutex;
 

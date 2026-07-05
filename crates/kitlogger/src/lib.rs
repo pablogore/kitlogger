@@ -102,7 +102,20 @@ impl KITLogger {
         exporter: Arc<ConsoleExporterImpl>,
         formatter: Box<dyn RecordFormatter>,
     ) -> Self {
-        let clock: Arc<dyn Clock> = Arc::new(UtcClock);
+        Self::build_with_clock(config, exporter, formatter, Arc::new(UtcClock))
+    }
+
+    /// `build`'s actual implementation, parameterized over `clock` so tests
+    /// can exercise time-driven behavior (e.g. `Buffer`'s time-based flush)
+    /// deterministically, without a real sleep. Every public constructor
+    /// goes through `build`, which always supplies `UtcClock` — this exists
+    /// only for `#[cfg(test)]` use within this crate.
+    fn build_with_clock(
+        config: LoggingConfig,
+        exporter: Arc<ConsoleExporterImpl>,
+        formatter: Box<dyn RecordFormatter>,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         let enabled = config.enabled;
         let level = config.level;
         let buffering_enabled = config.buffering.enabled;
@@ -240,7 +253,15 @@ impl KITLogger {
         let redacted = self.redactor.redact(record);
         match self.buffer.add(redacted) {
             Some(batch) => self.format_and_dispatch(&batch, context),
-            None => Ok(()),
+            // FR-005: the buffer flushes on whichever of size or elapsed
+            // time is reached first. `add` above only ever resolves the
+            // size condition; the time condition is checked here, on every
+            // call that doesn't already trigger a size-based flush, so
+            // `BufferingConfig.flush_interval_ms` has an actual effect.
+            None => match self.buffer.try_flush() {
+                Some(batch) => self.format_and_dispatch(&batch, None),
+                None => Ok(()),
+            },
         }
     }
 
@@ -266,6 +287,16 @@ impl KITLogger {
     /// single-element batch containing exactly the record `context`
     /// describes. For a deferred, multi-record flush, no single record's
     /// context is knowable from here, so formatting proceeds without one.
+    ///
+    /// `batch` has already been removed from the buffer by the caller (via
+    /// `Buffer::add`/`try_flush`/`drain`, all of which `mem::take` their
+    /// internal storage) — there is no path back into the buffer for a
+    /// record once it reaches this method. A failure on one record MUST
+    /// NOT stop the remaining records in `batch` from being attempted, or
+    /// they would be lost with no trace: neither re-buffered nor dispatched.
+    /// Every record is attempted regardless of earlier failures; failures
+    /// are collected and reported together once the whole batch has been
+    /// tried.
     fn format_and_dispatch(
         &self,
         batch: &[LogRecord],
@@ -276,14 +307,22 @@ impl KITLogger {
         } else {
             context
         };
+        let mut failures = Vec::new();
         for record in batch {
-            let formatted = self
-                .formatter
-                .format(record, context)
-                .map_err(|e| AdapterError::InitializationFailed(e.to_string()))?;
-            self.dispatch(&formatted, *record.severity())?;
+            match self.formatter.format(record, context) {
+                Ok(formatted) => {
+                    if let Err(e) = self.dispatch(&formatted, *record.severity()) {
+                        failures.push(e.to_string());
+                    }
+                }
+                Err(e) => failures.push(e.to_string()),
+            }
         }
-        Ok(())
+        if failures.is_empty() {
+            Ok(())
+        } else {
+            Err(AdapterError::InitializationFailed(failures.join("; ")))
+        }
     }
 
     /// FR-010: the one place a formatted record reaches an output — always
@@ -408,5 +447,115 @@ impl ExporterAdapter for KITLogger {
 
     async fn stop(&self) -> AdapterResult<()> {
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{DateTime, Duration as ChronoDuration, Utc};
+    use kit_config::BufferingConfig;
+    use std::sync::Mutex as StdMutex;
+
+    /// Test-only, programmatically advanceable `Clock` — same rationale as
+    /// `buffer::Buffer`'s own test-only clock: the canonical `FakeClock` is
+    /// immutable after construction and can't exercise interval-elapsed
+    /// scenarios. Implements the same canonical `Clock` trait (no
+    /// competing abstraction, per ADR-010).
+    struct AdvanceableClock(StdMutex<DateTime<Utc>>);
+
+    impl AdvanceableClock {
+        fn new(start: DateTime<Utc>) -> Self {
+            AdvanceableClock(StdMutex::new(start))
+        }
+
+        fn advance(&self, duration: ChronoDuration) {
+            let mut current = self.0.lock().unwrap();
+            *current += duration;
+        }
+    }
+
+    impl Clock for AdvanceableClock {
+        fn now(&self) -> DateTime<Utc> {
+            *self.0.lock().unwrap()
+        }
+    }
+
+    struct VecWriter(Arc<StdMutex<Vec<u8>>>);
+    impl std::io::Write for VecWriter {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.0.lock().unwrap().extend_from_slice(buf);
+            Ok(buf.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    /// Regression test for FR-005: `log_record` must check the buffer's
+    /// time-based flush condition, not just its size-based one, on every
+    /// call — otherwise `BufferingConfig.flush_interval_ms` has no effect
+    /// in the actual pipeline (only `buffer::Buffer`'s own unit tests would
+    /// ever exercise `try_flush`). Uses an advanceable clock to move time
+    /// forward deterministically, without a real sleep.
+    #[test]
+    fn log_record_checks_time_based_flush_when_size_has_not_been_reached() {
+        let stdout = Arc::new(StdMutex::new(Vec::new()));
+
+        let exporter = Arc::new(ConsoleExporterImpl::with_flush_strategy(Box::new(
+            OnShutdownFlush,
+        )));
+        exporter.set_writers(
+            Box::new(VecWriter(stdout.clone())),
+            Box::new(VecWriter(stdout.clone())),
+        );
+        exporter.init().unwrap();
+
+        let config = LoggingConfig {
+            buffering: BufferingConfig {
+                enabled: true,
+                batch_size: 100, // never reached in this test
+                flush_interval_ms: 50,
+            },
+            ..LoggingConfig::default()
+        };
+        let clock = Arc::new(AdvanceableClock::new(DateTime::UNIX_EPOCH));
+        let logger = KITLogger::build_with_clock(
+            config,
+            exporter,
+            formatter_from_config(LogFormat::Json),
+            clock.clone(),
+        );
+
+        let first = LogRecord::new(
+            SystemTime::now(),
+            Severity::Info,
+            "held-then-time-flushed".to_string(),
+            Vec::new(),
+        )
+        .unwrap();
+        logger.log_record(&first, None).unwrap();
+        assert!(
+            stdout.lock().unwrap().is_empty(),
+            "a single record below batch_size must not be dispatched yet"
+        );
+
+        clock.advance(ChronoDuration::milliseconds(51));
+
+        let second = LogRecord::new(
+            SystemTime::now(),
+            Severity::Info,
+            "second".to_string(),
+            Vec::new(),
+        )
+        .unwrap();
+        logger.log_record(&second, None).unwrap();
+
+        let out = String::from_utf8(stdout.lock().unwrap().clone()).unwrap();
+        assert!(
+            out.contains("held-then-time-flushed") && out.contains("second"),
+            "elapsed flush_interval_ms must trigger a flush via the opportunistic \
+             try_flush check, dispatching both buffered records. Got: {out:?}"
+        );
     }
 }
