@@ -1066,21 +1066,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "telemetry-transport-contract"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "fastrand",
- "kit-config",
- "serde",
- "serde_json",
- "serde_test",
- "telemetry-types",
- "tokio",
- "uuid",
-]
-
-[[package]]
 name = "telemetry-types"
 version = "0.1.0"
 dependencies = [
