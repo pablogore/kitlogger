@@ -66,7 +66,12 @@ pub struct KITLogger {
     exporter: Arc<ConsoleExporterImpl>,
     formatter: Box<dyn RecordFormatter>,
     id: AdapterId,
-    config: LoggingConfig,
+    /// Materialized from `LoggingConfig` at construction (per ADR-010,
+    /// config models are construction-time only — the runtime retains just
+    /// the state it actually executes against, not the whole config).
+    enabled: bool,
+    level: LogLevel,
+    buffering_enabled: bool,
     sampler: Sampler,
     redactor: Redactor,
     buffer: buffer::Buffer,
@@ -98,9 +103,12 @@ impl KITLogger {
         formatter: Box<dyn RecordFormatter>,
     ) -> Self {
         let clock: Arc<dyn Clock> = Arc::new(UtcClock);
-        let sampler = Sampler::new(config.sampling.clone(), clock.clone());
-        let redactor = Redactor::new(config.redact.clone());
-        let buffer = buffer::Buffer::new(config.buffering.clone(), clock);
+        let enabled = config.enabled;
+        let level = config.level;
+        let buffering_enabled = config.buffering.enabled;
+        let sampler = Sampler::new(config.sampling, clock.clone());
+        let redactor = Redactor::new(config.redact);
+        let buffer = buffer::Buffer::new(config.buffering, clock);
 
         // FR-009: register a console output by default; explicitly do NOT
         // register a file-based one (see the module-level comment on
@@ -118,7 +126,9 @@ impl KITLogger {
             exporter,
             formatter,
             id: AdapterId::new("kitlogger").expect("hardcoded id should never be empty"),
-            config,
+            enabled,
+            level,
+            buffering_enabled,
             sampler,
             redactor,
             buffer,
@@ -261,7 +271,7 @@ impl KITLogger {
         batch: &[LogRecord],
         context: Option<&LogContext>,
     ) -> Result<(), AdapterError> {
-        let context = if self.config.buffering.enabled {
+        let context = if self.buffering_enabled {
             None
         } else {
             context
@@ -302,7 +312,7 @@ impl KITLogger {
     /// FR-001: `LoggingConfig.enabled == false` blocks all further pipeline
     /// processing.
     fn passes_enabled_gate(&self) -> bool {
-        self.config.enabled
+        self.enabled
     }
 
     /// FR-002: a record proceeds only if its severity is at or above the
@@ -311,7 +321,7 @@ impl KITLogger {
     /// `Ord` derive), so it is >= every threshold `level_floor` can produce,
     /// with no special-case branch required.
     fn passes_level_filter(&self, severity: &Severity) -> bool {
-        *severity >= level_floor(self.config.level)
+        *severity >= level_floor(self.level)
     }
 
     /// Flushes the underlying console exporter, having first drained and
