@@ -70,10 +70,12 @@ pub enum DispatchOutcome {
 /// record to every currently registered output.
 ///
 /// Stores each output behind an [`Arc`], not a `Box`: a caller that needs to
-/// keep calling its own methods (e.g. `init`/`flush`/`shutdown`) on the same
-/// output instance after registering it can hold onto a clone of the same
-/// `Arc` instead of wrapping it in a second, forwarding-only `Output`
-/// implementation just to hand the registry sole ownership.
+/// keep calling implementation-specific methods on the same instance after
+/// registering it (for example lifecycle methods such as `init`, `flush`,
+/// or `shutdown` — none of which are part of the `Output` trait itself) can
+/// hold onto a clone of the same `Arc` instead of wrapping it in a second,
+/// forwarding-only `Output` implementation just to hand the registry sole
+/// ownership.
 #[derive(Default)]
 pub struct Registry {
     outputs: Vec<(OutputId, Arc<dyn Output>)>,
