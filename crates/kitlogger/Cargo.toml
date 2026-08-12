@@ -15,5 +15,5 @@ kitlogger-sampling = { path = "../kitlogger-sampling" }
 kitlogger-redaction = { path = "../kitlogger-redaction" }
 output-adapter-contracts = { path = "../output-adapter-contracts" }
 file-exporter = { path = "../file-exporter" }
-kit-config = { path = "../../../kit-config/crates/kit-config", default-features = false, features = ["logging"] }
+kit-config = { git = "https://github.com/pablogore/kit-config.git", branch = "master", default-features = false, features = ["logging"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
