@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 kitlogger-log-domain = { path = "../kitlogger-log-domain" }
-kit-config = { path = "../../../kit-config/crates/kit-config", default-features = false, features = ["logging"] }
+kit-config = { git = "https://github.com/pablogore/kit-config.git", branch = "master", default-features = false, features = ["logging"] }

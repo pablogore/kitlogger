@@ -97,6 +97,7 @@ dependencies = [
 [[package]]
 name = "config-core"
 version = "0.1.0"
+source = "git+https://github.com/pablogore/kit-config.git?branch=master#526af127c7744280c00cb511810daa340ef294fb"
 dependencies = [
  "serde",
  "serde_json",
@@ -106,6 +107,7 @@ dependencies = [
 [[package]]
 name = "config-models"
 version = "0.1.0"
+source = "git+https://github.com/pablogore/kit-config.git?branch=master#526af127c7744280c00cb511810daa340ef294fb"
 dependencies = [
  "config-core",
  "serde",
@@ -491,6 +493,7 @@ dependencies = [
 [[package]]
 name = "kit-config"
 version = "0.1.0"
+source = "git+https://github.com/pablogore/kit-config.git?branch=master#526af127c7744280c00cb511810daa340ef294fb"
 dependencies = [
  "config-core",
  "config-models",
